@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+// Serve React/ReactDOM from local files instead of unpkg.com, so the app
+// works fully offline / behind firewalls that block third-party CDNs.
+window.__resources = {
+  "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "./vendor/react.production.min.js",
+  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "./vendor/react-dom.production.min.js"
+};
+</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics=""><link rel="stylesheet" href="_ds/industry-5bcfd96f-e41c-4ce9-b7c9-794f6cf4c75e/styles.css"><script src="_ds/industry-5bcfd96f-e41c-4ce9-b7c9-794f6cf4c75e/_ds_bundle.js"></script><script src="catalog-data.js"></script><script src="dims-data.js"></script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="DKM Dobór"><meta name="theme-color" content="#29265b"><meta name="mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon-180.png"><link rel="icon" sizes="192x192" href="assets/app-icon-192.png"><link rel="icon" sizes="512x512" href="assets/app-icon-512.png"><style>
+:root{
+--dkm-navy:#29265b;--dkm-blue:#17529e;--dkm-mint:#38b184;
+--color-bg:#ffffff;--color-surface:#f3f5f9;--color-text:#29265b;--color-divider:rgba(41,38,91,.18);
+--color-accent:#29265b;--color-accent-100:#eef2fa;--color-accent-200:#d8e2f2;--color-accent-300:#adbfe0;
+--color-accent-400:#7c8bc0;--color-accent-500:#29265b;--color-accent-600:#17529e;--color-accent-700:#17529e;
+--color-accent-800:#1f1d47;--color-accent-900:#1b1940;
+--color-ok:#38b184;--color-ok-bg:#e9f7f1;--color-ok-ink:#1c7d59;
+--color-warn:#c8102e;--color-warn-bg:#fdeaed;
+--color-neutral-200:#e8ebf2;--color-neutral-300:#d5dae5;--color-neutral-400:#a3abc0;
+--color-neutral-500:#7d859c;--color-neutral-700:#575e78;--color-neutral-900:#29265b;
+}
+html,body{margin:0;min-height:100%;background:
+ radial-gradient(90% 60% at 50% -10%,rgba(23,82,158,.55) 0%,rgba(23,82,158,0) 60%),
+ radial-gradient(70% 50% at 100% 108%,rgba(56,177,132,.30) 0%,rgba(56,177,132,0) 62%),
+ repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 1px,transparent 1px 40px),
+ repeating-linear-gradient(90deg,rgba(255,255,255,.055) 0 1px,transparent 1px 40px),
+ repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,transparent 1px 200px),
+ repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,transparent 1px 200px),
+ #211f4c;background-attachment:fixed;color:var(--color-text);font-family:Barlow,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+*{box-sizing:border-box}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-900)}
+button{font-family:Barlow,system-ui,sans-serif;color:inherit;-webkit-tap-highlight-color:transparent}
+input{font-family:Barlow,system-ui,sans-serif}
+input:focus-visible,button:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+::selection{background:var(--color-accent-200)}
+</style><script src="./image-slot.js"></script></helmet>
+
+<template id="__bundler_thumbnail" data-bg-color="#ffffff">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#ffffff"></rect>
+    <rect x="0" y="0" width="1200" height="14" fill="#29265b"></rect>
+    <rect x="140" y="150" width="18" height="200" fill="#29265b"></rect>
+    <rect x="190" y="150" width="600" height="46" fill="#29265b"></rect>
+    <rect x="190" y="216" width="430" height="46" fill="#17529e"></rect>
+    <rect x="190" y="300" width="500" height="16" fill="#38b184"></rect>
+    <g fill="none" stroke="#29265b" stroke-width="6">
+      <rect x="140" y="420" width="300" height="120"></rect>
+      <rect x="470" y="420" width="300" height="120"></rect>
+      <rect x="800" y="420" width="260" height="120"></rect>
+      <rect x="140" y="580" width="920" height="120"></rect>
+    </g>
+    <circle cx="930" cy="230" r="86" fill="none" stroke="#38b184" stroke-width="16"></circle>
+    <rect x="900" y="200" width="60" height="60" fill="#29265b"></rect>
+  </svg>
+</template>
+
+<div style="min-height:100vh;display:flex;flex-direction:column;background:var(--color-bg);max-width:{{ shellW }};margin:0 auto;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider);box-shadow:0 0 0 1px rgba(255,255,255,.18),0 30px 80px rgba(12,10,40,.45)">
+
+  <div style="flex:none;position:sticky;top:0;z-index:6;background:var(--color-bg);border-bottom:1px solid var(--color-divider)">
+    <div style="padding:calc(env(safe-area-inset-top) + 14px) 20px 0;display:flex;align-items:center;justify-content:{{ brandJustify }}">
+      <img src="assets/dkm-logo.png" alt="DKM Power Transmission" style="height:{{ logoH }};width:auto;display:block">
+    </div>
+    <div style="padding:12px 20px 12px;display:flex;align-items:stretch;justify-content:center;gap:12px">
+      <span style="width:4px;background:linear-gradient(180deg,var(--color-accent) 0 50%,var(--color-ok) 50% 100%);flex:none"></span>
+      <h1 style="margin:0;font:600 25px/1.06 'Barlow Condensed',sans-serif;letter-spacing:.045em;text-transform:uppercase;color:var(--color-accent)">Dobór przekładni<br><span style="color:var(--color-accent-700)">ślimakowych</span></h1>
+    </div>
+    <sc-if value="{{ showCrumbs }}">
+      <div style="padding:0 20px 11px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <button onClick="{{ goHome }}" style="min-height:34px;padding:5px 9px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700)" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">← Nowy dobór</button>
+        <span style="font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ crumbLabel }}</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex:1">
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="position:relative;padding:26px 20px 10px;overflow:hidden;background:
+        radial-gradient(120% 140% at 100% 0%,var(--color-accent-100) 0%,rgba(255,255,255,0) 62%),
+        repeating-linear-gradient(90deg,rgba(41,38,91,.05) 0 1px,transparent 1px 26px),
+        var(--color-bg);border-bottom:1px solid var(--color-divider)">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--color-accent) 0 33.33%,var(--color-accent-700) 33.33% 66.66%,var(--color-ok) 66.66% 100%)"></div>
+        <sc-if value="{{ wide }}">
+          <div style="position:relative;margin:0 0 20px;height:230px;overflow:hidden;border:1px solid var(--color-divider);background:var(--color-accent-100)">
+            <image-slot id="dkm-hero" shape="rect" fit="cover" src="assets/hero-przekladnia.png" placeholder="Przeciągnij zdjęcie przekładni ślimakowej DKM"></image-slot>
+            <div style="position:absolute;left:0;top:0;bottom:0;width:40%;padding:34px 30px;display:flex;flex-direction:column;justify-content:center;gap:10px;pointer-events:none">
+              <div style="font:600 34px/1.02 'Barlow Condensed',sans-serif;letter-spacing:.02em;text-transform:uppercase;color:#fff">Przekładnie<br>ślimakowe</div>
+              <div style="font:400 14px/1.5 Barlow,sans-serif;color:rgba(255,255,255,.82)">Korpusy DKM025 – DKM150 · moce 0,06 – 15 kW<br>Cały katalog doboru w jednym miejscu.</div>
+            </div>
+          </div>
+        </sc-if>
+        <h1 style="position:relative;margin:0;font:600 32px/1.05 'Barlow Condensed',sans-serif;letter-spacing:.005em">Od czego zaczynamy?</h1>
+        <p style="margin:8px 0 0;font:400 14.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty">Wybierz to, co już wiesz o napędzie. Pozostałe parametry uzupełnisz później — i możesz je zmienić na każdym etapie.</p>
+      </div>
+      <div style="margin:16px 20px 0;padding:11px 13px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:400 12.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)">Dobór prowadzę na <strong style="font-weight:600">silniku 1400 obr/min</strong> (4-biegunowym) — tak realizuje się większość napędów. Prędkości 900 i 2800 obr/min włączysz jednym przyciskiem w wynikach.</div>
+      <img data-tile="p1" src="assets/tile-p1.png" alt="" style="display:none">
+      <img data-tile="i" src="assets/tile-i.png" alt="" style="display:none">
+      <img data-tile="n2" src="assets/tile-n2.png" alt="" style="display:none">
+      <img data-tile="m2" src="assets/tile-m2.png" alt="" style="display:none">
+      <img data-tile="bore" src="assets/tile-bore.png" alt="" style="display:none">
+      <img data-tile="type" src="assets/tile-type.png" alt="" style="display:none">
+      <div style="padding:22px 20px 0;font:600 30px/1.14 'Barlow Condensed',sans-serif;letter-spacing:.06em;word-spacing:.14em;text-transform:uppercase;color:var(--color-accent);text-align:center;text-wrap:balance">Wybierz kryterium doboru przekładni</div>
+      <div style="padding:12px 20px 0;display:grid;grid-template-columns:{{ tileGrid }};gap:13px">
+        <sc-for list="{{ entries }}" as="e" hint-placeholder-count="5">
+          <button onClick="{{ e.go }}" style="position:relative;padding:20px 16px 22px;background:#fff;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;box-shadow:0 2px 10px rgba(41,38,91,.06)" style-hover="border-color:var(--color-accent);box-shadow:0 6px 20px rgba(41,38,91,.13)">
+            <span role="img" aria-label="{{ e.title }}" style="width:100%;height:124px;background-image:{{ e.tile }};background-size:contain;background-position:center;background-repeat:no-repeat"></span>
+            <span style="font:600 16.5px/1.25 Barlow,sans-serif;color:var(--color-accent);text-align:center;text-wrap:pretty">{{ e.short }}</span>
+            <span style="margin-top:auto;padding:7px 18px;background:var(--color-accent-200);font:600 22px/1 'Barlow Condensed',sans-serif;color:var(--color-accent);font-variant-numeric:tabular-nums">{{ e.sym }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasHist }}">
+        <div style="padding:18px 20px 0">
+          <div style="margin-top:0;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:9px">Ostatnie dobory</div>
+          <div style="display:grid;gap:7px">
+            <sc-for list="{{ histRows }}" as="h" hint-placeholder-count="2">
+              <button onClick="{{ h.go }}" style="min-height:54px;padding:10px 14px;background:transparent;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent-700);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left" style-hover="background:var(--color-accent-100);border-color:var(--color-accent);border-left-color:var(--color-accent)">
+                <span style="font:500 14.5px/1.35 Barlow,sans-serif">{{ h.label }}</span>
+                <span style="flex:none;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ h.sub }} →</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <div style="padding:16px 20px 0">
+        <button onClick="{{ browseAll }}" style="width:100%;min-height:50px;padding:13px 16px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:12px;text-align:left" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+          <span style="font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase">Przeglądaj cały katalog</span>
+          <span style="font:400 13px Barlow,sans-serif;color:var(--color-neutral-700)">{{ totalCount }} pozycji</span>
+        </button>
+      </div>
+      <div style="margin:24px 0 0;padding:26px 20px 30px;background:var(--color-accent);color:#fff">
+        <div style="font:600 24px/1.2 Barlow,sans-serif;letter-spacing:.005em">DKM Power Transmission<span style="font-weight:400;color:rgba(255,255,255,.7)"> Sp. z o.o.</span></div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:{{ footCols }};gap:16px 26px;font:400 16px/1.65 Barlow,sans-serif;color:rgba(255,255,255,.9)">
+          <div>ul. 3 Maja 20<br>87-640 Czernikowo<br>NIP 879-268-87-36</div>
+          <div style="display:grid;gap:6px"><a href="mailto:sklep@d-k-m.eu" style="color:#fff;font-weight:600;text-decoration:underline">sklep@d-k-m.eu</a><a href="tel:+48512082994" style="color:#fff;font-weight:600;text-decoration:none">+48 512 082 994</a><a href="tel:+48516645907" style="color:#fff;font-weight:600;text-decoration:none">+48 516 645 907</a></div>
+        </div>
+        <div style="margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25);font:400 12.5px/1.6 Barlow,sans-serif;color:rgba(255,255,255,.72)">
+          © 2026 DKM Power Transmission sp. z o.o. · Wszelkie prawa zastrzeżone · Proprietary &amp; Confidential
+        </div>
+        <button onClick="{{ goLegal }}" style="margin-top:12px;min-height:44px;padding:11px 14px;background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:rgba(255,255,255,.12)">Informacje prawne · RODO</button>
+        <button onClick="{{ goTerms }}" style="margin-top:10px;margin-left:10px;min-height:44px;padding:11px 14px;background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:rgba(255,255,255,.12)">Regulamin</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTerms }}">
+      <div style="width:100%;max-width:{{ docW }};margin:0 auto;padding:22px 20px 30px">
+        <button onClick="{{ closeLegal }}" style="min-height:46px;margin-bottom:16px;padding:11px 16px;background:transparent;border:1px solid var(--color-accent);color:var(--color-accent);cursor:pointer;font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-100)">← Zamknij</button>
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">{{ termsVer }}</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Regulamin korzystania z aplikacji doboru produktów DKM Power Transmission sp. z o.o.</h2>
+        <div style="height:4px;margin:14px 0 20px;background:linear-gradient(90deg,var(--color-accent) 0 34%,var(--color-accent-700) 34% 67%,var(--color-ok) 67%)"></div>
+        <div style="display:grid;gap:22px">
+          <sc-for list="{{ terms }}" as="s" hint-placeholder-count="13">
+            <div>
+              <h3 style="margin:0 0 8px;font:600 20px/1.15 'Barlow Condensed',sans-serif;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent)">{{ s.head }}</h3>
+              <div style="display:grid;gap:9px">
+                <sc-for list="{{ s.p }}" as="t" hint-placeholder-count="2">
+                  <p style="margin:0;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty">{{ t }}</p>
+                </sc-for>
+              </div>
+              <ul style="margin:9px 0 0;padding-left:20px;font:400 14px/1.65 Barlow,sans-serif;color:var(--color-neutral-700)">
+                <sc-for list="{{ s.b }}" as="x" hint-placeholder-count="0">
+                  <li>{{ x }}</li>
+                </sc-for>
+              </ul>
+              <div style="display:grid;gap:9px;margin-top:9px">
+                <sc-for list="{{ s.p2 }}" as="t" hint-placeholder-count="0">
+                  <p style="margin:0;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty">{{ t }}</p>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:24px 0 0;font:600 12.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">© 2026 DKM Power Transmission sp. z o.o. Wszelkie prawa zastrzeżone.</p>
+        <button onClick="{{ closeLegal }}" style="width:100%;min-height:52px;margin-top:20px;padding:14px;background:var(--color-accent);border:1px solid var(--color-accent);color:#fff;cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-700)">← Zamknij</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isLegal }}">
+      <div style="padding:22px 20px 30px">
+        <button onClick="{{ closeLegal }}" style="min-height:46px;margin-bottom:16px;padding:11px 16px;background:transparent;border:1px solid var(--color-accent);color:var(--color-accent);cursor:pointer;font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-100)">← Zamknij</button>
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Informacje prawne</div>
+        <h2 style="margin:5px 0 6px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Prawa własności i poufność</h2>
+        <p style="margin:0 0 14px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty">Aplikacja została opracowana dla DKM Power Transmission sp. z o.o. i stanowi własność DKM Power Transmission sp. z o.o.</p>
+        <p style="margin:0 0 14px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty">Wszelkie prawa do aplikacji, w tym w szczególności prawa do jej struktury, funkcjonalności, interfejsu, baz danych, algorytmów, metod obliczeniowych, sposobu prezentacji danych, dokumentacji technicznej, grafik, zestawień oraz generowanych formularzy i raportów, są zastrzeżone w zakresie przysługującym DKM Power Transmission sp. z o.o.</p>
+        <p style="margin:0 0 8px;font:600 14px/1.6 Barlow,sans-serif">Bez uprzedniej pisemnej zgody DKM Power Transmission sp. z o.o. zabronione jest w szczególności:</p>
+        <ul style="margin:0 0 18px;padding-left:20px;font:400 14px/1.65 Barlow,sans-serif;color:var(--color-neutral-700)">
+          <li>kopiowanie lub powielanie aplikacji albo jej elementów,</li>
+          <li>modyfikowanie, adaptowanie lub tworzenie rozwiązań pochodnych,</li>
+          <li>udostępnianie aplikacji osobom trzecim poza zakresem udzielonego uprawnienia,</li>
+          <li>dekompilowanie, reverse engineering, odtwarzanie kodu źródłowego lub sposobu działania aplikacji,</li>
+          <li>kopiowanie lub wykorzystywanie baz danych, algorytmów, metod doboru oraz dokumentacji,</li>
+          <li>wykorzystywanie aplikacji lub jej elementów do stworzenia rozwiązania konkurencyjnego.</li>
+        </ul>
+        <div style="padding:14px 15px;border-left:4px solid var(--color-accent);background:var(--color-accent-100)">
+          <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Zastrzeżenie dotyczące wyników technicznych</div>
+          <p style="margin:8px 0 12px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Wyniki obliczeń, doboru urządzeń, parametrów technicznych i konfiguracji generowane przez aplikację mają charakter pomocniczy i informacyjny.</p>
+          <p style="margin:0 0 12px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Użytkownik jest zobowiązany do zweryfikowania poprawności doboru w odniesieniu do rzeczywistych warunków pracy, parametrów instalacji, dokumentacji technicznej urządzeń oraz obowiązujących norm i przepisów — w szczególności wymaganej mocy, momentu obrotowego, prędkości obrotowej, współczynnika pracy, obciążeń promieniowych i osiowych, warunków środowiskowych oraz sposobu montażu.</p>
+          <p style="margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">DKM Power Transmission sp. z o.o. nie ponosi odpowiedzialności za skutki zastosowania wyników wygenerowanych przez aplikację bez ich odpowiedniej weryfikacji technicznej, z zastrzeżeniem odpowiedzialności, której zgodnie z obowiązującym prawem nie można wyłączyć ani ograniczyć.</p>
+        </div>
+        <h2 style="margin:26px 0 6px;font:600 26px/1.1 'Barlow Condensed',sans-serif">Polityka prywatności (RODO)</h2>
+        <p style="margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty"><strong>Administrator danych:</strong> DKM Power Transmission sp. z o.o., ul. 3 Maja 20, 87-640 Czernikowo, NIP 879-268-87-36. Kontakt w sprawach danych osobowych: <a href="mailto:sklep@d-k-m.eu">sklep@d-k-m.eu</a>.</p>
+        <div style="display:grid;gap:1px;background:var(--color-divider);border:1px solid var(--color-divider);margin-bottom:14px">
+          <div style="background:var(--color-bg);padding:12px 14px">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Jakie dane i po co</div>
+            <div style="margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Wyłącznie dane, które sam wpiszesz w zapytaniu ofertowym: firma, osoba kontaktowa, e-mail, telefon, uwagi oraz wybrane pozycje. Służą do przygotowania i przedstawienia oferty oraz kontaktu handlowego.</div>
+          </div>
+          <div style="background:var(--color-bg);padding:12px 14px">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Podstawa prawna</div>
+            <div style="margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Art. 6 ust. 1 lit. b RODO — czynności zmierzające do zawarcia umowy, oraz art. 6 ust. 1 lit. f RODO — prawnie uzasadniony interes w prowadzeniu korespondencji handlowej.</div>
+          </div>
+          <div style="background:var(--color-bg);padding:12px 14px">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Okres przechowywania</div>
+            <div style="margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Przez czas obsługi zapytania i współpracy handlowej, a następnie przez okres wymagany przepisami podatkowymi i terminami przedawnienia roszczeń.</div>
+          </div>
+          <div style="background:var(--color-bg);padding:12px 14px">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Twoje prawa</div>
+            <div style="margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Dostęp do danych, sprostowanie, usunięcie, ograniczenie przetwarzania, przenoszenie, sprzeciw oraz skarga do Prezesa Urzędu Ochrony Danych Osobowych. Podanie danych jest dobrowolne, ale niezbędne do przygotowania oferty.</div>
+          </div>
+        </div>
+        <div style="padding:14px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)">
+          <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)">Bezpieczeństwo danych</div>
+          <p style="margin:8px 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Aplikacja działa <strong>w całości na Twoim urządzeniu</strong>. Nie ma serwera, nie ma konta, nie ma logowania. Katalog i obliczenia są wbudowane w plik aplikacji, więc dobór wykonuje się offline.</p>
+          <ul style="margin:0 0 10px;padding-left:20px;font:400 13.5px/1.65 Barlow,sans-serif;color:var(--color-neutral-900)">
+            <li>Żadne wpisane dane nie są przesyłane do DKM ani do osób trzecich bez Twojego działania.</li>
+            <li>Koszyk zapytania i historia doborów są zapisywane wyłącznie w pamięci przeglądarki na Twoim urządzeniu — możesz je w każdej chwili usunąć, czyszcząc dane przeglądarki.</li>
+            <li>Aplikacja nie stosuje plików cookie do śledzenia, nie profiluje użytkowników i nie prowadzi analityki.</li>
+            <li>Zapytanie ofertowe wysyłasz sam, ze swojego programu pocztowego — treść widzisz przed wysłaniem, a dane trafiają do DKM dopiero po naciśnięciu „Wyślij”.</li>
+            <li>Korespondencja przychodząca jest przetwarzana przez upoważnionych pracowników DKM, na kontach zabezpieczonych hasłem i uwierzytelnianiem dostawcy poczty.</li>
+          </ul>
+          <p style="margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900)">Jeżeli otrzymałeś aplikację jako plik, odpowiadasz za jego przechowywanie na swoim urządzeniu zgodnie z własnymi zasadami bezpieczeństwa.</p>
+        </div>
+        <p style="margin:18px 0 0;font:400 12.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-500)">This application and its components are proprietary to DKM Power Transmission sp. z o.o. Unauthorized copying, modification, distribution or use is prohibited.</p>
+        <p style="margin:8px 0 0;font:600 12.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">© 2026 DKM Power Transmission sp. z o.o. All rights reserved.</p>
+        <button onClick="{{ closeLegal }}" style="width:100%;min-height:52px;margin-top:20px;padding:14px;background:var(--color-accent);border:1px solid var(--color-accent);color:#fff;cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-700)">← Zamknij</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskP1 }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Moc silnika P<sub style="font-size:.5em">1n</sub></h2>
+        <p style="margin:0 0 18px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Moc znamionowa silnika przyłączanego do przekładni.</p>
+        <div style="margin:0 0 16px;padding:8px 11px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:500 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-ok-ink)">{{ poolNoteAll }}</div>
+        <div style="display:grid;grid-template-columns:{{ powerCols }};gap:11px">
+          <sc-for list="{{ p1List }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.go }}" style="min-height:70px;padding:15px 17px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:14px;text-align:left" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+              <span style="font:600 36px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ p.label }}<span style="font-size:16px;color:var(--color-neutral-700)"> kW</span></span>
+              <span style="text-align:right;font:400 13px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">{{ p.countLabel }}<br>M₂ {{ p.m2Label }} Nm</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskI }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Przełożenie i</h2>
+        <p style="margin:0 0 18px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Prędkość obrotowa na wale wyjściowym n₂ = n₁ / i. Przy i ≥ 60 sprawdź samohamowność w karcie.</p>
+        <div style="margin:0 0 16px;padding:8px 11px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:500 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-ok-ink)">{{ poolNoteAll }}</div>
+        <div style="display:grid;grid-template-columns:{{ tileCols }};gap:10px">
+          <sc-for list="{{ iList }}" as="it" hint-placeholder-count="11">
+            <button onClick="{{ it.go }}" style="min-height:66px;padding:10px 5px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+              <span style="font:600 26px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ it.label }}</span>
+              <span style="font:400 12px Barlow,sans-serif;color:var(--color-neutral-700)">{{ it.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ cardOpen }}">
+      <div onClick="{{ closeCard }}" style="position:fixed;inset:0;z-index:60;background:rgba(41,38,91,.92);overflow:auto;padding:16px;cursor:zoom-out">
+        <div style="max-width:1000px;margin:0 auto">
+          <div style="display:flex;justify-content:flex-end;padding-bottom:10px">
+            <button onClick="{{ closeCard }}" style="min-height:44px;padding:10px 16px;background:#fff;color:var(--color-accent);border:0;cursor:pointer;font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase">Zamknij ✕</button>
+          </div>
+          <div role="img" aria-label="Karta wymiarowa" style="width:100%;aspect-ratio:{{ cardRatio }};background-color:#fff;background-image:{{ cardZoomBg }};background-size:contain;background-position:center;background-repeat:no-repeat"></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskN2 }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Prędkość obrotowa na wale wyjściowym n₂</h2>
+        <p style="margin:0 0 18px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Prędkości obrotowe wału wyjściowego dostępne w katalogu. Po wybraniu zobaczysz wszystkie moce i przełożenia, które je dają.</p>
+        <div style="margin:0 0 16px;padding:8px 11px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:500 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-ok-ink)">{{ poolNote }}</div>
+        <div style="display:grid;grid-template-columns:{{ tileCols }};gap:9px">
+          <sc-for list="{{ n2List }}" as="o" hint-placeholder-count="18">
+            <button onClick="{{ o.go }}" style="min-height:64px;padding:9px 4px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+              <span style="font:600 22px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ o.label }}</span>
+              <span style="font:400 11.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ o.count }} poz.</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskType }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Typ przekładni</h2>
+        <p style="margin:0 0 16px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Wpisz oznaczenie wielkości — wystarczy sam numer, np. 090. Pokażę wszystkie warianty tej przekładni.</p>
+        <input value="{{ typeQ }}" onChange="{{ setTypeQ }}" placeholder="np. DKM090 lub 090" style="width:100%;min-height:56px;padding:13px 15px;background:var(--color-surface);border:1px solid var(--color-divider);color:var(--color-text);font:600 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em">
+        <sc-if value="{{ hasTypeHits }}">
+          <div style="margin-top:12px;display:grid;gap:7px">
+            <sc-for list="{{ typeHits }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.go }}" style="min-height:56px;padding:12px 15px;background:var(--color-bg);border:1px solid var(--color-accent-300);border-left:4px solid var(--color-accent);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+                <span style="font:600 22px 'Barlow Condensed',sans-serif;letter-spacing:.04em;color:var(--color-accent)">{{ t.label }}</span>
+                <span style="font:400 13.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ t.count }} →</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskBore }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Średnica wału Ød</h2>
+        <p style="margin:0 0 18px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Wybierz średnicę wałka, na który przekładnia ma być nasadzona. Pokażę wielkości, których tuleja drążona (H7) pasuje na tę średnicę.</p>
+        <div style="display:grid;grid-template-columns:{{ tileCols }};gap:9px">
+          <sc-for list="{{ boreList }}" as="o" hint-placeholder-count="12">
+            <button onClick="{{ o.go }}" style="min-height:74px;padding:10px 6px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">
+              <span style="font:600 24px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ o.label }}</span>
+              <span style="font:400 11.5px Barlow,sans-serif;color:var(--color-neutral-700)">DKM {{ o.boxes }}</span>
+              <sc-if value="{{ o.optOnly }}">
+                <span style="font:600 10px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">na zapytanie</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAskM2 }}">
+      <div style="padding:22px 20px 26px">
+        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)">Kryterium wejściowe</div>
+        <h2 style="margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif">Wymagania maszyny</h2>
+        <p style="margin:0 0 18px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Podaj moment obrotowy na wale wyjściowym. Prędkość obrotowa jest opcjonalna — bez niej pokażę wszystkie przełożenia.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label style="display:block">
+            <span style="display:block;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:5px">Moment obrotowy M₂ (Nm)</span>
+            <input value="{{ m2In }}" onChange="{{ setM2 }}" inputmode="decimal" placeholder="np. 45" style="width:100%;min-height:52px;padding:10px 12px;background:transparent;border:1px solid var(--color-divider);color:var(--color-text);font:600 22px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">
+            <span style="display:block;margin-top:6px;font:400 12px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">Wpisz moment, jaki musi mieć wał wyjściowy przekładni.</span>
+          </label>
+          <label style="display:block">
+            <span style="display:block;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:5px">Prędkość obrotowa n₂ (obr/min)</span>
+            <input value="{{ n2In }}" onChange="{{ setN2 }}" inputmode="decimal" placeholder="np. 28" style="width:100%;min-height:52px;padding:10px 12px;background:transparent;border:1px solid var(--color-divider);color:var(--color-text);font:600 22px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">
+            <span style="display:block;margin-top:6px;font:400 12px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">Wpisz prędkość obrotową wału wyjściowego. Pole możesz zostawić puste — pokażę wszystkie przełożenia.</span>
+          </label>
+        </div>
+        <div style="margin-top:20px;display:grid;gap:16px">
+          <div>
+            <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px">Typ obciążenia</div>
+            <div style="display:grid;gap:7px">
+              <sc-for list="{{ loadOpts }}" as="d" hint-placeholder-count="3">
+                <button onClick="{{ d.go }}" style="min-height:52px;padding:9px 12px;background:{{ d.bg }};color:{{ d.fg }};border:1px solid var(--color-divider);cursor:pointer;text-align:left" style-hover="border-color:var(--color-accent)">
+                  <span style="display:block;font:600 14px Barlow,sans-serif">{{ d.label }}</span>
+                  <span style="display:block;margin-top:2px;font:400 11.5px Barlow,sans-serif;color:{{ d.dg }}">{{ d.desc }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px">Czas pracy na dobę</div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px">
+              <sc-for list="{{ hourOpts }}" as="d" hint-placeholder-count="4">
+                <button onClick="{{ d.go }}" style="min-height:46px;padding:8px 4px;background:{{ d.bg }};color:{{ d.fg }};border:1px solid var(--color-divider);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif" style-hover="border-color:var(--color-accent)">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px">Częstotliwość rozruchów Z (1/h)</div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px">
+              <sc-for list="{{ zOpts }}" as="d" hint-placeholder-count="8">
+                <button onClick="{{ d.go }}" style="min-height:46px;padding:8px 4px;background:{{ d.bg }};color:{{ d.fg }};border:1px solid var(--color-divider);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums" style-hover="border-color:var(--color-accent)">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px">Temperatura otoczenia</div>
+            <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px">
+              <sc-for list="{{ tempOpts }}" as="d" hint-placeholder-count="5">
+                <button onClick="{{ d.go }}" style="min-height:46px;padding:8px 3px;background:{{ d.bg }};color:{{ d.fg }};border:1px solid var(--color-divider);cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif" style-hover="border-color:var(--color-accent)">{{ d.label }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ tempHasNote }}">
+              <div style="margin-top:7px;font:400 11.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">{{ tempNote }}</div>
+            </sc-if>
+          </div>
+          <div style="padding:13px 14px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok)">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+              <span style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)">Wymagane fs</span>
+              <span style="font:600 30px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ fsHeadline }}</span>
+            </div>
+            <div style="margin-top:6px;font:400 12px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">{{ fsFormula }}</div>
+          </div>
+          <sc-if value="{{ serviceCall }}">
+            <div style="padding:12px 14px;background:var(--color-accent-100);border-left:4px solid var(--color-accent)">
+              <div style="font:600 13px/1.45 Barlow,sans-serif;color:var(--color-accent)">Powyżej 60 °C katalog nie podaje współczynnika korekcyjnego — wymagane fs ustala serwis techniczny DKM. Lista poniżej jest filtrowana wykresem bez korekty temperaturowej i jest doborem wstępnym.</div>
+            </div>
+          </sc-if>
+        </div>
+        <button class="blueprint" onClick="{{ runM2 }}" style="position:relative;margin-top:20px;width:100%;min-height:56px;padding:15px;background:var(--color-accent);color:var(--color-bg);border:1px solid var(--color-accent);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase" style-hover="background:var(--color-accent-600);border-color:var(--color-accent-600)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          Szukaj przekładni
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isResults }}">
+      <div style="display:grid;grid-template-columns:{{ resCols }};align-items:start">
+        <div style="border-right:{{ leftBorder }}">
+        <div style="padding:15px 20px 16px;background:var(--color-bg);border-top:3px solid var(--color-accent);border-bottom:1px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <span style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--color-neutral-700)">Proponowany dobór · Twoje kryteria</span>
+            <span style="display:flex;align-items:baseline;gap:6px"><span style="font:600 27px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ count }}</span><span style="font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)">z {{ totalCount }} pozycji</span></span>
+          </div>
+          <div style="margin-top:11px;display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="2">
+              <button onClick="{{ c.clear }}" style="min-height:42px;padding:8px 12px;background:var(--color-accent-100);color:var(--color-accent);border:1px solid var(--color-accent);border-left:4px solid var(--color-ok);cursor:pointer;font:600 14.5px Barlow,sans-serif;display:flex;align-items:center;gap:10px" style-hover="background:var(--color-accent-200)">{{ c.label }}<span style="font-size:13px;color:var(--color-accent-700)">✕</span></button>
+            </sc-for>
+            <sc-if value="{{ noChips }}">
+              <span style="min-height:42px;padding:11px 0;font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)">Cały katalog — bez filtrów</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ stdOn }}">
+            <div style="margin-top:11px;padding:10px 12px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+              <span style="flex:1 1 190px;font:400 12.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-900)">Dobieram na <strong style="font-weight:600">silniku 4-biegunowym 1400 obr/min</strong> — tak realizuje się większość napędów.</span>
+              <button onClick="{{ showAllRpm }}" style="min-height:38px;padding:8px 11px;background:transparent;border:1px solid var(--color-ok-ink);color:var(--color-ok-ink);cursor:pointer;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase" style-hover="background:#fff">Pokaż też 900 i 2800</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ stdOff }}">
+            <div style="margin-top:11px;padding:10px 12px;background:var(--color-accent-100);border-left:4px solid var(--color-accent-700);display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+              <span style="flex:1 1 190px;font:400 12.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-900)">Widzisz wszystkie prędkości silnika: 900, 1400 i 2800 obr/min.</span>
+              <button onClick="{{ backToStd }}" style="min-height:38px;padding:8px 11px;background:transparent;border:1px solid var(--color-accent-700);color:var(--color-accent-700);cursor:pointer;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase" style-hover="background:#fff">Tylko standard 1400</button>
+            </div>
+          </sc-if>
+          <button onClick="{{ toggleRefine }}" style="margin-top:12px;width:100%;min-height:46px;padding:11px;background:transparent;color:var(--color-accent-700);border:1px solid var(--color-accent-700);cursor:pointer;font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-100)">{{ refineLabel }}</button>
+        
+        </div>
+
+        <sc-if value="{{ refineOpen }}">
+          <div style="padding:15px 20px 17px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);display:grid;gap:14px">
+            <sc-for list="{{ refineGroups }}" as="g" hint-placeholder-count="7">
+              <div>
+                <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:6px">{{ g.label }} {{ g.unit }}</div>
+                <div style="display:grid;grid-template-columns:repeat({{ g.cols }},minmax(0,1fr));gap:6px">
+                  <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="8">
+                    <button onClick="{{ o.go }}" style="min-height:46px;padding:6px 3px;background:{{ o.bg }};color:{{ o.fg }};border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px" style-hover="border-color:var(--color-accent)">
+                      <span style="font:600 14px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ o.label }}</span>
+                      <span style="font:400 9.5px Barlow,sans-serif;color:{{ o.cg }}">{{ o.count }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <label style="display:block">
+              <span style="display:block;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:5px">Moment obrotowy M₂ min (Nm)</span>
+              <input value="{{ m2In }}" onChange="{{ setM2 }}" inputmode="decimal" placeholder="—" style="width:100%;min-height:46px;padding:9px 11px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:600 19px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">
+            </label>
+          </div>
+        </sc-if>
+
+        </div>
+        <div>
+        <sc-if value="{{ showStep }}">
+          <div style="padding:14px 20px 16px;background:var(--color-accent-100);border-bottom:1px solid var(--color-divider)">
+            <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Zawęź dobór — wybierz kryterium, które znasz</div>
+            <div style="margin:4px 0 10px;font:400 12.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">{{ nextStep.hint }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+              <sc-for list="{{ stepTabs }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.pick }}" style="min-height:40px;padding:7px 12px;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }};cursor:pointer;font:600 13px Barlow,sans-serif;display:flex;align-items:center;gap:7px" style-hover="border-color:var(--color-accent)">
+                  {{ t.label }}
+                  <span style="font:400 11.5px Barlow,sans-serif;opacity:.65">{{ t.count }}</span>
+                  <sc-if value="{{ t.sug }}">
+                    <span style="padding:2px 5px;background:var(--color-ok-bg);color:var(--color-ok-ink);font:600 9.5px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase">sugerowane</span>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+            <div style="font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">{{ nextStep.title }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ nextStep.opts }}" as="o" hint-placeholder-count="6">
+                <button onClick="{{ o.go }}" style="min-height:44px;padding:7px 12px;background:var(--color-bg);border:1px solid var(--color-accent-300);cursor:pointer;display:flex;align-items:baseline;gap:7px" style-hover="border-color:var(--color-accent);background:#fff">
+                  <span style="font:600 16px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ o.label }}</span>
+                  <span style="font:400 11px Barlow,sans-serif;color:var(--color-neutral-500)">{{ o.count }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:11px 20px;border-bottom:1px solid var(--color-divider);font:600 13px/1.3 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-700)">
+          <span>Przekładnia</span>
+          <span style="text-align:right">Prędkość obrotowa<br>przełożenie</span>
+          <span style="text-align:right;min-width:76px">Moment obrotowy<br>wsp. bezpieczeństwa fs</span>
+        </div>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.go }}" style="width:100%;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:13px 20px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);cursor:pointer;text-align:left;min-height:64px" style-hover="background:var(--color-accent-100)">
+            <span>
+              <span style="display:block;font:600 16.5px/1.15 Barlow,sans-serif">{{ r.box }}</span>
+              <span style="display:block;margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ r.p1 }} kW · {{ r.rpmLabel }} · {{ r.flange }}</span>
+              <span style="display:block;margin-top:5px;font:600 11.5px Barlow,sans-serif;color:{{ r.noteColor }};display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;background:{{ r.noteColor }};flex:none"></span>{{ r.note }}</span>
+            </span>
+            <span style="text-align:right;font-variant-numeric:tabular-nums">
+              <span style="display:block;font:500 15px Barlow,sans-serif">{{ r.n2 }}<span style="font:400 10.5px Barlow,sans-serif;color:var(--color-neutral-700)"> obr/min</span></span>
+              <span style="display:block;font:400 12px Barlow,sans-serif;color:var(--color-neutral-700)">i {{ r.i }}</span>
+            </span>
+            <span style="text-align:right;min-width:76px;font-variant-numeric:tabular-nums">
+              <span style="display:block;font:600 23px/1 'Barlow Condensed',sans-serif">{{ r.m2 }}<span style="font:400 10.5px Barlow,sans-serif;color:var(--color-neutral-700)"> Nm</span></span>
+              <span style="display:block;margin-top:3px;padding:2px 6px;background:{{ r.fsBg }};color:{{ r.fsFg }};font:600 11px Barlow,sans-serif">fs {{ r.fs }}</span>
+            </span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ empty }}">
+          <div style="padding:24px 20px 26px">
+            <div style="font:400 14.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Brak pozycji dla tych kryteriów. Usuń jedno z kryteriów powyżej albo zmniejsz wymagany moment.</div>
+            <div style="margin-top:14px;padding:14px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent)">
+              <div style="font:600 16px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent)">Nie ma tego w katalogu?</div>
+              <div style="margin-top:5px;font:400 13.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">DKM wykonuje też przekładnie poza katalogiem. Wyślij swoje parametry — doradca zaproponuje rozwiązanie.</div>
+              <button onClick="{{ askAdvisor }}" style="margin-top:12px;width:100%;min-height:50px;padding:13px;background:var(--color-accent);color:#fff;border:1px solid var(--color-accent);cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-600);border-color:var(--color-accent-600)">Zapytaj DKM o dobór</button>
+              <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <a href="tel:+48512082994" style="min-height:46px;padding:11px;border:1px solid var(--color-divider);color:var(--color-accent);text-decoration:none;display:flex;align-items:center;justify-content:center;font:600 16px 'Barlow Condensed',sans-serif">+48 512 082 994</a>
+                <a href="tel:+48516645907" style="min-height:46px;padding:11px;border:1px solid var(--color-divider);color:var(--color-accent);text-decoration:none;display:flex;align-items:center;justify-content:center;font:600 16px 'Barlow Condensed',sans-serif">+48 516 645 907</a>
+              </div>
+            </div>
+            <sc-if value="{{ stdBlocks }}">
+              <div style="margin-top:14px;padding:12px 13px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok)">
+                <div style="font:400 13px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)">Ogranicza Cię filtr standardowego silnika <strong style="font-weight:600">1400 obr/min</strong>. {{ otherRpmNote }}</div>
+                <button onClick="{{ showAllRpm }}" style="margin-top:10px;min-height:44px;padding:10px 13px;background:var(--color-ok-ink);border:1px solid var(--color-ok-ink);color:#fff;cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase">Pokaż też 900 i 2800 obr/min</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}">
+      <div style="width:100%;max-width:{{ docW }};margin:0 auto">
+        <div style="padding:17px 20px 15px;border-bottom:1px solid var(--color-divider)">
+          <button onClick="{{ back }}" style="min-height:40px;padding:0;background:transparent;border:0;cursor:pointer;font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">{{ backLabel }}</button>
+          <span style="display:inline-block;margin-top:4px;padding:5px 9px;background:var(--color-accent);color:#fff;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase">Proponowany dobór</span>
+          <h2 style="margin:6px 0 4px;font:600 31px/1.02 'Barlow Condensed',sans-serif">{{ sel.box }}</h2>
+          <div style="font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)">{{ sel.p1 }} kW · {{ sel.rpmLabel }} · {{ sel.flange }}</div>
+          <div style="margin-top:10px;padding:11px 13px;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent-700);background:var(--color-accent-100);font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900)">Poniższe dane są <strong>propozycją doboru</strong> na podstawie wpisanych parametrów — przed zamówieniem zweryfikuj je względem rzeczywistych warunków pracy maszyny.</div>
+        </div>
+        
+        <sc-if value="{{ hasCard }}">
+        <div style="margin:18px 20px 0;border:1px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--color-accent);color:#fff">
+            <span style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase">Karta wymiarowa · {{ sel.box }}</span>
+            <button onClick="{{ openCard }}" style="min-height:34px;padding:6px 10px;background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff;cursor:pointer;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase" style-hover="background:rgba(255,255,255,.15)">Powiększ</button>
+          </div>
+          <button onClick="{{ openCard }}" style="display:block;width:100%;padding:0;border:0;background:var(--color-bg);cursor:zoom-in">
+            <div role="img" aria-label="Karta wymiarowa" style="width:100%;aspect-ratio:{{ cardRatio }};background-image:{{ cardBg }};background-size:contain;background-position:center;background-repeat:no-repeat"></div>
+          </button>
+        </div>
+        </sc-if>
+        <div style="padding:16px 20px 0;display:grid;grid-template-columns:{{ specCols }};column-gap:26px">
+          <sc-for list="{{ specs }}" as="s" hint-placeholder-count="7">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+              <span style="font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)">{{ s.k }}</span>
+              <span style="font:600 16px Barlow,sans-serif;font-variant-numeric:tabular-nums;text-align:right">{{ s.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasBore }}">
+          <div style="margin:18px 20px 0;border:1px solid var(--color-divider)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--color-accent);color:#fff">
+              <span style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase">Wał wyjściowy</span>
+              <span style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-ok)">w standardzie</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--color-divider)">
+              <div style="background:var(--color-bg);padding:14px 14px 13px">
+                <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-500)">Tuleja drążona</div>
+                <div style="margin-top:5px;font:600 30px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ boreStd }}</div>
+              </div>
+              <div style="background:var(--color-bg);padding:14px 14px 13px">
+                <div style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-500)">Rowek wpustowy</div>
+                <div style="margin-top:5px;font:600 30px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ boreKeyVal }}</div>
+              </div>
+            </div>
+            <sc-if value="{{ hasBoreOpt }}">
+              <div style="padding:11px 14px;border-top:1px solid var(--color-divider);background:var(--color-accent-100);display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
+                <span style="font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Na zapytanie</span>
+                <span style="font:500 13.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-900)">{{ boreOptShort }}</span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+        <div style="padding:16px 20px 0">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--color-divider);border:1px solid var(--color-divider)">
+          <sc-for list="{{ headline }}" as="h" hint-placeholder-count="3">
+            <div style="background:var(--color-bg);padding:12px 11px">
+              <div style="font: 600 21px 'Barlow Condensed',sans-serif; letter-spacing: .04em; color: var(--color-accent)">{{ h.k }}</div>
+              <div style="margin-top:3px;font:400 12.5px/1.35 Barlow,sans-serif;color:var(--color-neutral-700)">{{ h.d }}</div>
+              <div style="margin-top:5px;font:600 30px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ h.v }}<span style="font-size:17px;color:var(--color-neutral-700)"> {{ h.u }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+        </div><div style="margin:18px 20px 0;border:1px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--color-accent);color:#fff">
+            <span style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase">Sposób mocowania</span>
+            <span style="font:400 11px Barlow,sans-serif;color:rgba(255,255,255,.7)">wybierz do zapytania</span>
+          </div>
+          <div style="display:grid;gap:0">
+            <div style="padding:13px 14px;display:grid;grid-template-columns:{{ mountTileCols }};gap:10px">
+              <sc-for list="{{ mountAll }}" as="o" hint-placeholder-count="6">
+                <button onClick="{{ o.pick }}" disabled="{{ o.off }}" style="min-height:220px;padding:10px 8px 12px;background:{{ o.tile }};color:{{ o.fg }};border:1px solid {{ o.mark }};cursor:pointer;opacity:{{ o.opac }};display:flex;flex-direction:column;align-items:center;gap:8px" style-hover="filter:brightness(.97)">
+                  <span role="img" aria-label="{{ o.l }}" style="width:100%;max-width:130px;margin:0 auto;aspect-ratio:1 / 1;background-color:#fff;background-image:{{ o.pic }};background-size:contain;background-position:center;background-repeat:no-repeat"></span>
+                  <span style="font:600 14.5px/1.25 Barlow,sans-serif;text-align:center;text-wrap:balance">{{ o.l }}</span>
+                  <span style="margin-top:auto;font:600 10.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:.7">{{ o.status }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div>
+                  <sc-for list="{{ mountAll }}" as="o" hint-placeholder-count="6">
+                    <div>
+                      <sc-if value="{{ o.sel }}">
+                        <div style="padding:13px 14px;background:var(--color-accent-100);border-bottom:1px solid var(--color-divider)">
+                          <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">{{ o.detailTitle }}</div>
+                          <sc-if value="{{ o.hasImg }}">
+                            <div role="img" aria-label="Rysunek wymiarowy" style="margin:10px auto 0;width:100%;max-width:{{ drawMax }};aspect-ratio:{{ o.ratio }};background-color:#fff;background-image:{{ o.img }};background-size:contain;background-position:center;background-repeat:no-repeat;border:1px solid var(--color-divider)"></div>
+                          </sc-if>
+                          <sc-if value="{{ o.hasRows }}">
+                            <div style="margin-top:10px;display:grid;grid-template-columns:{{ o.cols }};gap:1px;background:var(--color-divider);border:1px solid var(--color-divider)">
+                              <sc-for list="{{ o.rows }}" as="d" hint-placeholder-count="4">
+                                <div style="background:#fff;padding:11px 13px">
+                                  <div style="font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:.06em;color:var(--color-accent)">{{ d.k }}</div>
+                                  <div style="margin-top:3px;font:600 22px/1.05 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ d.v }}</div>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ o.note }}">
+                            <div style="margin-top:9px;padding-left:10px;border-left:3px solid var(--color-accent-300);font:400 13px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">{{ o.note }}</div>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+            </div>
+            <sc-if value="{{ hasMountPick }}">
+              <div style="margin:13px 14px;padding:10px 12px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:500 13px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)">Wybrano: {{ mountPicked }} — trafi do zapytania i na kartę PDF.</div>
+            </sc-if>
+        </div>
+        <div style="margin:30px 20px 0;padding-top:22px;border-top:3px solid var(--color-accent);font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--color-neutral-500)">Wyposażenie opcjonalne</div>
+        <div style="margin:12px 20px 0;border:1px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);border-left:4px solid var(--color-ok)">
+            <span style="font:600 14px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Akcesoria</span>
+            <span style="font:400 12px Barlow,sans-serif;color:var(--color-neutral-700)">dodaj do zapytania</span>
+          </div>
+          <div>
+            <div style="padding:13px 14px;display:grid;grid-template-columns:{{ mountTileCols }};gap:10px">
+              <sc-for list="{{ accAll }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.pick }}" style="min-height:220px;padding:10px 8px 12px;background:{{ o.tile }};color:{{ o.fg }};border:1px solid {{ o.lineMark }};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px" style-hover="filter:brightness(.97)">
+                  <span role="img" aria-label="{{ o.l }}" style="width:100%;max-width:130px;margin:0 auto;aspect-ratio:1 / 1;background-color:#fff;background-image:{{ o.pic }};background-size:contain;background-position:center;background-repeat:no-repeat"></span>
+                  <span style="font:600 14.5px/1.25 Barlow,sans-serif;text-align:center;text-wrap:balance">{{ o.l }}</span>
+                  <span style="margin-top:auto;font:600 10.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:.7">{{ o.status }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div>
+                <sc-for list="{{ accAll }}" as="o" hint-placeholder-count="3">
+                  <div>
+                    <sc-if value="{{ o.sel }}">
+                      <div style="padding:13px 14px;background:var(--color-accent-100);border-bottom:1px solid var(--color-divider)">
+                        <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">{{ o.detailTitle }}</div>
+                        <sc-if value="{{ o.hasImg }}">
+                          <div role="img" aria-label="Rysunek wymiarowy" style="margin:10px auto 0;width:100%;max-width:{{ drawMax }};aspect-ratio:{{ o.ratio }};background-color:#fff;background-image:{{ o.img }};background-size:contain;background-position:center;background-repeat:no-repeat;border:1px solid var(--color-divider)"></div>
+                        </sc-if>
+                        <sc-if value="{{ o.hasRows }}">
+                          <div style="margin-top:10px;display:grid;grid-template-columns:{{ o.cols }};gap:1px;background:var(--color-divider);border:1px solid var(--color-divider)">
+                            <sc-for list="{{ o.rows }}" as="d" hint-placeholder-count="8">
+                              <div style="background:#fff;padding:11px 13px">
+                                <div style="font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:.06em;color:var(--color-accent)">{{ d.k }}</div>
+                                <div style="margin-top:3px;font:600 22px/1.05 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ d.v }}</div>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+            </div>
+            <sc-if value="{{ hasAcc }}">
+              <div style="margin:13px 14px;padding:10px 12px;background:var(--color-ok-bg);border-left:4px solid var(--color-ok);font:500 13px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)">Wybrano: {{ accPicked }} — trafi do zapytania i na kartę PDF.</div>
+            </sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ hasDims }}">
+          <div style="padding:18px 20px 0">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:8px">Wymiary korpusu {{ sel.box }}</div>
+            <div style="display:grid;grid-template-columns:{{ specCols }};column-gap:26px">
+              <sc-for list="{{ dimRows }}" as="d" hint-placeholder-count="6">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--color-divider)">
+                  <span style="font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)">{{ d.k }}</span>
+                  <span style="font:600 16px Barlow,sans-serif;font-variant-numeric:tabular-nums;text-align:right">{{ d.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sel.edge }}">
+          <div style="margin:16px 20px 0;padding:12px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent-700);background:var(--color-accent-100)">
+            <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)">fs = {{ sel.fs }} · na granicy</div>
+            <div style="margin-top:5px;font:400 13.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">Gwarancja obowiązuje, ale nie ma zapasu na rozruchy i przeciążenia. Przy częstych rozruchach rozważ większy typ przekładni.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sel.warnOnly }}">
+          <div style="margin:16px 20px 0;padding:13px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent);background:var(--color-accent-100)">
+            <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-900)">fs = {{ sel.fs }} · poniżej wymaganego {{ fsReq }}</div>
+            <div style="margin-top:5px;font:400 13.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">Zbyt mały zapas na rozruchy i przeciążenia. Wybierz większy typ przekładni albo mniejsze przełożenie.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sel.noWty }}">
+          <div style="margin:16px 20px 0;padding:14px 15px;border:1px solid var(--color-warn);border-left:5px solid var(--color-warn);background:var(--color-warn)">
+            <div style="font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#fff">fs = {{ sel.fs }} · poniżej 1,0 — dostawa bez gwarancji</div>
+            <div style="margin-top:6px;font:400 13.5px/1.5 Barlow,sans-serif;color:rgba(255,255,255,.86)">DKM realizuje takie zamówienie na życzenie klienta, ale nie obejmuje go gwarancją. Zapisz to w zapytaniu ofertowym albo wybierz większy typ przekładni.</div>
+          </div>
+        </sc-if>
+        <div style="padding:18px 20px 24px;display:grid;gap:10px">
+          <button class="blueprint" onClick="{{ addToRfq }}" style="position:relative;min-height:56px;padding:15px;background:var(--color-accent);color:var(--color-bg);border:1px solid var(--color-accent);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase" style-hover="background:var(--color-accent-600);border-color:var(--color-accent-600)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            {{ rfqLabel }}
+          </button>
+          <div style="display:grid;grid-template-columns:{{ pdfCols }};gap:10px">
+            <button onClick="{{ printSheet }}" style="min-height:50px;padding:13px;background:transparent;border:1px solid var(--color-accent);color:var(--color-accent);cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-100)">PDF · pełne dane</button>
+            <sc-if value="{{ hasCard }}">
+              <button onClick="{{ printCard }}" style="width:100%;min-height:50px;padding:13px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">PDF · sam rysunek</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRfq }}">
+      <div style="width:100%;max-width:{{ docW }};margin:0 auto">
+        <div style="padding:17px 20px 14px;border-bottom:1px solid var(--color-divider);display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+          <h2 style="margin:0;font:600 28px/1 'Barlow Condensed',sans-serif">Zapytanie ofertowe</h2>
+          <button onClick="{{ closeRfq }}" style="min-height:40px;padding:0 2px;background:transparent;border:0;cursor:pointer;font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Zamknij</button>
+        </div>
+        <sc-for list="{{ rfqRows }}" as="r" hint-placeholder-count="1">
+          <div style="padding:14px 20px;border-bottom:1px solid var(--color-divider);display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
+            <div>
+              <button onClick="{{ r.open }}" style="padding:0;background:transparent;border:0;cursor:pointer;font:600 17px/1.15 Barlow,sans-serif;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:3px;text-align:left" style-hover="color:var(--color-accent)">{{ r.box }} · karta produktu →</button>
+              <div style="margin-top:3px;font:400 12.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)">{{ r.specLine }} · szt. {{ r.qty }}</div>
+              <sc-if value="{{ r.hasFs }}">
+                <span style="display:inline-block;margin-top:6px;padding:3px 8px;background:{{ r.fsBg }};color:{{ r.fsColor }};font:600 11.5px Barlow,sans-serif">{{ r.fsLine }}</span>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onClick="{{ r.dec }}" style="min-height:44px;min-width:40px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;font:600 19px 'Barlow Condensed',sans-serif;color:var(--color-accent)" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">−</button>
+              <span style="min-width:34px;text-align:center;font:600 18px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums">{{ r.qty }}</span>
+              <button onClick="{{ r.inc }}" style="min-height:44px;min-width:40px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;font:600 19px 'Barlow Condensed',sans-serif;color:var(--color-accent)" style-hover="background:var(--color-accent-100);border-color:var(--color-accent)">+</button>
+              <button onClick="{{ r.remove }}" style="min-height:44px;min-width:44px;margin-left:4px;background:transparent;border:1px solid var(--color-divider);cursor:pointer;font:600 15px Barlow,sans-serif;color:var(--color-neutral-700)" style-hover="background:var(--color-warn-bg);border-color:var(--color-warn);color:var(--color-warn)">✕</button>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ rfqEmpty }}">
+          <div style="padding:26px 20px;font:400 14.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)">Brak pozycji. Dodaj przekładnię z karty produktu.</div>
+        </sc-if>
+        <sc-if value="{{ rfqNoWty }}">
+          <div style="margin:16px 20px 0;padding:13px 15px;background:var(--color-warn);border-left:5px solid var(--color-warn)">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#fff">Uwaga do zapytania</div>
+            <div style="margin-top:5px;font:400 13px/1.5 Barlow,sans-serif;color:rgba(255,255,255,.88)">Zapytanie zawiera pozycje o fs poniżej 1,0. DKM realizuje je na życzenie klienta bez gwarancji — adnotacja trafi do treści zapytania.</div>
+          </div>
+        </sc-if>
+        <div style="padding:18px 20px 0">
+          <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:10px">Dane kontaktowe</div>
+          <div style="display:grid;grid-template-columns:{{ formCols }};gap:11px">
+            <label style="display:block">
+              <span style="display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px">Firma</span>
+              <input value="{{ cFirm }}" onChange="{{ setFirm }}" placeholder="nazwa firmy" style="width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif">
+            </label>
+            <label style="display:block">
+              <span style="display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px">Osoba kontaktowa</span>
+              <input value="{{ cName }}" onChange="{{ setName }}" placeholder="imię i nazwisko" style="width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif">
+            </label>
+            <label style="display:block">
+              <span style="display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px">E-mail</span>
+              <input value="{{ cEmail }}" onChange="{{ setEmail }}" inputmode="email" placeholder="adres@firma.pl" style="width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif">
+            </label>
+            <label style="display:block">
+              <span style="display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px">Telefon</span>
+              <input value="{{ cPhone }}" onChange="{{ setPhone }}" inputmode="tel" placeholder="+48" style="width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif">
+            </label>
+          </div>
+          <label style="display:block;margin-top:11px">
+            <span style="display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px">Uwagi do zapytania</span>
+            <input value="{{ cNote }}" onChange="{{ setNote }}" placeholder="np. termin dostawy, wykonanie z wałem drążonym" style="width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif">
+          </label>
+        </div>
+        <div style="padding:16px 20px 24px">
+          <div style="margin-bottom:14px;padding:14px 16px;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent);background:var(--color-accent-100)">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-accent)">Ważna informacja techniczna</div>
+            <p style="margin:8px 0;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Wynik wygenerowany przez aplikację DKM ma charakter <strong>pomocniczy i stanowi propozycję doboru</strong> na podstawie danych wprowadzonych przez użytkownika oraz danych katalogowych dostępnych w aplikacji.</p>
+            <p style="margin:0 0 8px;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Wynik <strong>nie stanowi kompletnego projektu technicznego, obliczeń konstrukcyjnych ani potwierdzenia przydatności produktu do konkretnego zastosowania</strong>.</p>
+            <p style="margin:0 0 8px;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">Przed zastosowaniem wskazanego produktu należy zweryfikować jego dobór z uwzględnieniem rzeczywistych warunków pracy, w szczególności obciążenia, charakteru pracy, współczynnika pracy, obciążeń promieniowych i osiowych, liczby rozruchów, temperatury, pozycji montażowej oraz wymagań bezpieczeństwa.</p>
+            <p style="margin:0 0 8px;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">W przypadku zastosowań nietypowych, pracy w pobliżu wartości granicznych lub wątpliwości dotyczących doboru zalecana jest konsultacja z działem technicznym DKM Power Transmission sp. z o.o.</p>
+            <p style="margin:0;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty">DKM Power Transmission sp. z o.o. nie ponosi odpowiedzialności za skutki zastosowania wyniku bez wymaganej weryfikacji technicznej ani za skutki wynikające z podania nieprawidłowych lub niepełnych danych przez użytkownika, z zastrzeżeniem odpowiedzialności, której zgodnie z obowiązującym prawem nie można wyłączyć ani ograniczyć.</p>
+          </div>
+          <button onClick="{{ toggleAccept }}" style="width:100%;margin-bottom:14px;padding:13px 14px;background:transparent;border:1px solid {{ acceptBorder }};cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:12px" style-hover="background:var(--color-accent-100)">
+            <span style="flex:none;width:26px;height:26px;border:2px solid {{ acceptBorder }};background:{{ acceptBox }};color:#fff;font:600 16px/22px Barlow,sans-serif;text-align:center">{{ acceptMark }}</span>
+            <span style="font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-900)">Oświadczam, że zapoznałem się z <strong>Ważną informacją techniczną</strong> powyżej, <strong>Regulaminem</strong> oraz <strong>Polityką prywatności</strong> i akceptuję ich treść. Przyjmuję do wiadomości, że wynik stanowi propozycję doboru i wymaga weryfikacji technicznej.</span>
+          </button>
+          <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+            <button onClick="{{ goTerms }}" style="padding:0;background:none;border:0;cursor:pointer;font:600 13px Barlow,sans-serif;color:var(--color-accent-700);text-decoration:underline">Przeczytaj regulamin</button>
+            <button onClick="{{ goLegal }}" style="padding:0;background:none;border:0;cursor:pointer;font:600 13px Barlow,sans-serif;color:var(--color-accent-700);text-decoration:underline">Polityka prywatności</button>
+          </div>
+          <sc-if value="{{ acceptErr }}">
+            <div style="margin-bottom:12px;padding:11px 14px;background:var(--color-warn);color:#fff;font:600 13px/1.5 Barlow,sans-serif">Aby wysłać zapytanie, potwierdź zapoznanie się z Regulaminem.</div>
+          </sc-if>
+          <button onClick="{{ sendRfq }}" style="width:100%;min-height:54px;padding:15px;background:var(--color-accent);color:var(--color-bg);border:1px solid var(--color-accent);cursor:pointer;font:600 14.5px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase" style-hover="background:var(--color-accent-600);border-color:var(--color-accent-600)">{{ sendLabel }}</button>
+          <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)">
+            <div style="font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)">Twoje dane są bezpieczne</div>
+            <div style="margin-top:5px;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900)">Aplikacja nie wysyła niczego w tle — dane wpisujesz na swoim urządzeniu, a zapytanie wychodzi dopiero z Twojego programu pocztowego. Administratorem danych jest DKM Power Transmission sp. z o.o.; służą wyłącznie do przygotowania oferty. <button onClick="{{ goLegal }}" style="padding:0;background:none;border:0;cursor:pointer;font:600 13px Barlow,sans-serif;color:var(--color-accent-700);text-decoration:underline">Polityka prywatności i bezpieczeństwa</button></div>
+          </div>
+          <p style="margin:10px 0 0;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)">Zapytanie otwiera się w Twoim programie pocztowym z gotową treścią — wystarczy wysłać. Adres odbiorcy: <strong style="font-weight:600">{{ rfqEmail }}</strong></p>
+          <div style="margin-top:18px;padding:16px 17px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)">
+            <div style="font:600 17px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--color-ok-ink)">Nie chcesz czekać na odpowiedź?</div>
+            <div style="margin-top:5px;font:400 13.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)">Zadzwoń — doradca sprawdzi dostępność i poda cenę od ręki. Pon.–pt. 8:00–16:00.</div>
+            <div style="margin-top:12px;display:grid;grid-template-columns:{{ formCols }};gap:9px">
+              <a href="tel:+48512082994" style="min-height:52px;padding:13px;background:var(--color-ok-ink);color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;font:600 18px 'Barlow Condensed',sans-serif;letter-spacing:.06em">+48 512 082 994</a>
+              <a href="tel:+48516645907" style="min-height:52px;padding:13px;background:transparent;border:1px solid var(--color-ok-ink);color:var(--color-ok-ink);text-decoration:none;display:flex;align-items:center;justify-content:center;font:600 18px 'Barlow Condensed',sans-serif;letter-spacing:.06em">+48 516 645 907</a>
+            </div>
+            <div style="margin-top:10px;font:400 12.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">Podaj typ przekładni z listy powyżej — doradca zobaczy dokładnie ten sam dobór.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <button onClick="{{ openRfq }}" style="flex:none;position:sticky;bottom:0;z-index:6;min-height:56px;padding:13px 20px calc(env(safe-area-inset-bottom) + 13px);border:0;border-top:1px solid var(--color-divider);background:var(--color-surface);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left" style-hover="background:var(--color-accent-100)">
+    <span style="font:500 13.5px Barlow,sans-serif;color:var(--color-neutral-700)">{{ rfqBarLabel }}</span>
+    <span style="font:600 14px Barlow,sans-serif;color:var(--color-accent-700)">{{ rfqCount }} poz. →</span>
+  </button>
+</sc-if></div>
+
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#22235f"></rect><g fill="none" stroke="#dcdcea" stroke-width="5"><rect x="58" y="56" width="84" height="84"></rect><circle cx="100" cy="98" r="19"></circle></g><text x="100" y="176" fill="#f4f4f7" font-family="Helvetica,sans-serif" font-size="23" font-weight="700" text-anchor="middle" letter-spacing="3">DKM</text></svg></template>
+
+</div></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:900},&quot;fsMin&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0.8,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;fs&quot;,&quot;section&quot;:&quot;Reguły doboru&quot;},&quot;rfqEmail&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;sklep@d-k-m.eu&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Zapytanie ofertowe&quot;}}">
+const G=(p1,box,flange,motor,rpm,rows)=>rows.map(r=>({p1,box,flange,motor,rpm,n2:r[0],i:r[1],m2:r[2],fr2:r[3],fs:r[4]}));
+const CAT=()=>window.DKM_CATALOG||[];
+const DATA_LEGACY=[].concat(
+G(0.12,'DKM050','63B5/B14','6314',null,[[14,100,39,4280,1.4]]),
+G(0.18,'DKM030','63B5/B14','6312',2800,[[373.3,7.5,4.0,542,3.2],[280,10,5.2,597,2.5],[186.7,15,7.4,683,1.8],[140,20,9.5,752,1.3],[112,25,11,810,1.4],[93.3,30,13,861,1.2],[70,40,16,948,0.9]]),
+G(0.18,'DKM030','63B5/B14','6324',1400,[[186.7,7.5,7.7,683,2.3],[140,10,10,752,1.8],[93.3,15,14,861,1.3],[70,20,18,948,1.0],[56,25,20,1021,1.0],[46.7,30,24,1085,0.8]]),
+G(0.18,'DKM040','63B5/B14','6312',2800,[[93.3,30,14,1657,2.5],[70,40,17,1824,1.8],[56,50,21,1964,1.4]]),
+G(0.18,'DKM040','63B5/B14','6324',1400,[[70,20,19,1824,2.1],[56,25,23,1964,1.7],[46.7,30,25,2087,1.8],[35,40,32,2298,1.3],[28,50,37,2475,1.0],[23.3,60,42,2630,0.9]]),
+G(0.18,'DKM040','71B5/B14','7116',900,[[45,20,28,2113,1.6],[36,25,34,2276,1.3],[30,30,38,2419,1.3],[22.5,40,47,2662,1.0]]),
+G(0.18,'DKM050','63B5/B14','6312',2800,[[46.7,60,24,2865,2.1],[35,80,30,3153,1.5],[28,100,34,3397,1.2]]),
+G(0.18,'DKM050','63B5/B14','6324',1400,[[35,40,33,3153,2.3],[28,50,39,3397,1.9],[23.3,60,43,3610,1.6],[17.5,80,52,3973,1.2],[14,100,59,4280,0.9]]),
+G(0.18,'DKM050','71B5/B14','7116',900,[[18,50,56,3936,1.4],[15,60,63,4183,1.1],[11.3,80,75,4604,0.9]]),
+G(0.18,'DKM063','71B5/B14','7116',900,[[15,60,66,5467,2.1],[11.3,80,79,6018,1.6],[9,100,90,6270,1.4]]),
+G(0.25,'DKM063','71B5/B14','6322',2800,[[373.3,7.5,5.6,542,2.3],[280,10,7.2,597,1.8],[186.7,15,10,683,1.3],[140,20,13,752,0.9],[112,25,15,810,1.0],[93.3,30,18,861,0.8]]),
+G(0.25,'DKM040','71B5/B14','7114',1400,[[186.7,7.5,11,1315,3.6],[140,10,14,1447,2.8],[93.3,15,20,1657,2.0],[70,20,26,1824,1.5],[56,25,32,1964,1.2],[46.7,30,35,2087,1.3],[35,40,44,2298,0.9]]),
+G(0.25,'DKM040','71B5/B14','7126',900,[[120,7.5,17,1524,2.6],[90,10,22,1677,2.0],[60,15,31,1920,1.4],[45,20,39,2113,1.1],[36,25,48,2276,0.9],[30,30,53,2419,0.9]]),
+G(0.25,'DKM050','63B5/B14','6322',2800,[[35,80,42,3153,1.1],[28,100,48,3397,0.8]]),
+G(0.25,'DKM050','71B5/B14','7114',1400,[[70,20,27,2503,2.7],[56,25,32,2696,2.2],[46.7,30,36,2865,2.3],[35,40,46,3153,1.7],[28,50,54,3397,1.4],[23.3,60,60,3610,1.1],[17.5,80,72,3973,0.9]]),
+G(0.25,'DKM050','71B5/B14','7126',900,[[45,20,40,2900,1.9],[36,25,48,3124,1.5],[30,30,54,3320,1.7],[22.5,40,67,3654,1.2],[18,50,78,3936,1.0],[15,60,88,4183,0.8]]),
+G(0.25,'DKM063','71B5/B14','7114',1400,[[28,50,55,4440,2.4],[23.3,60,63,4719,2.0],[17.5,80,76,5193,1.6]])
+);
+const IVALS=()=>[...new Set(CAT().map(r=>r.i))].sort((a,b)=>a-b);
+const P1S=()=>[...new Set(CAT().map(r=>r.p1))].sort((a,b)=>a-b);
+const TERMS=[
+  {n:'§ 1',t:'Postanowienia ogólne',p:[
+    'Niniejszy Regulamin określa zasady korzystania z aplikacji doboru produktów DKM, zwanej dalej „Aplikacją”.',
+    'Operatorem Aplikacji jest DKM Power Transmission sp. z o.o., ul. 3 Maja 20, 87-640 Czernikowo, NIP 879-268-87-36, dalej „DKM”.',
+    'Aplikacja jest narzędziem wspomagającym dobór produktów oferowanych przez DKM, w szczególności przekładni, silników oraz kompatybilnych wariantów wykonania.',
+    'Korzystanie z Aplikacji oznacza akceptację niniejszego Regulaminu.'],b:[]},
+  {n:'§ 2',t:'Przeznaczenie Aplikacji',p:[
+    'Aplikacja umożliwia wyszukanie i wstępny dobór produktów na podstawie parametrów określonych przez użytkownika, takich jak w szczególności:'],
+    b:['moc silnika','prędkość obrotowa','wymagane przełożenie','wymagany moment obrotowy','typ i wielkość przekładni','wariant przyłącza silnika','inne parametry dostępne w Aplikacji'],
+    p2:['Wyniki prezentowane przez Aplikację są generowane na podstawie danych wprowadzonych przez użytkownika, zastosowanych algorytmów obliczeniowych oraz danych technicznych zawartych w bazie DKM.',
+    'Wynik Aplikacji należy traktować jako propozycję doboru, a nie jako kompletny projekt techniczny lub potwierdzenie przydatności produktu do każdego możliwego zastosowania.']},
+  {n:'§ 3',t:'Obowiązek weryfikacji technicznej',p:[
+    'Przed zastosowaniem produktu wskazanego przez Aplikację użytkownik powinien dokonać jego weryfikacji pod kątem rzeczywistych warunków pracy.',
+    'Weryfikacja powinna obejmować, odpowiednio do zastosowania, w szczególności:'],
+    b:['rzeczywistą moc i moment obrotowy','wymagane przełożenie i prędkość obrotową','współczynnik pracy','czas i charakter pracy','częstotliwość rozruchów','występowanie obciążeń udarowych','obciążenia promieniowe i osiowe','temperaturę otoczenia i warunki środowiskowe','sposób i pozycję montażu','sposób smarowania','współpracę z pozostałymi elementami układu napędowego','wymagania bezpieczeństwa dotyczące maszyny lub instalacji'],
+    p2:['Aplikacja może nie uwzględniać wszystkich szczególnych warunków występujących w konkretnym zastosowaniu.',
+    'W przypadku zastosowań nietypowych, pracy w pobliżu dopuszczalnych parametrów produktu, obciążeń dynamicznych lub innych szczególnych warunków użytkownik powinien skonsultować dobór z działem technicznym DKM.']},
+  {n:'§ 4',t:'Dane wprowadzane przez użytkownika',p:[
+    'Użytkownik odpowiada za prawidłowość, kompletność oraz zgodność ze stanem rzeczywistym danych wprowadzonych do Aplikacji.',
+    'Podanie danych błędnych, niepełnych lub nieodpowiadających rzeczywistym warunkom pracy może spowodować wygenerowanie niewłaściwego wyniku.',
+    'DKM nie odpowiada za skutki wynikające z zastosowania produktu dobranego na podstawie błędnych lub niepełnych danych dostarczonych przez użytkownika, z zastrzeżeniem bezwzględnie obowiązujących przepisów prawa.'],b:[]},
+  {n:'§ 5',t:'Charakter wyniku',p:['Wynik wygenerowany przez Aplikację nie stanowi:'],
+    b:['kompletnego projektu technicznego','dokumentacji konstrukcyjnej maszyny','analizy bezpieczeństwa maszyny lub instalacji','oceny ryzyka','oceny zgodności maszyny','obliczeń wytrzymałościowych całego układu','gwarancji osiągnięcia określonych parametrów całej maszyny lub instalacji'],
+    p2:['Wynik Aplikacji nie zastępuje wiedzy technicznej projektanta, konstruktora, integratora maszyny ani innych osób odpowiedzialnych za prawidłowy i bezpieczny dobór elementów napędu.',
+    'Za ostateczną ocenę przydatności produktu do konkretnego zastosowania odpowiada osoba dokonująca projektu lub integracji układu, w zakresie wynikającym z obowiązujących przepisów prawa.']},
+  {n:'§ 6',t:'Dane techniczne',p:[
+    'DKM dokłada należytej staranności, aby dane techniczne i obliczeniowe dostępne w Aplikacji były prawidłowe i aktualne.',
+    'Ze względu na rozwój produktów, zmiany konstrukcyjne oraz aktualizacje dokumentacji poszczególne dane mogą ulegać zmianie.',
+    'W przypadku rozbieżności pomiędzy wynikiem Aplikacji a aktualną dokumentacją techniczną produktu należy dokonać dodatkowej weryfikacji i skontaktować się z DKM.',
+    'Użytkownik nie powinien opierać decyzji dotyczących bezpieczeństwa maszyny lub instalacji wyłącznie na wyniku wygenerowanym automatycznie przez Aplikację.'],b:[]},
+  {n:'§ 7',t:'Odpowiedzialność',p:[
+    'DKM odpowiada za funkcjonowanie Aplikacji na zasadach wynikających z obowiązujących przepisów prawa.',
+    'DKM nie ponosi odpowiedzialności za skutki zastosowania wyniku Aplikacji bez odpowiedniej weryfikacji technicznej, w szczególności gdy szkoda wynika z:'],
+    b:['podania przez użytkownika nieprawidłowych lub niepełnych danych','nieuwzględnienia rzeczywistych warunków pracy','zastosowania produktu poza jego parametrami dopuszczalnymi','nieprawidłowego montażu, uruchomienia, obsługi lub konserwacji','dokonania zmian produktu lub jego zastosowania niezgodnie z dokumentacją','pominięcia dodatkowych obciążeń lub warunków, których Aplikacja nie uwzględnia'],
+    p2:['Postanowień niniejszego Regulaminu nie należy interpretować jako wyłączających lub ograniczających odpowiedzialność DKM w przypadkach, w których takie wyłączenie lub ograniczenie jest niedopuszczalne na podstawie obowiązujących przepisów prawa.',
+    'Postanowienia niniejszego Regulaminu nie ograniczają ustawowych praw konsumentów ani innych osób korzystających z ochrony przewidzianej bezwzględnie obowiązującymi przepisami prawa.']},
+  {n:'§ 8',t:'Dostępność Aplikacji',p:['DKM może okresowo aktualizować, modyfikować lub czasowo wyłączać Aplikację, w szczególności w celu:'],
+    b:['aktualizacji danych technicznych','rozszerzenia bazy produktów','usuwania błędów','prowadzenia prac technicznych','poprawy funkcjonalności lub bezpieczeństwa'],
+    p2:['DKM nie gwarantuje nieprzerwanego dostępu do Aplikacji.']},
+  {n:'§ 9',t:'Prawa własności intelektualnej',p:[
+    'Aplikacja, jej kod źródłowy, struktura, sposób działania, baza danych, grafiki, układ interfejsu, opisy, zestawienia oraz materiały opracowane przez DKM stanowią własność DKM Power Transmission sp. z o.o. albo są wykorzystywane przez DKM na podstawie odpowiednich praw.',
+    'Kopiowanie, modyfikowanie, rozpowszechnianie, odsprzedaż, publikowanie lub wykorzystywanie Aplikacji albo jej istotnych elementów w innych systemach bez uprzedniej zgody DKM jest zabronione, z wyjątkiem przypadków dozwolonych przez obowiązujące przepisy prawa.',
+    'Wyniki wygenerowane przez Aplikację mogą być wykorzystywane przez użytkownika w związku z doborem i zastosowaniem produktów DKM.',
+    'Oznaczenia DKM oraz DKM Power Transmission mogą podlegać ochronie na podstawie właściwych przepisów prawa.'],b:[]},
+  {n:'§ 10',t:'Wymagania techniczne',p:[
+    'Do korzystania z Aplikacji wymagane jest urządzenie umożliwiające jej uruchomienie oraz aktualne oprogramowanie pozwalające na prawidłowe wyświetlanie i wykonywanie funkcji Aplikacji.',
+    'W przypadku wersji internetowej wymagane może być również połączenie z Internetem.'],b:[]},
+  {n:'§ 11',t:'Reklamacje i zgłaszanie błędów',p:[
+    'Użytkownik może zgłosić nieprawidłowe działanie Aplikacji, błąd w danych technicznych lub inne zastrzeżenia dotyczące jej działania do DKM.',
+    'Zgłoszenie powinno, jeżeli jest to możliwe, zawierać:'],
+    b:['opis problemu','dane wprowadzone do Aplikacji','wygenerowany wynik','wersję Aplikacji','zrzut ekranu lub wygenerowany dokument'],
+    p2:['Zgłoszenia należy kierować na adres sklep@d-k-m.eu. DKM rozpatruje zgłoszenia zgodnie z obowiązującymi przepisami prawa.']},
+  {n:'§ 12',t:'Rozpoczęcie i zakończenie korzystania',p:[
+    'Korzystanie z Aplikacji jest dobrowolne.',
+    'Rozpoczęcie korzystania z funkcji obliczeniowych Aplikacji oznacza rozpoczęcie korzystania z usługi.',
+    'Użytkownik może w każdej chwili zakończyć korzystanie z Aplikacji poprzez jej zamknięcie lub opuszczenie strony.'],b:[]},
+  {n:'§ 13',t:'Postanowienia końcowe',p:[
+    'Regulamin jest dostępny użytkownikowi przed rozpoczęciem korzystania z Aplikacji oraz z poziomu jej interfejsu.',
+    'DKM może dokonywać zmian Regulaminu w przypadku zmian funkcjonalności Aplikacji, przepisów prawa, zakresu oferowanych produktów lub zasad świadczenia usługi.',
+    'Do korzystania z Aplikacji stosuje się prawo polskie, z zastrzeżeniem bezwzględnie obowiązujących przepisów chroniących użytkownika.',
+    'Żadne postanowienie niniejszego Regulaminu nie wyłącza ani nie ogranicza praw użytkownika, których zgodnie z obowiązującymi przepisami prawa nie można wyłączyć ani ograniczyć.'],b:[]}
+];
+const LOADS=[
+  {k:'A',l:'A · równomierne',d:'współczynnik przyspieszenia masy Fa ≤ 0,3',lo:0.8,hi:1.0},
+  {k:'B',l:'B · umiarkowane udary',d:'Fa ≤ 3',lo:1.0,hi:1.3},
+  {k:'C',l:'C · ciężkie udary',d:'Fa ≤ 10',lo:1.2,hi:1.6}];
+const HOURS=[{h:2,add:0},{h:8,add:0.2},{h:16,add:0.4},{h:24,add:0.7}];
+const ZVALS=[5,10,20,30,40,60,80,100];
+const TEMPS=[
+  {l:'do 30 °C',m:1,note:''},
+  {l:'30–40 °C',m:1.2,note:'katalog: fs × 1,1–1,2'},
+  {l:'40–50 °C',m:1.4,note:'katalog: fs × 1,3–1,4'},
+  {l:'50–60 °C',m:1.6,note:'katalog: fs × 1,5–1,6'},
+  {l:'> 60 °C',m:null,note:'katalog nie podaje mnożnika — wymagane fs ustala serwis techniczny DKM'}];
+const r1=n=>Math.round(n*10)/10;
+const FSMINS=[null,'below',1.0,1.3,1.6,2.0];
+const fsPass=(fs,sel)=>sel==null?true:(sel==='below'?fs<1.0:fs>=sel);
+const num=n=>String(n).replace('.',',');
+const fs1=n=>n.toFixed(1).replace('.',',');
+const V=k=>'var(--color-'+k+')';
+const plural=(n,a,b,c)=>{const d=n%10,s=n%100;return n===1?a:(d>=2&&d<=4&&!(s>=12&&s<=14)?b:c);};
+
+class Component extends DCLogic {
+  state={screen:'home',mode:null,p1:null,i:null,n2Exact:null,box:null,rpmSel:1400,m2:'',n2:'',load:1,hours:1,z:10,temp:0,fsMinSel:null,fsOnly:false,wide:false,
+    refine:false,sel:null,rfq:[],just:false,prevScreen:'home',typeQ:'',hist:[],
+    c:{name:'',firm:'',email:'',phone:'',note:''}};
+
+  componentDidMount(){
+    try{const r=localStorage.getItem('dkm-rfq-v2'); if(r) this.setState({rfq:JSON.parse(r)||[]});}catch(e){}
+    try{const h=localStorage.getItem('dkm-hist-v1'); if(h) this.setState({hist:JSON.parse(h)||[]});}catch(e){}
+    try{ this.mq=window.matchMedia('(min-width:900px)');
+      this.onMq=e=>this.setState({wide:e.matches});
+      this.setState({wide:this.mq.matches});
+      this.mq.addEventListener?this.mq.addEventListener('change',this.onMq):this.mq.addListener(this.onMq);
+    }catch(e){}
+  }
+  componentWillUnmount(){ try{ this.mq&&(this.mq.removeEventListener?this.mq.removeEventListener('change',this.onMq):this.mq.removeListener(this.onMq)); }catch(e){} }
+  persist(rfq){ try{localStorage.setItem('dkm-rfq-v2',JSON.stringify(rfq));}catch(e){} }
+  snapKey(s){ return [s.p1,s.i,s.n2Exact,s.box,s.rpmSel,s.m2,s.n2,s.fsMinSel,s.mode].join('|'); }
+  saveHist(){
+    const S=this.state; if(S.screen!=='results') return;
+    const k=this.snapKey(S); if(k===this.lastHist) return;
+    const parts=[];
+    if(S.p1!=null) parts.push('P₁ '+num(S.p1)+' kW');
+    if(S.i!=null) parts.push('i = '+num(S.i));
+    if(S.n2Exact!=null) parts.push('n₂ '+num(S.n2Exact)+' obr/min');
+    if(this.numIn(S.m2)!=null) parts.push('M₂ ≥ '+num(this.numIn(S.m2))+' Nm');
+    if(S.box!=null) parts.push(S.box);
+    if(S.fsMinSel!=null) parts.push(S.fsMinSel==='below'?'fs < 1,0':'fs ≥ '+fs1(S.fsMinSel));
+    if(!parts.length) return;
+    this.lastHist=k;
+    const snap={k,label:parts.join(' · '),sub:this.matches().length+' '+plural(this.matches().length,'pozycja','pozycje','pozycji'),
+      st:{p1:S.p1,i:S.i,n2Exact:S.n2Exact,box:S.box,rpmSel:S.rpmSel,m2:S.m2,n2:S.n2,fsMinSel:S.fsMinSel,mode:S.mode,load:S.load,hours:S.hours,z:S.z,temp:S.temp}};
+    this.setState(s=>{const hist=[snap,...s.hist.filter(x=>x.k!==k)].slice(0,3);
+      try{localStorage.setItem('dkm-hist-v1',JSON.stringify(hist));}catch(e){} return {hist};});
+  }
+  componentDidUpdate(){ this.saveHist(); }
+  askAdvisor=()=>{
+    const S=this.state,to=this.props.rfqEmail||'sklep@d-k-m.eu',L=[];
+    L.push('Proszę o pomoc w doborze przekładni ślimakowej.','','Szukane parametry:');
+    if(S.p1!=null) L.push('· Moc silnika P₁ₙ: '+num(S.p1)+' kW');
+    if(S.i!=null) L.push('· Przełożenie i: '+num(S.i));
+    if(S.n2Exact!=null) L.push('· Prędkość obrotowa na wale wyjściowym n₂: '+num(S.n2Exact)+' obr/min');
+    if(this.numIn(S.m2)!=null) L.push('· Moment obrotowy na wale wyjściowym M₂: min. '+num(this.numIn(S.m2))+' Nm');
+    if(this.numIn(S.n2)!=null) L.push('· Prędkość obrotowa na wale wyjściowym n₂: ok. '+num(this.numIn(S.n2))+' obr/min');
+    if(S.box!=null) L.push('· Typ przekładni: '+S.box);
+    L.push('· Prędkość obrotowa silnika: '+(S.rpmSel==null?'dowolna':num(S.rpmSel)+' obr/min'));
+    if(S.mode==='m2') L.push('· warunki pracy: obciążenie '+LOADS[S.load].k+' · '+HOURS[S.hours].h+' h/dobę · Z = '+S.z+' 1/h · '+TEMPS[S.temp].l+' → wymagane fs '+fs1(this.fsReqNum()));
+    L.push('','PROPONOWANY DOBÓR — wymaga weryfikacji technicznej.','Katalog nie zawiera pozycji spełniającej te warunki — proszę o propozycję.','','Wysłano z aplikacji DKM Dobór przekładni ślimakowych.');
+    window.location.href='mailto:'+to+'?subject='+encodeURIComponent('Prośba o dobór przekładni — brak pozycji w katalogu')+'&body='+encodeURIComponent(L.join('\n'));
+  };
+  setC(f,v){ this.setState(s=>({c:{...s.c,[f]:v}})); }
+  qty(k,d){ this.setState(s=>{const rfq=s.rfq.map(x=>x.k===k?{...x,qty:Math.max(1,x.qty+d)}:x);this.persist(rfq);return {rfq};}); }
+  mailBody(){
+    const S=this.state,c=S.c,L=[];
+    L.push('Zapytanie ofertowe — przekładnie ślimakowe DKM','');
+    S.rfq.forEach((x,ix)=>{
+      L.push((ix+1)+'. '+x.box+' — szt. '+x.qty);
+      L.push('   przełożenie i = '+x.i+' · moment obrotowy M₂ '+x.m2+' Nm'+(x.n2?(' · prędkość obrotowa n₂ '+x.n2+' obr/min'):''));
+      if(x.bore) L.push('   tuleja drążona '+x.bore);
+      if(x.mount) L.push('   sposób mocowania: '+x.mount+(x.foot?(' · '+(x.footLabel||'rozstaw')+' '+x.foot):'')
+        +(x.bolt?(' · otwory ØR '+x.bolt.r+' · typowa śruba '+x.bolt.s):''));
+      if(x.face) L.push('   '+x.face);
+      if(x.arm) L.push('   ramię reakcyjne: '+x.arm);
+      if(x.shaft) L.push('   wał zdawczy: '+x.shaft);
+      if(x.flange2) L.push('   '+x.flange2);
+      if(x.acc) L.push('   akcesoria: '+x.acc);
+      L.push('   silnik '+(x.p1?(x.p1+' kW'):'')+(x.rpm?(' · '+x.rpm+' obr/min'):'')+' · fs '+x.fs+(x.noWty?'  [fs < 1,0 — dostawa bez gwarancji, na życzenie klienta]':''));
+      L.push('');
+    });
+    if(S.rfq.some(x=>x.noWty)) L.push('UWAGA: zapytanie zawiera pozycje o fs poniżej 1,0. Klient przyjmuje do wiadomości, że DKM realizuje je bez gwarancji.','');
+    L.push('— Dane kontaktowe —');
+    L.push('Firma: '+(c.firm||'—'));
+    L.push('Osoba: '+(c.name||'—'));
+    L.push('E-mail: '+(c.email||'—'));
+    L.push('Telefon: '+(c.phone||'—'));
+    if(c.note) L.push('','Uwagi: '+c.note);
+    L.push('','Wysłano z aplikacji DKM Dobór przekładni ślimakowych.',
+      'DKM Power Transmission Sp. z o.o. · ul. 3 Maja 20, 87-640 Czernikowo · NIP 879-268-87-36',
+      'sklep@d-k-m.eu · +48 512 082 994 · +48 516 645 907',
+      '© 2026 DKM Power Transmission sp. z o.o. — wszelkie prawa zastrzeżone. Wyniki doboru mają charakter pomocniczy i wymagają weryfikacji technicznej.',
+      'Nadawca potwierdził zapoznanie się z Ważną informacją techniczną, Regulaminem aplikacji (wersja 1.0 z 20.08.2026) oraz Polityką prywatności.');
+    return L.join('\n');
+  }
+  send=()=>{
+    if(!this.state.rfq.length) return;
+    if(!this.state.accepted){ this.setState({acceptErr:true}); return; }
+    const to=this.props.rfqEmail||'sklep@d-k-m.eu';
+    const subj='Zapytanie ofertowe — przekładnie ślimakowe ('+this.state.rfq.length+' poz.)';
+    window.location.href='mailto:'+to+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(this.mailBody());
+    this.setState({sent:true}); setTimeout(()=>this.setState({sent:false}),4000);
+  };
+  key(r){ return r.box+r.motor+r.i+r.n2; }
+  fsChart(){
+    const S=this.state, L=LOADS[S.load], t=Math.log10(S.z/5)/Math.log10(20);
+    return r1(L.lo+(L.hi-L.lo)*t+HOURS[S.hours].add);
+  }
+  fsReqNum(){ if(this.state.mode!=='m2') return this.props.fsMin ?? 1.0;
+    const m=TEMPS[this.state.temp].m; return m==null?this.fsChart():r1(this.fsChart()*m); }
+  numIn(v){ const n=parseFloat(String(v).replace(',','.')); return isFinite(n)&&n>0?n:null; }
+
+  matches(skip){
+    const S=this.state, m2=this.numIn(S.m2), n2=this.numIn(S.n2), fsReq=this.fsReqNum();
+    const on=f=>skip!==f;
+    let rows=CAT().filter(r=>
+      (!on('p1')||S.p1==null||r.p1===S.p1)&&
+      (!on('i')||S.i==null||r.i===S.i)&&
+      (!on('n2')||S.n2Exact==null||r.n2===S.n2Exact)&&
+      (!on('bore')||S.boreSel==null||this.boxFitsBore(r.box,S.boreSel))&&
+      (!on('box')||S.box==null||r.box===S.box)&&
+      (!on('rpm')||S.rpmSel==null||r.rpm===S.rpmSel)&&
+      (m2==null||r.m2>=m2)&&
+      (n2==null||Math.abs(r.n2-n2)/n2<=0.3)&&
+      (!on('fs')||fsPass(r.fs,S.fsMinSel)));
+    if(m2!=null) rows.sort((a,b)=>(b.fs>=fsReq)-(a.fs>=fsReq)||(a.m2-m2)-(b.m2-m2));
+    else rows.sort((a,b)=>a.i-b.i||a.m2-b.m2);
+    return rows;
+  }
+
+  facet(f){
+    if(f==='bore'){
+      const pool=this.matches('bore'), m=new Map();
+      pool.forEach(r=>{
+        const b=(window.DKM_BORE||{})[r.box]; if(!b) return;
+        const add=d=>m.set(d,(m.get(d)||0)+1);
+        add(b.std); (b.opt||[]).forEach(add);
+      });
+      const vals=[...m.keys()].sort((a,b)=>a-b);
+      return vals.map(v=>({v,count:m.get(v)}));
+    }
+    const key={p1:'p1',i:'i',n2:'n2',box:'box',rpm:'rpm'}[f];
+    const pool=this.matches(f), m=new Map();
+    pool.forEach(r=>{ const v=r[key]; if(v==null) return; m.set(v,(m.get(v)||0)+1); });
+    const vals=[...m.keys()].sort((a,b)=>f==='box'?String(a).localeCompare(String(b)):(f==='n2'||f==='rpm'?b-a:a-b));
+    return vals.map(v=>({v,count:m.get(v)}));
+  }
+
+  fieldOf(f){ return {p1:'p1',i:'i',n2:'n2Exact',box:'box',rpm:'rpmSel',bore:'boreSel'}[f]; }
+  setField(f,v){ const p={sel:null}; p[this.fieldOf(f)]=v; this.setState(p); }
+
+  group(f,label,unit,cols){
+    const cur=this.state[this.fieldOf(f)];
+    const fmt=v=>f==='box'?String(v):(f==='bore'?('⌀ '+num(v)):num(v));
+    const opts=[{v:null,l:'wszystkie',c:null}].concat(this.facet(f).map(o=>({v:o.v,l:fmt(o.v),c:o.count})))
+      .map(o=>({label:o.l,count:o.c==null?'':(f==='rpm'&&o.v===1400?o.c+' · std':String(o.c)),
+        bg:cur===o.v?V('accent'):'transparent',fg:cur===o.v?V('bg'):V('text'),
+        cg:cur===o.v?'rgba(255,255,255,.7)':V('neutral-500'),
+        go:()=>this.setField(f,o.v)}));
+    return {label:label,unit:unit,cols:String(cols),opts};
+  }
+
+  decorate(r){
+    const fsReq=this.fsReqNum(), bad=r.fs<fsReq, noWty=r.fs<1.0, m2=this.numIn(this.state.m2);
+    const edge=!noWty&&!bad&&r.fs<=1.1;
+    const note=noWty?('fs '+fs1(r.fs)+' — poniżej 1,0: dostawa bez gwarancji')
+      :(bad?('fs '+fs1(r.fs)+' — poniżej wymaganego '+fs1(fsReq))
+      :(edge?('fs '+fs1(r.fs)+' — na granicy, bez zapasu na rozruchy')
+      :(m2!=null?('zapas +'+Math.round((r.m2-m2)/m2*100)+'% nad wymaganym M₂'):'zapas fs w normie')));
+    return {...r,fs:fs1(r.fs),m2:num(r.m2),n2:num(r.n2),i:num(r.i),p1:num(r.p1),fr2:String(r.fr2),
+      rpmLabel:r.rpm?r.rpm+' obr/min':'silnik 1-biegowy',warn:bad,noWty,warnOnly:bad&&!noWty,note,
+      edge,noteColor:noWty?V('warn'):(bad?V('accent'):(edge?V('accent-700'):V('ok-ink'))),
+      fsBg:noWty?V('warn'):(bad?V('accent'):(edge?V('accent-200'):V('ok-bg'))),
+      fsFg:(noWty||bad)?V('bg'):(edge?V('accent'):V('ok-ink'))};
+  }
+
+  add=()=>{
+    const r=this.state.sel; if(!r) return;
+    this.setState(s=>{
+      const k=this.key(r), hit=s.rfq.find(x=>x.k===k);
+      const rfq=hit?s.rfq.map(x=>x.k===k?{...x,qty:x.qty+1}:x)
+        :[...s.rfq,{k,qty:1,box:r.box,motor:r.motor,rpm:r.rpm?num(r.rpm):'',bore:this.boreLabel(r.box),mount:this.mountLabel(),foot:this.mountDim(r.box),footLabel:this.mountDimLabel(),bolt:(this.state.mount==='1a'||this.state.mount==='1b')?((window.DKM_BOLT||{})[r.box]||null):null,
+          face:this.faceRows(r.box).map(f=>f.k+' '+f.v).join(' · '),
+          arm:this.armRows(r.box).map(f=>f.k+' '+f.v).join(' · '),acc:this.accLabel()+(this.pcv(r.box)?(' (osłona M '+num(this.pcv(r.box))+' mm)'):''),
+          shaft:this.shaftRows(r.box).map(f=>f.k+' '+f.v).join(' · '),
+          flange2:this.flangeRows(r.box).length?('kołnierz '+this.flangeVariant()+': '+this.flangeRows(r.box).map(f=>f.k+' '+f.v).join(' · ')):'',i:num(r.i),m2:num(r.m2),n2:num(r.n2),p1:num(r.p1),fs:fs1(r.fs),noWty:r.fs<1.0}];
+      this.persist(rfq); return {rfq,just:true};
+    });
+    setTimeout(()=>this.setState({just:false}),1500);
+  };
+
+  cardSrc(box){
+    // Direct path — no hidden preload element needed, so the browser only
+    // fetches the one dimension card actually being viewed, not all 10.
+    const m=String(box||'').match(/(\d{3})/); if(!m) return null;
+    return 'assets/karta-'+m[1]+'.jpg';
+  }
+  cardRatio(box){
+    const m=String(box||'').match(/(\d{3})/); if(!m) return '1240 / 1752';
+    return '1240 / 1752'; // all dimension-card scans share this page ratio
+  }
+  openCard(){ const src=this.cardSrc(this.state.sel&&this.state.sel.box); if(src) this.setState({card:src}); }
+  bore(box){
+    const b=(window.DKM_BORE||{})[box]; if(!b) return null;
+    const ok=b.optKey||{};
+    return {std:'⌀ '+b.std+' H7 mm',
+      opt:(b.opt&&b.opt.length)?('⌀ '+b.opt.map(o=>o+(ok[o]?(' H7 mm · rowek '+ok[o]+' mm'):' H7 mm')).join(' / ⌀ ')+' na zapytanie'):'',
+      key:b.key?(b.key+' mm'):''};
+  }
+  mountFlat(){
+    const G=(window.DKM_MOUNT||[]);
+    const out=[];
+    G.forEach(g=>g.o.forEach(o=>out.push({...o,g:g.g})));
+    return out;
+  }
+  mountDim(box){
+    const b=box||(this.state.sel&&this.state.sel.box), m=this.state.mount;
+    if(!b) return '';
+    if(m==='1a') return (window.DKM_FOOT||{})[b]||'';
+    if(m==='1b') return (window.DKM_SIDE||{})[b]||'';
+    return '';
+  }
+  faceRows(box){
+    const b=box||(this.state.sel&&this.state.sel.box);
+    if(this.state.mount!=='1c'||!b) return [];
+    const f=(window.DKM_FACE||{})[b]; if(!f) return [];
+    return [{k:'Zamek centrujący ⌀E',v:f.e},{k:'Rozstaw otworów ⌀H',v:f.h},
+      {k:'Otwory gwintowane PE',v:f.pe},{k:'Kąt rozmieszczenia α',v:f.a}];
+  }
+  armRows(box){
+    const b=box||(this.state.sel&&this.state.sel.box);
+    if(this.state.mount!=='3'||!b) return [];
+    const a=(window.DKM_ARM||{})[b]; if(!a) return [];
+    return [{k:'K1',v:num(a.K1)+' mm'},{k:'G',v:num(a.G)+' mm'},{k:'KG',v:num(a.KG)+' mm'},
+      {k:'KH',v:num(a.KH)+' mm'},{k:'R',v:num(a.R)+' mm'},{k:'B',v:num(a.B)+' mm'}];
+  }
+  flangeRows(box){
+    const b=box||(this.state.sel&&this.state.sel.box), m=this.state.mount;
+    if(!b||(m!=='2a'&&m!=='2b')) return [];
+    const t=(window.DKM_FLANGE||{})[m==='2a'?'FA':'FB']||{}, r=t[b];
+    if(!r) return [];
+    const K=window.DKM_FLANGE_KEYS||[];
+    return r.map((v,ix)=>({k:K[ix]||'',v:(ix===0||String(v).indexOf('⌀')===0||v==='—')?String(v):(v+' mm')}));
+  }
+  pcv(box){
+    const b=box||(this.state.sel&&this.state.sel.box);
+    if(!b||(this.state.acc||[]).indexOf('PCV')<0) return null;
+    return (window.DKM_PCV||{})[b]||null;
+  }
+  accList(){
+    const out=[]; (window.DKM_ACC||[]).forEach(g=>g.o.forEach(o=>out.push({...o,g:g.g})));
+    return out;
+  }
+  accLabel(){
+    const sel=this.state.acc||[];
+    return this.accList().filter(a=>sel.indexOf(a.id)>=0).map(a=>a.l).join(' · ');
+  }
+  toggleAcc(id){
+    this.setState(s=>{
+      const cur=s.acc||[]; let next;
+      if(cur.indexOf(id)>=0) next=cur.filter(x=>x!==id);
+      else if(id==='SS'||id==='DS') next=[...cur.filter(x=>x!=='SS'&&x!=='DS'),id];
+      else next=[...cur,id];
+      return {acc:next};
+    });
+  }
+  shaftRows(box){
+    const b=box||(this.state.sel&&this.state.sel.box);
+    const on=(this.state.acc||[]).some(x=>x==='SS'||x==='DS');
+    if(!on||!b) return [];
+    const s=(window.DKM_SHAFT||{})[b]; if(!s) return [];
+    const ds=(this.state.acc||[]).indexOf('DS')>=0;
+    const len=ds?{k:'L₁',v:num((window.DKM_SHAFT_DS_L1||{})[b])+' mm'}:{k:'L',v:num(s.L)+' mm'};
+    return [{k:'Ød h6',v:'Ø'+num(s.d)+' mm'},{k:'B',v:num(s.B)+' mm'},{k:'B₁',v:num(s.B1)+' mm'},
+      {k:'G₁',v:num(s.G1)+' mm'},len,{k:'f',v:s.f},
+      {k:'b₁',v:num(s.b1)+' mm'},{k:'t₁',v:num(s.t1)+' mm'}];
+  }
+  detCols(n){ if(n<2) return 'minmax(0,1fr)';
+    if(n%3===0) return 'repeat(3,minmax(0,1fr))';
+    if(n%2===0) return 'repeat(2,minmax(0,1fr))';
+    return 'repeat('+n+',minmax(0,1fr))'; }
+  accDetail(id){
+    const b=this.state.sel&&this.state.sel.box;
+    const empty={rows:[],note:'',img:'none',ratio:'3 / 2',hasImg:false,hasRows:false,detailTitle:''};
+    if(!b||(this.state.acc||[]).indexOf(id)<0) return empty;
+    if(id==='SS'||id==='DS'){
+      const r=this.shaftRows(b); if(!r.length) return empty;
+      return {...empty,detailTitle:'Wał zdawczy '+id+' · wymiary',rows:r,hasRows:true,
+        img:'url("assets/acc-'+id.toLowerCase()+'.png")',ratio:id==='DS'?'520 / 291':'1240 / 604',hasImg:true};
+    }
+    if(id==='PCV'){
+      const m=this.pcv(b); if(!m) return empty;
+      return {...empty,detailTitle:'Osłona PCV · wymiar M',rows:[{k:'M',v:num(m)+' mm'}],hasRows:true,
+        img:'url("assets/acc-pcv.png")',ratio:'1000 / 486',hasImg:true};
+    }
+    return empty;
+  }
+  boxFitsBore(box,d){
+    const b=(window.DKM_BORE||{})[box]; if(!b) return false;
+    return b.std===d||(b.opt||[]).indexOf(d)>=0;
+  }
+  mountDetail(id){
+    const b=this.state.sel&&this.state.sel.box;
+    const empty={rows:[],note:'',img:'none',ratio:'3 / 2',hasImg:false,hasRows:false,detailTitle:''};
+    if(!b||this.state.mount!==id) return empty;
+    if(id==='1a'||id==='1b'){
+      const v=this.mountDim(b); if(!v) return empty;
+      const bolt=(window.DKM_BOLT||{})[b]||{};
+      return {...empty,detailTitle:this.mountDimLabel(),
+        rows:[{k:id==='1b'?'(V+Q) × C₁':'C × C₁',v},
+          ...(bolt.r?[{k:'Otwory montażowe ØR',v:bolt.r},{k:'Typowa śruba',v:bolt.s}]:[])],
+        hasRows:true,
+        note:'Oznaczenia wymiarów (C, C₁, V, Q, ØR) odpowiadają symbolom na karcie wymiarowej produktu powyżej. Wymiary podano w mm, rozstaw mierzony w osiach otworów.'
+          +(bolt.r?' Dobór długości i klasy wytrzymałości śrub zależy od konstrukcji urządzenia oraz warunków obciążenia.':'')};
+    }
+    if(id==='1c'){
+      const r=this.faceRows(b); if(!r.length) return empty;
+      return {...empty,detailTitle:'Mocowanie czołowe · zamek centrujący i otwory gwintowane',rows:r,hasRows:true,
+        note:'Oznaczenia (ØE, ØH, PE, α) odpowiadają symbolom na karcie wymiarowej produktu powyżej. Otwory gwintowane rozmieszczone na powierzchni czołowej korpusu wokół osi wału wyjściowego; pozycjonowanie względem konstrukcji maszyny zapewnia zamek centrujący ØE w tolerancji h7. Wymiary w mm, głębokość gwintu liczona od powierzchni czołowej.'};
+    }
+    if(id==='2a'||id==='2b'){
+      const r=this.flangeRows(b); if(!r.length) return empty;
+      return {...empty,detailTitle:'Kołnierz '+(id==='2a'?'FA':'FB')+' · wymiary',rows:r,hasRows:true,
+        img:'url("assets/mount-flange-'+(id==='2a'?'fa':'fb')+'.png")',ratio:'486 / 583',hasImg:true};
+    }
+    if(id==='3'){
+      const r=this.armRows(b); if(!r.length) return empty;
+      return {...empty,detailTitle:'Ramię reakcyjne · wymiary',rows:r,hasRows:true,
+        img:'url("assets/mount-arm.png")',ratio:'1160 / 553',hasImg:true};
+    }
+    return empty;
+  }
+  mountUnavailable(id){
+    const b=this.state.sel&&this.state.sel.box; if(!b) return false;
+    if(id==='2a') return !((window.DKM_FLANGE||{}).FA||{})[b];
+    if(id==='2b') return !((window.DKM_FLANGE||{}).FB||{})[b];
+    if(id==='1a') return !(window.DKM_FOOT||{})[b];
+    if(id==='1b') return !(window.DKM_SIDE||{})[b];
+    if(id==='1c') return !(window.DKM_FACE||{})[b];
+    if(id==='3') return !(window.DKM_ARM||{})[b];
+    return false;
+  }
+  flangeVariant(){ return this.state.mount==='2a'?'FA':(this.state.mount==='2b'?'FB':''); }
+  mountDimLabel(){ return this.state.mount==='1b'
+    ? 'Mocowanie boczne · rozstaw osi otworów (V+Q) × C₁'
+    : 'Mocowanie na podstawie · rozstaw osi otworów C × C₁'; }
+  mountLabel(){
+    const m=this.mountFlat().find(x=>x.id===this.state.mount);
+    return m?(m.g+' — '+m.l):'';
+  }
+  boreLabel(box){
+    const b=this.bore(box); if(!b) return '';
+    return b.std+(b.key?(' · rowek wpustowy '+b.key):'')+(b.opt?(' ('+b.opt+')'):'');
+  }
+  specRows(withMount){
+    const s=this.state.sel; if(!s) return [];
+    const bore=this.boreLabel(s.box);
+    return [
+      {k:'Typ przekładni',v:s.box},
+      {k:'Przełożenie i',v:num(s.i)},
+      {k:'Moment obrotowy na wale wyjściowym M₂ₙ',v:num(s.m2)+' Nm'},
+      {k:'Prędkość obrotowa na wale wyjściowym n₂',v:num(s.n2)+' obr/min'},
+      {k:'Współczynnik bezpieczeństwa fs',v:fs1(s.fs)},
+      {k:'Moc silnika P₁ₙ',v:num(s.p1)+' kW'},
+      {k:'Prędkość obrotowa silnika n₁',v:s.rpm?num(s.rpm)+' obr/min':'—'},
+      {k:'Kołnierz przyłączeniowy',v:s.flange},
+      {k:'Tuleja drążona wału wyjściowego',v:(this.bore(s.box)||{}).std||'—'},
+      {k:'Rowek wpustowy',v:(this.bore(s.box)||{}).key||'—'},
+      {k:'Sposób mocowania',v:this.mountLabel()||'do ustalenia'},
+      ...(withMount&&this.accLabel()?[{k:'Akcesoria',v:this.accLabel()}]:[]),
+      ...(withMount&&this.pcv(s.box)?[{k:'Osłona PCV · wymiar M',v:num(this.pcv(s.box))+' mm'}]:[]),
+      ...(withMount&&this.mountDim(s.box)?[{k:this.mountDimLabel(),v:this.mountDim(s.box)},
+        ...(((window.DKM_BOLT||{})[s.box]||{}).r?[
+          {k:'Otwory montażowe ØR',v:(window.DKM_BOLT||{})[s.box].r},
+          {k:'Typowa śruba montażowa',v:(window.DKM_BOLT||{})[s.box].s}]:[])]:[]),
+      ...(withMount?this.faceRows(s.box):[]),
+      ...(withMount?this.armRows(s.box).map(r=>({k:'Ramię reakcyjne '+r.k,v:r.v})):[]),
+      ...(withMount?this.shaftRows(s.box).map(r=>({k:'Wał zdawczy '+r.k,v:r.v})):[]),
+      ...(withMount?this.flangeRows(s.box).map(r=>({k:'Kołnierz '+this.flangeVariant()+' · '+r.k,v:r.v})):[]),
+      {k:'Obciążenie promieniowe Fᵣ₂',v:s.fr2+' N'}
+    ];
+  }
+  printWin(title,body){
+    const w=window.open('','_blank'); if(!w) return null;
+    w.document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<title>'+title+'</title>'+
+      '<style>@page{size:A4;margin:12mm}html,body{margin:0;padding:0;background:#fff;color:#29265b;'+
+      'font-family:Barlow,system-ui,-apple-system,Segoe UI,sans-serif}'+
+      '.bar{position:sticky;top:0;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#29265b;color:#fff}'+
+      '.bar b{flex:1;font-size:15px;font-weight:600}'+
+      '.bar button{min-height:44px;padding:10px 16px;font:600 14px inherit;cursor:pointer;border:1px solid #fff;background:transparent;color:#fff}'+
+      '.bar button.pri{background:#38b184;border-color:#38b184;color:#0f3d2c}'+
+      '.pg{padding:0 14px 24px}img{max-width:100%;display:block}'+
+      'h1{margin:18px 0 2px;font-size:30px;letter-spacing:.01em}'+
+      '.sub{margin:0 0 4px;font-size:15px;color:#575e78}'+
+      '.rule{height:4px;background:linear-gradient(90deg,#29265b 0 34%,#17529e 34% 67%,#38b184 67%);margin:12px 0 18px}'+
+      'h2{margin:22px 0 6px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#575e78}'+
+      'table{width:100%;border-collapse:collapse}'+
+      'td{padding:8px 0;border-bottom:1px solid rgba(41,38,91,.18);font-size:14px}'+
+      'td+td{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}'+
+      '.note{margin-top:16px;padding:12px 14px;border-left:4px solid #29265b;background:#eef2fa;font-size:13px;line-height:1.5}'+
+      '.note.bad{border-color:#c62828;background:#c62828;color:#fff}'+
+      '.hd{display:flex;align-items:flex-start;gap:16px;padding-top:14px}'+
+      '.hd .lg{height:44px;width:auto;flex:none}'+
+      '.hd .co{font-size:11.5px;line-height:1.5;color:#575e78;text-align:right;margin-left:auto}'+
+      '.hd .co b{font-size:13px;color:#29265b}'+
+      '.ft{margin-top:26px;padding-top:10px;border-top:1px solid rgba(41,38,91,.18);font-size:11.5px;line-height:1.55;color:#575e78}'+
+      '.cp{margin-top:8px;font-size:10px;line-height:1.5;color:#7d859c}'+
+      '.tn{margin:16px 0;padding:14px 16px;border:1px solid rgba(41,38,91,.18);border-left:4px solid #29265b;background:#eef2fa;break-inside:avoid}'+
+      '.tnh{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#29265b;margin-bottom:8px}'+
+      '.tn p{margin:0 0 8px;font-size:12.5px;line-height:1.55}'+
+      '.tn p:last-child{margin-bottom:0}'+
+      '.bdg{display:inline-block;margin-top:14px;padding:5px 9px;background:#29265b;color:#fff;'+
+      'font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}'+
+      '.cap{margin-top:8px;font-size:11.5px;color:#575e78}'+
+      '.ruler{margin-top:12px}'+
+      '.ruler .bar{width:100mm;height:7mm;border:1px solid #29265b;border-top:0;'+
+      'background:repeating-linear-gradient(90deg,#29265b 0 .3mm,transparent .3mm 10mm)}'+
+      '.ruler .lb{width:100mm;display:flex;justify-content:space-between;font-size:10px;color:#575e78;margin-top:3px}'+
+      '.dw{max-width:150mm;margin:0 auto}'+
+      '@media print{.bar{display:none}.pg{padding:0}}</style>'+
+      '<div class="bar"><b>'+title+'</b>'+
+      '<button onclick="window.close()">Zamknij</button>'+
+      '<button class="pri" onclick="window.print()">Zapisz PDF</button></div>'+
+      '<div class="pg"><div class="hd"><img class="lg" src="'+new URL('assets/dkm-logo.png',location.href).href+'" alt="DKM">'+
+      '<div class="co"><b>DKM Power Transmission Sp. z o.o.</b><br>ul. 3 Maja 20 · 87-640 Czernikowo · NIP 879-268-87-36<br>'+
+      'sklep@d-k-m.eu · +48 512 082 994 · +48 516 645 907</div></div>'+body+'</div>');
+    w.document.close();
+    w.onload=()=>{ w.focus(); setTimeout(()=>{ try{ w.print(); }catch(e){} },300); };
+    return w;
+  }
+  printSheet(){
+    const s=this.state.sel; if(!s) return;
+    const d=this.decorate(s), esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const rows=this.specRows(true).map(r=>'<tr><td>'+esc(r.k)+'</td><td>'+esc(r.v)+'</td></tr>').join('');
+    const dims=(window.DKM_DIMS&&window.DKM_DIMS[s.box])||null;
+    const dimTbl=(dims&&dims.length)?('<h2>Wymiary korpusu '+esc(s.box)+'</h2><table>'+
+      dims.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</table>'):'';
+    let note='';
+    if(d.noWty) note='<div class="note bad"><b>fs = '+d.fs+' · poniżej 1,0 — dostawa bez gwarancji.</b><br>DKM realizuje takie zamówienie na życzenie klienta, ale nie obejmuje go gwarancją.</div>';
+    else if(d.warnOnly) note='<div class="note"><b>fs = '+d.fs+' · poniżej wymaganego '+fs1(this.fsReqNum())+'.</b><br>Zbyt mały zapas na rozruchy i przeciążenia.</div>';
+    else if(d.edge) note='<div class="note"><b>fs = '+d.fs+' · na granicy.</b><br>Gwarancja obowiązuje, ale nie ma zapasu na rozruchy i przeciążenia.</div>';
+    const src=this.cardSrc(s.box);
+    const drawing=src?('<h2>Karta wymiarowa</h2><div class="dw"><img src="'+new URL(src,location.href).href+'">'+
+      '<div class="cap">Rysunek poglądowy · wymiary w mm · wydruk nie zachowuje skali 1:1</div>'+this.ruler()+'</div>'):'';
+    const dt=new Date().toLocaleDateString('pl-PL');
+    this.printWin('DKM '+s.box+' — karta doboru',
+      '<div class="bdg">Proponowany dobór</div><h1>'+esc(s.box)+'</h1>'+
+      '<p class="sub">'+d.p1+' kW · '+d.rpmLabel+' · '+esc(s.flange)+'</p><div class="rule"></div>'+
+      this.techNote()+
+      '<h2>Parametry doboru</h2><table>'+rows+'</table>'+dimTbl+note+drawing+
+      '<div class="ft"><b>DKM Power Transmission Sp. z o.o.</b> · ul. 3 Maja 20, 87-640 Czernikowo · NIP 879-268-87-36<br>'+
+      'sklep@d-k-m.eu · +48 512 082 994 · +48 516 645 907 · pon.–pt. 8:00–16:00<br>'+
+      'Wygenerowano '+dt+' w aplikacji DKM Dobór przekładni ślimakowych. Dane z katalogu producenta.</div>'+this.copy());
+  }
+  printCard(){
+    const sel=this.state.sel, src=this.cardSrc(sel&&sel.box); if(!src) return;
+    const dt=new Date().toLocaleDateString('pl-PL');
+    this.printWin('DKM '+sel.box+' — karta wymiarowa',
+      '<div class="bdg">Proponowany dobór</div><h1>'+sel.box+'</h1><p class="sub">Karta wymiarowa</p><div class="rule"></div>'+
+      this.techNote()+
+      '<div class="dw"><img src="'+new URL(src,location.href).href+'">'+
+      '<div class="cap">Rysunek poglądowy · wszystkie wymiary w mm · wydruk nie zachowuje skali 1:1</div>'+
+      this.ruler()+'</div>'+
+      '<div class="ft"><b>DKM Power Transmission Sp. z o.o.</b> · ul. 3 Maja 20, 87-640 Czernikowo · NIP 879-268-87-36<br>'+
+      'sklep@d-k-m.eu · +48 512 082 994 · +48 516 645 907 · pon.–pt. 8:00–16:00<br>'+
+      'Wygenerowano '+dt+' w aplikacji DKM Dobór przekładni ślimakowych.</div>'+this.copy());
+  }
+  techNote(){
+    return '<div class="tn"><div class="tnh">Ważna informacja techniczna</div>'+
+      '<p>Wynik wygenerowany przez aplikację DKM ma charakter <b>pomocniczy i stanowi propozycję doboru</b> na podstawie danych wprowadzonych przez użytkownika oraz danych katalogowych dostępnych w aplikacji.</p>'+
+      '<p>Wynik <b>nie stanowi kompletnego projektu technicznego, obliczeń konstrukcyjnych ani potwierdzenia przydatności produktu do konkretnego zastosowania</b>.</p>'+
+      '<p>Przed zastosowaniem wskazanego produktu należy zweryfikować jego dobór z uwzględnieniem rzeczywistych warunków pracy, w szczególności obciążenia, charakteru pracy, współczynnika pracy, obciążeń promieniowych i osiowych, liczby rozruchów, temperatury, pozycji montażowej oraz wymagań bezpieczeństwa.</p>'+
+      '<p>W przypadku zastosowań nietypowych, pracy w pobliżu wartości granicznych lub wątpliwości dotyczących doboru zalecana jest konsultacja z działem technicznym DKM Power Transmission sp. z o.o.</p>'+
+      '<p>DKM Power Transmission sp. z o.o. nie ponosi odpowiedzialności za skutki zastosowania wyniku bez wymaganej weryfikacji technicznej ani za skutki wynikające z podania nieprawidłowych lub niepełnych danych przez użytkownika, z zastrzeżeniem odpowiedzialności, której zgodnie z obowiązującym prawem nie można wyłączyć ani ograniczyć.</p></div>';
+  }
+  copy(){
+    return '<div class="cp"><b>© 2026 DKM Power Transmission sp. z o.o. · Wszelkie prawa zastrzeżone / All rights reserved.</b><br>'+
+      'Dokument wygenerowany przez aplikację stanowiącą własność DKM Power Transmission sp. z o.o. '+
+      'Nieautoryzowane kopiowanie, modyfikowanie, rozpowszechnianie lub wykorzystywanie jest zabronione. '+
+      'Dane osobowe zawarte w dokumencie przetwarza DKM Power Transmission sp. z o.o. jako administrator, w celu obsługi zapytania (art. 6 ust. 1 lit. b i f RODO). '+
+      'Wyniki doboru mają charakter pomocniczy i wymagają weryfikacji technicznej.<br>'+
+      'This application and its components are proprietary to DKM Power Transmission sp. z o.o. '+
+      'Unauthorized copying, modification, distribution or use is prohibited.</div>';
+  }
+  ruler(){
+    return '<div class="ruler"><div class="bar"></div>'+
+      '<div class="lb"><span>0</span><span>50 mm</span><span>100 mm</span></div>'+
+      '<div class="cap">Podziałka kontrolna wydruku — po wydrukowaniu pasek musi mieć dokładnie 100 mm. '+
+      'Jeśli jest krótszy, drukarka przeskalowała stronę (ustaw skalę 100%).</div></div>';
+  }
+  reset(patch){ this.setState({p1:null,i:null,n2Exact:null,boreSel:null,box:null,rpmSel:1400,m2:'',n2:'',fsMinSel:null,sel:null,refine:false,...patch}); }
+
+  fsGroup(){
+    const S=this.state, opts=FSMINS.map(v=>{
+      const n=this.matches('fs').filter(r=>fsPass(r.fs,v)).length;
+      return {label:v==null?'wszystkie':(v==='below'?'< 1,0':('≥ '+fs1(v))),count:v==null?'':String(n),
+        bg:S.fsMinSel===v?(v==='below'?V('warn'):V('accent')):'transparent',
+        fg:S.fsMinSel===v?V('bg'):(v==='below'?V('warn'):V('text')),
+        cg:S.fsMinSel===v?'rgba(255,255,255,.7)':V('neutral-500'),
+        go:()=>this.setState({fsMinSel:v,sel:null})};
+    });
+    return {label:'Współczynnik bezpieczeństwa fs',unit:'',cols:'3',opts};
+  }
+
+  renderVals(){
+    const S=this.state, fsReq=this.fsReqNum();
+    const entries=[
+      {sym:'P₁',ico:'p1',title:'Znam moc silnika',desc:'Wybieram moc znamionową, potem przełożenie i wariant korpusu.',
+        go:()=>this.reset({screen:'askP1',mode:'p1'})},
+      {sym:'i',ico:'i',title:'Znam przełożenie',desc:'Wybieram przełożenie i, moc silnika dobiorę w następnym kroku.',
+        go:()=>this.reset({screen:'askI',mode:'i'})},
+      {sym:'n₂',ico:'n2',title:'Znam prędkość obrotową na wale wyjściowym',desc:'Wybieram prędkość obrotową wału wyjściowego z katalogu — przełożenie policzy się samo.',
+        go:()=>this.reset({screen:'askN2',mode:'n2'})},
+      {sym:'M₂',ico:'m2',title:'Znam moment obrotowy na wale wyjściowym',desc:'Podaję moment i prędkość obrotową maszyny — aplikacja policzy zapas i fs.',
+        go:()=>this.reset({screen:'askM2',mode:'m2',m2:'',n2:''})},
+      {sym:'DKM',ico:'type',title:'Znam typ przekładni',desc:'Wpisuję oznaczenie, np. DKM090 — pokażę wszystkie warianty tej wielkości.',
+        go:()=>this.reset({screen:'askType',mode:'type',typeQ:''})},
+      {sym:'Ød',ico:'bore',title:'Znam średnicę wału',desc:'Mam wałek o danej średnicy — wybieram tuleję drążoną, która na niego wchodzi.',
+        go:()=>this.reset({screen:'askBore',mode:'bore'})}
+    ];
+    const POOL=S.rpmSel==null?CAT():CAT().filter(r=>r.rpm===S.rpmSel);
+    const n2List=[...new Set(POOL.map(r=>r.n2))].sort((a,b)=>b-a).map(v=>({label:num(v),
+      count:POOL.filter(r=>r.n2===v).length,go:()=>this.setState({n2Exact:v,screen:'results'})}));
+    const rowsRaw=this.matches();
+    const rows=rowsRaw.map(r=>({...this.decorate(r),go:()=>this.setState({sel:r,screen:'detail'})}));
+    const p1List=[...new Set(CAT().map(r=>r.p1))].sort((a,b)=>a-b).map(p=>{
+      const rs=POOL.filter(r=>r.p1===p),all=CAT().filter(r=>r.p1===p),n=rs.length;
+      const src=n?rs:all, lo=Math.min(...src.map(r=>r.m2)),hi=Math.max(...src.map(r=>r.m2));
+      return {label:num(p),
+        countLabel:n?(n+' '+plural(n,'wariant','warianty','wariantów')):'tylko 900 / 2800 obr/min',
+        m2Label:lo===hi?num(lo):num(lo)+'–'+num(hi),
+        go:()=>this.setState(n?{p1:p,screen:'results'}:{p1:p,rpmSel:null,screen:'results'})};
+    });
+    const iList=[...new Set(CAT().map(r=>r.i))].sort((a,b)=>a-b).map(i=>{
+      const n=POOL.filter(r=>r.i===i).length;
+      return {label:num(i),count:n?(n+' poz.'):'900/2800 obr',
+        go:()=>this.setState(n?{i,screen:'results'}:{i,rpmSel:null,screen:'results'})};
+    });
+    const pick=(cur,ix)=>({bg:cur===ix?V('accent'):'transparent',fg:cur===ix?V('bg'):V('text')});
+    const loadOpts=LOADS.map((d,ix)=>({label:d.l,desc:d.d,...pick(S.load,ix),
+      dg:S.load===ix?'rgba(255,255,255,.75)':V('neutral-500'),go:()=>this.setState({load:ix,sel:null})}));
+    const hourOpts=HOURS.map((d,ix)=>({label:d.h+' h',...pick(S.hours,ix),go:()=>this.setState({hours:ix,sel:null})}));
+    const zOpts=ZVALS.map(z=>({label:String(z),...pick(S.z,z),go:()=>this.setState({z,sel:null})}));
+    const tempOpts=TEMPS.map((d,ix)=>({label:d.l,...pick(S.temp,ix),go:()=>this.setState({temp:ix,sel:null})}));
+    const tempMult=TEMPS[S.temp].m, chartFs=this.fsChart(), noMult=tempMult==null;
+    const fsFormula='Wykres katalogowy: obciążenie '+LOADS[S.load].k+' · '+HOURS[S.hours].h+' h/dzień · Z = '+S.z+' 1/h → fs '+fs1(chartFs)
+      +(noMult?' — bez korekty temperaturowej, katalog jej nie podaje'
+        :(tempMult!==1?(' × '+num(tempMult)+' (temperatura '+TEMPS[S.temp].l+')'):''));
+
+    const q=S.typeQ.trim().toLowerCase().replace(/\s+/g,'');
+    const boxAll=[...new Set(CAT().map(r=>r.box))].sort();
+    const typeHits=q.length<2?[]:boxAll.filter(b=>b.toLowerCase().includes(q)||b.toLowerCase().replace('dkm','').includes(q)).slice(0,6)
+      .map(b=>{const n=CAT().filter(r=>r.box===b).length;
+        return {label:b,count:n+' '+plural(n,'pozycja','pozycje','pozycji'),
+          go:()=>this.reset({screen:'results',mode:null,box:b,rpmSel:null,typeQ:''})};});
+    const histRows=S.hist.map(h=>({label:h.label,sub:h.sub,
+      go:()=>this.setState({...h.st,screen:'results',sel:null,refine:false})}));
+    const DIMS=(window.DKM_DIMS||{});
+    const dimRows=(S.sel&&DIMS[S.sel.box]?DIMS[S.sel.box]:[]).map(d=>({k:d[0],v:d[1]}));
+    const chips=[];
+    if(S.p1!=null) chips.push({label:'P₁ '+num(S.p1)+' kW',clear:()=>this.setState({p1:null,sel:null})});
+    if(S.i!=null) chips.push({label:'i = '+num(S.i),clear:()=>this.setState({i:null,sel:null})});
+    if(S.n2Exact!=null) chips.push({label:'n₂ = '+num(S.n2Exact)+' obr/min',clear:()=>this.setState({n2Exact:null,sel:null})});
+    if(S.boreSel!=null) chips.push({label:'tuleja Ø'+num(S.boreSel)+' mm',clear:()=>this.setState({boreSel:null,sel:null})});
+    if(this.numIn(S.m2)!=null) chips.push({label:'M₂ ≥ '+num(this.numIn(S.m2))+' Nm',clear:()=>this.setState({m2:'',sel:null})});
+    if(this.numIn(S.n2)!=null) chips.push({label:'n₂ ≈ '+num(this.numIn(S.n2)),clear:()=>this.setState({n2:'',sel:null})});
+    if(S.fsMinSel!=null) chips.push({label:S.fsMinSel==='below'?'fs < 1,0 · bez gwarancji':('fs ≥ '+fs1(S.fsMinSel)),clear:()=>this.setState({fsMinSel:null,sel:null})});
+    if(S.box!=null) chips.push({label:'typ '+S.box,clear:()=>this.setState({box:null,sel:null})});
+    if(S.rpmSel!=null) chips.push({label:'n₁ '+num(S.rpmSel)+' obr/min'+(S.rpmSel===1400?' · standard':''),clear:()=>this.setState({rpmSel:null,sel:null})});
+    if(S.mode==='m2') chips.push({label:'obc. '+LOADS[S.load].k+' · '+HOURS[S.hours].h+' h · Z '+S.z+' · fs ≥ '+fs1(fsReq)+(TEMPS[S.temp].m==null?' (bez korekty temp.)':''),clear:()=>this.setState({mode:null,fsOnly:false})});
+
+    const refineGroups=[
+      this.group('p1','Moc silnika P₁ₙ','kW',4),
+      this.group('i','Przełożenie i','',6),
+      this.group('n2','Prędkość obrotowa n₂','obr/min',5),
+      this.group('box','Typ przekładni','',4),
+      this.group('bore','Średnica wału Ød','mm',5),
+      this.group('rpm','Prędkość obrotowa silnika n₁','obr/min',4),
+      this.fsGroup()
+    ];
+    const order={p1:['i','box','rpm'],i:['p1','box','rpm'],n2:['p1','i','box'],m2:['p1','i','box']}[S.mode]||['p1','i','box'];
+    const stepLabel={p1:'Moc silnika P₁ₙ (kW)',i:'Przełożenie i',n2:'Prędkość obrotowa n₂',box:'Typ przekładni',rpm:'Prędkość obrotowa silnika n₁',bore:'Średnica wału Ød'};
+    const shortLabel={p1:'Moc P₁',i:'Przełożenie i',n2:'Prędkość n₂',box:'Typ przekładni',rpm:'Prędkość silnika n₁',bore:'Średnica wału'};
+    const avail=['p1','i','n2','box','bore','rpm'].filter(f=>S[this.fieldOf(f)]==null&&this.facet(f).length>1);
+    const suggested=order.find(f=>avail.indexOf(f)>=0)||avail[0]||null;
+    const activeTab=(S.stepTab&&avail.indexOf(S.stepTab)>=0)?S.stepTab:suggested;
+    const stepTabs=avail.map(f=>({f,label:shortLabel[f],count:String(this.facet(f).length),
+      on:f===activeTab,sug:f===suggested&&f!==activeTab,
+      bg:f===activeTab?V('accent'):V('bg'),fg:f===activeTab?V('bg'):V('accent'),
+      bd:f===activeTab?V('accent'):V('accent-300'),
+      pick:()=>this.setState({stepTab:f})}));
+    let nextStep=null;
+    if(activeTab){
+      const fc=this.facet(activeTab);
+      const acc={p1:'moc silnika P₁ₙ (kW)',i:'przełożenie i',n2:'prędkość obrotową n₂',box:'typ przekładni',rpm:'prędkość obrotową silnika n₁',bore:'średnicę wału Ød'};
+      nextStep={title:'Wybierz '+(acc[activeTab]||stepLabel[activeTab]),
+        hint:'Zostało '+rowsRaw.length+' pozycji. Kliknij kryterium, które znasz — albo przewiń listę niżej.',
+        opts:fc.map(o=>({label:activeTab==='box'?String(o.v):(activeTab==='bore'?('⌀ '+num(o.v)):num(o.v)),count:String(o.count),go:()=>this.setField(activeTab,o.v)}))};
+    }
+    const showStep=!!nextStep&&rowsRaw.length>8;
+    const otherRpm=S.rpmSel==null?0:this.matches('rpm').length;
+
+    const sel=S.sel?this.decorate(S.sel):null;
+    const headline=S.sel?[{k:'M₂ₙ',d:'Moment obrotowy na wale wyjściowym',v:num(S.sel.m2),u:'Nm'},
+      {k:'n₂',d:'Prędkość obrotowa na wale wyjściowym',v:num(S.sel.n2),u:'obr/min'},
+      {k:'fs',d:'Współczynnik bezpieczeństwa',v:fs1(S.sel.fs),u:''}]:[];
+    const specs=this.specRows();
+
+    const rfqRows=S.rfq.map(x=>({...x,qty:String(x.qty),
+      specLine:'i = '+x.i+' · M₂ '+x.m2+' Nm'+(x.n2?(' · n₂ '+x.n2+' obr/min'):'')+(x.p1?(' · '+x.p1+' kW'):'')+(x.rpm?(' · silnik '+x.rpm+' obr/min'):'')+(x.bore?(' · tuleja '+x.bore):''),
+      fsLine:x.fs?('fs '+x.fs+(x.noWty?' · dostawa bez gwarancji':'')):'',
+      hasFs:!!x.fs,fsColor:x.noWty?V('bg'):V('ok-ink'),fsBg:x.noWty?V('warn'):V('ok-bg'),
+      inc:()=>this.qty(x.k,1),dec:()=>this.qty(x.k,-1),
+      open:()=>{ const row=CAT().find(rr=>this.key(rr)===x.k);
+        if(row) this.setState({sel:row,screen:'detail',fromRfq:true}); },
+      remove:()=>this.setState(s=>{const rfq=s.rfq.filter(y=>y.k!==x.k);this.persist(rfq);return {rfq};})}));
+    const rfqNoWty=S.rfq.some(x=>x.noWty);
+    const crumb={askP1:'Krok 1 · Moc silnika',askI:'Krok 1 · Przełożenie',askN2:'Krok 1 · Prędkość obrotowa na wale',askBore:'Krok 1 · Średnica wału',askType:'Krok 1 · Typ przekładni',askM2:'Krok 1 · Wymagania maszyny',
+      results:'Proponowany dobór',detail:'Proponowany dobór · karta produktu',rfq:'Zapytanie',
+      legal:'Informacje prawne · RODO · bezpieczeństwo',terms:'Regulamin'}[S.screen]||'';
+
+    return {
+      tileGrid:S.wide?'repeat(3,minmax(0,1fr))':'repeat(2,minmax(0,1fr))',
+      entries:entries.map(e=>({...e,
+        short:{type:'Typ przekładni',p1:'Moc silnika',i:'Przełożenie',n2:'Prędkość obrotowa na wale wyjściowym',m2:'Moment obrotowy na wale wyjściowym',bore:'Średnica wału'}[e.ico]||e.title,
+        tile:'url("'+((document.querySelector('img[data-tile="'+e.ico+'"]')||{}).src||('assets/tile-'+e.ico+'.png'))+'")'})),
+      p1List,iList,n2List,loadOpts,hourOpts,zOpts,tempOpts,fsFormula,
+      tempNote:TEMPS[S.temp].note,tempHasNote:!!TEMPS[S.temp].note,serviceCall:noMult,
+      fsHeadline:noMult?'do ustalenia':('≥ '+fs1(fsReq)),
+      chips,refineGroups,rows,specs,headline,rfqRows,rfqNoWty,
+      showStep,nextStep:nextStep||{title:'',hint:'',opts:[]},stepTabs,
+      stdOn:S.rpmSel===1400,stdOff:S.rpmSel==null,
+      stdBlocks:S.rpmSel!=null&&rowsRaw.length===0&&otherRpm>0,
+      otherRpmNote:'Na pozostałych prędkościach silnika (900 / 2800 obr/min) '+(plural(otherRpm,'jest','są','jest'))+' '+otherRpm+' '+plural(otherRpm,'pozycja','pozycje','pozycji')+'.',
+      showAllRpm:()=>this.setState({rpmSel:null,sel:null}),
+      backToStd:()=>this.setState({rpmSel:1400,sel:null}),
+      isHome:S.screen==='home',isAskP1:S.screen==='askP1',isAskI:S.screen==='askI',isAskM2:S.screen==='askM2',
+      isAskN2:S.screen==='askN2',isAskBore:S.screen==='askBore',isAskType:S.screen==='askType',isLegal:S.screen==='legal',
+      boreList:(()=>{
+        const B=window.DKM_BORE||{},m={};
+        Object.keys(B).forEach(box=>{
+          const add=(d,opt)=>{ const k=String(d);
+            (m[k]=m[k]||{d,boxes:[],opt:true})['boxes'].push({box,opt});
+            if(!opt) m[k].opt=false; };
+          add(B[box].std,false); (B[box].opt||[]).forEach(d=>add(d,true));
+        });
+        return Object.values(m).sort((a,b)=>a.d-b.d).map(x=>({
+          label:'Ø'+x.d,boxes:x.boxes.map(b=>b.box.replace('DKM','')).join(' · '),
+          optOnly:x.opt,
+          go:()=>this.setState({boreSel:x.d,screen:'results',sel:null})}));
+      })(),
+      goLegal:()=>this.setState(s=>({screen:'legal',legalFrom:s.screen})),
+      goTerms:()=>this.setState(s=>({screen:'terms',legalFrom:s.screen==='terms'?s.legalFrom:s.screen})),
+      terms:TERMS.map(x=>({...x,b:x.b||[],p2:x.p2||[],head:x.n+'. '+x.t})),
+      isTerms:S.screen==='terms',termsVer:'Wersja 1.0 · 20 sierpnia 2026 r.',
+      accepted:S.accepted,acceptErr:S.acceptErr,
+      toggleAccept:()=>this.setState(s=>({accepted:!s.accepted,acceptErr:false})),
+      acceptBox:S.accepted?V('accent'):'transparent',
+      acceptMark:S.accepted?'✓':'',
+      acceptBorder:S.acceptErr?V('warn'):(S.accepted?V('accent'):V('neutral-400')),
+      closeLegal:()=>this.setState(s=>({screen:s.legalFrom||'home'})),
+      isResults:S.screen==='results',isDetail:S.screen==='detail'&&!!sel,isRfq:S.screen==='rfq',
+      wide:S.wide,shellW:S.wide?'1180px':'520px',brandJustify:'center',logoH:S.wide?'76px':'58px',
+      docW:S.wide?'720px':'none',specCols:S.wide?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)',
+      resCols:S.wide?'392px minmax(0,1fr)':'minmax(0,1fr)',
+      tileCols:S.wide?'repeat(6,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',
+      powerCols:S.wide?'repeat(3,minmax(0,1fr))':'minmax(0,1fr)',
+      leftBorder:S.wide?'1px solid var(--color-divider)':'0',
+      cardImg:S.sel?this.cardSrc(S.sel.box):null,hasCard:!!(S.sel&&this.cardSrc(S.sel.box)),
+      cardBg:S.sel&&this.cardSrc(S.sel.box)?('url("'+this.cardSrc(S.sel.box)+'")'):'none',
+      cardZoomBg:S.card?('url("'+S.card+'")'):'none',
+      cardRatio:this.cardRatio(S.sel&&S.sel.box),
+      cardOpen:!!S.card,cardZoom:S.card,
+      openCard:()=>this.openCard(),closeCard:()=>this.setState({card:null}),
+      printCard:()=>this.printCard(),printSheet:()=>this.printSheet(),
+      pdfCols:(S.sel&&this.cardSrc(S.sel.box))?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)',
+      showCrumbs:S.screen!=='home',crumbLabel:crumb,noChips:chips.length===0,
+      totalCount:String(POOL.length),
+      poolNote:S.rpmSel!=null?('Liczby dla silnika '+num(S.rpmSel)+' obr/min — standard'):'Liczby dla wszystkich prędkości silnika',
+      poolNoteAll:S.rpmSel!=null?('Cały katalog · liczby wariantów dla silnika '+num(S.rpmSel)+' obr/min (standard)'):'Cały katalog · wszystkie prędkości silnika',count:String(rows.length),empty:rows.length===0,
+      m2In:S.m2,n2In:S.n2,fsReq:fs1(fsReq),
+      setM2:e=>this.setState({m2:e.target.value,sel:null}),
+      setN2:e=>this.setState({n2:e.target.value,sel:null}),
+      runM2:()=>this.setState({screen:'results',fsMinSel:fsReq}),
+      browseAll:()=>this.reset({screen:'results',mode:null}),
+      goHome:()=>this.reset({screen:'home',mode:null}),
+      back:()=>this.setState(s=>({screen:s.fromRfq?'rfq':'results',fromRfq:false})),
+      backLabel:S.fromRfq?'← Zapytanie':'← Wyniki',
+      refineOpen:S.refine,toggleRefine:()=>this.setState(s=>({refine:!s.refine})),
+      refineLabel:S.refine?'Ukryj filtry':'+ Zmień kryteria',
+
+      sel:sel||{},
+      openRfq:()=>this.setState(s=>({screen:'rfq',prevScreen:s.screen==='rfq'?s.prevScreen:s.screen})),
+      closeRfq:()=>this.setState(s=>({screen:s.prevScreen||'home'})),
+      rfqEmpty:rfqRows.length===0,rfqCount:String(S.rfq.reduce((a,x)=>a+x.qty,0)),
+      cName:S.c.name,cFirm:S.c.firm,cEmail:S.c.email,cPhone:S.c.phone,cNote:S.c.note,
+      setName:e=>this.setC('name',e.target.value),setFirm:e=>this.setC('firm',e.target.value),
+      setEmail:e=>this.setC('email',e.target.value),setPhone:e=>this.setC('phone',e.target.value),
+      setNote:e=>this.setC('note',e.target.value),
+      sendRfq:this.send,sendLabel:S.sent?'✓ otwieram program pocztowy':'Wyślij zapytanie do DKM',
+      typeQ:S.typeQ,
+      setTypeQ:e=>this.setState({typeQ:e.target.value}),
+      typeHits,hasTypeHits:typeHits.length>0,
+      histRows,hasHist:histRows.length>0,
+      askAdvisor:this.askAdvisor,
+      dimRows,hasDims:dimRows.length>0,
+      boreStd:S.sel?((this.bore(S.sel.box)||{}).std||''):'',
+      boreOpt:S.sel?((this.bore(S.sel.box)||{}).opt||''):'',
+      boreKey:S.sel?((this.bore(S.sel.box)||{}).key||''):'',
+      boreKeyVal:S.sel?((this.bore(S.sel.box)||{}).key||'—'):'—',
+      mountCols:S.wide?'repeat(3,minmax(0,1fr))':'repeat(2,minmax(0,1fr))',
+      accAll:(window.DKM_ACC||[]).reduce((a,g)=>a.concat(g.o),[]).map(o=>{
+        const on=(S.acc||[]).indexOf(o.id)>=0;
+        return {...o,sel:on,...this.accDetail(o.id),
+          cols:this.detCols(this.accDetail(o.id).rows.length),
+          pic:'url("assets/acct-'+o.id+'.jpg")',
+          tile:on?V('accent'):V('bg'),fg:on?V('bg'):V('text'),
+          lineMark:on?V('ok'):V('accent-300'),status:on?'wybrane':'dodaj',
+          pick:()=>this.setState(s=>{const has=(s.acc||[]).indexOf(o.id)>=0;
+            let acc=has?(s.acc||[]).filter(x=>x!==o.id):[...(s.acc||[]),o.id];
+            if(!has&&(o.id==='SS'||o.id==='DS')) acc=acc.filter(x=>x===o.id||(x!=='SS'&&x!=='DS'));
+            return {acc};})};}),
+      mountTileCols:'repeat(3,minmax(0,1fr))',drawMax:S.wide?'980px':'100%',
+      mountAll:(window.DKM_MOUNT||[]).reduce((a,g)=>a.concat(g.o),[]).map(o=>({...o,
+        pic:'url("assets/mnt-'+o.id+'.jpg")',
+        mark:S.mount===o.id?V('ok'):V('accent-300'),
+        tile:S.mount===o.id?V('accent'):V('bg'),
+        fg:S.mount===o.id?V('bg'):V('text'),
+        sel:S.mount===o.id,off:this.mountUnavailable(o.id),
+        opac:this.mountUnavailable(o.id)?'.45':'1',
+        ...this.mountDetail(o.id),
+        cols:this.detCols(this.mountDetail(o.id).rows.length),
+        status:this.mountUnavailable(o.id)?'brak dla tej wielkości':(S.mount===o.id?'wybrane':'wybierz'),
+        pick:()=>{ if(this.mountUnavailable(o.id)) return;
+          this.setState(s=>({mount:s.mount===o.id?null:o.id})); }})),
+      mountGroups:(window.DKM_MOUNT||[]).map((g,gi)=>({...g,n:gi+1,cols:'repeat(3,minmax(0,1fr))',tiles:true,rows:false,o:g.o.map(o=>({...o,
+        pic:'url("assets/mnt-'+o.id+'.jpg")',
+        mark:S.mount===o.id?V('ok'):V('accent-300'),
+        tile:S.mount===o.id?V('accent'):V('bg'),
+        sel:S.mount===o.id,
+        ...this.mountDetail(o.id),
+        cols:this.detCols(this.mountDetail(o.id).rows.length),
+        status:this.mountUnavailable(o.id)?'brak dla tej wielkości':(S.mount===o.id?'wybrane':'wybierz'),
+        off:this.mountUnavailable(o.id),
+        opac:this.mountUnavailable(o.id)?'.45':'1',
+        bg:S.mount===o.id?V('accent'):'transparent',
+        fg:S.mount===o.id?'#fff':V('neutral-900'),
+        bd:S.mount===o.id?V('accent'):V('divider'),
+        noDraw:!o.drawing,
+        pick:()=>{ if(this.mountUnavailable(o.id)) return;
+          this.setState(s=>({mount:s.mount===o.id?null:o.id})); }}))})),
+      mountPicked:this.mountLabel(),hasMountPick:!!S.mount,
+      accGroups:(window.DKM_ACC||[]).map(g=>({...g,o:g.o.map(o=>{
+        const on=(S.acc||[]).indexOf(o.id)>=0;
+        return {...o,sel:on,...this.accDetail(o.id),
+          cols:this.detCols(this.accDetail(o.id).rows.length),
+          tile:on?V('accent'):V('bg'),lineMark:on?V('ok'):V('accent-300'),
+          status:on?'wybrane':'dodaj',bg:on?V('accent'):'transparent',fg:on?'#fff':V('neutral-900'),
+          bd:on?V('accent'):V('divider'),noDraw:!o.drawing,mark:on?'✓':'',
+          pick:()=>this.toggleAcc(o.id)};
+      })})),
+      accPicked:this.accLabel(),hasAcc:(S.acc||[]).length>0,
+      shaftRows:this.shaftRows(),showShaft:this.shaftRows().length>0,
+      shaftVariant:(S.acc||[]).indexOf('DS')>=0?'DS — dwustronny':'SS — jednostronny',
+      shaftBg:'url("assets/acc-'+((S.acc||[]).indexOf('DS')>=0?'ds':'ss')+'.png")',
+      shaftRatio:(S.acc||[]).indexOf('DS')>=0?'520 / 291':'1240 / 604',
+      pcvVal:this.pcv()?(num(this.pcv())+' mm'):'',showPcv:!!this.pcv(),
+      pcvBg:'url("assets/acc-pcv.png")',
+      footVal:S.sel?(this.mountDim()||''):'',footLabel:S.mount==='1b'?'Rozstaw montażowy (V+Q) × C₁':'Rozstaw otworów C × C₁',
+      showFoot:!!(S.sel&&this.mountDim()),
+      faceRows:this.faceRows(),showFace:this.faceRows().length>0,
+      armRows:this.armRows(),showArm:this.armRows().length>0,
+      flangeRows:this.flangeRows(),showFlange:this.flangeRows().length>0,
+      flangeVariant:this.flangeVariant(),
+      flangeNone:!!((S.mount==='2a'||S.mount==='2b')&&S.sel&&this.flangeRows().length===0),
+      flangeBg:'url("assets/mount-flange-'+(this.flangeVariant()==='FB'?'fb':'fa')+'.png")',
+      armBg:'url("assets/mount-arm.png")',
+      boreOptShort:S.sel?String((this.bore(S.sel.box)||{}).opt||'').replace(' na zapytanie',''):'',
+      hasBoreKey:!!(S.sel&&(this.bore(S.sel.box)||{}).key),
+      hasBore:!!(S.sel&&this.bore(S.sel.box)),
+      hasBoreOpt:!!(S.sel&&this.bore(S.sel.box)&&this.bore(S.sel.box).opt),
+      footCols:S.wide?'repeat(2,minmax(0,1fr))':'minmax(0,1fr) minmax(0,1fr)',
+      rfqBarLabel:S.rfq.length?'Zapytanie ofertowe':'Zapytanie ofertowe — jeszcze puste',
+      rfqEmail:this.props.rfqEmail||'sklep@d-k-m.eu',formCols:S.wide?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)',
+      addToRfq:this.add,rfqLabel:S.just?'✓ dodano do zapytania':'Dodaj do zapytania ofertowego'
+    };
+  }
+}
+</script>
+</body>
+</html>
