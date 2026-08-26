@@ -312,7 +312,7 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--color-accent);o
           <ul style="margin:0 0 10px;padding-left:20px;font:400 13.5px/1.65 Barlow,sans-serif;color:var(--color-neutral-900)">
             <li>Żadne wpisane dane nie są przesyłane bez Twojego działania.</li>
             <li>Koszyk zapytania i historia doborów są zapisywane wyłącznie w pamięci przeglądarki na Twoim urządzeniu — możesz je w każdej chwili usunąć, czyszcząc dane przeglądarki.</li>
-            <li>Aplikacja nie stosuje plików cookie do śledzenia, nie profiluje użytkowników i nie prowadzi analityki.</li>
+            <li>Po dobrowolnej zgodzie aplikacja korzysta z Google Analytics wyłącznie do anonimowego pomiaru wejść, użycia koszyka oraz wysłania zapytania lub zamówienia. Do analityki nie są przekazywane dane kontaktowe, NIP ani treść zamówienia.</li>
             <li>Po naciśnięciu „Wyślij” lub „Zamawiam” dane są przekazywane przez usługę Formspree, działającą jako podmiot przetwarzający, na adres odbiorczy DKM skonfigurowany dla formularza.</li>
             <li>Korespondencja przychodząca jest przetwarzana przez upoważnionych pracowników DKM Power Transmission Sp. z o.o., na kontach zabezpieczonych hasłem i uwierzytelnianiem dostawcy poczty.</li>
           </ul>
@@ -1601,6 +1601,17 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--color-accent);o
       </button>
     </sc-if>
   </div>
+
+  <sc-if value="{{ showAnalyticsNotice }}">
+    <div style="position:fixed;left:12px;right:12px;bottom:12px;z-index:50;max-width:720px;margin:0 auto;padding:14px 15px;background:#fff;border:1px solid var(--color-divider);border-left:4px solid var(--color-accent);box-shadow:0 12px 34px rgba(12,10,40,.25)">
+      <div style="font:600 14px Barlow,sans-serif;color:var(--color-accent)">Pomóż nam poprawić konfigurator</div>
+      <div style="margin-top:4px;font:400 12.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)">Za Twoją zgodą mierzymy anonimowo wejścia oraz użycie koszyka. Nie przekazujemy danych kontaktowych ani treści zamówienia do analityki.</div>
+      <div style="margin-top:11px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button onClick="{{ rejectAnalytics }}" style="min-height:40px;padding:9px 12px;background:transparent;border:1px solid var(--color-divider);color:var(--color-accent);cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase">Nie zgadzam się</button>
+        <button onClick="{{ acceptAnalytics }}" style="min-height:40px;padding:9px 12px;background:var(--color-accent);border:1px solid var(--color-accent);color:#fff;cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase">Akceptuję analitykę</button>
+      </div>
+    </div>
+  </sc-if>
 </div>
 
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#22235f"></rect><g fill="none" stroke="#dcdcea" stroke-width="5"><rect x="58" y="56" width="84" height="84"></rect><circle cx="100" cy="98" r="19"></circle></g><text x="100" y="176" fill="#f4f4f7" font-family="Helvetica,sans-serif" font-size="23" font-weight="700" text-anchor="middle" letter-spacing="3">DKM</text></svg></template>
@@ -1713,17 +1724,34 @@ const zl=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f')+' z\
 const zl2=n=>n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d)\d{0,2},)/g,'\u202f')+' z\u0142';
 const V=k=>'var(--color-'+k+')';
 const plural=(n,a,b,c)=>{const d=n%10,s=n%100;return n===1?a:(d>=2&&d<=4&&!(s>=12&&s<=14)?b:c);};
+const GA_ID='G-79013G7BXL';
+const dkmAnalyticsStart=()=>{
+  try{
+    if(window.__dkmAnalyticsStarted) return;
+    window.__dkmAnalyticsStarted=true;
+    const s=document.createElement('script'); s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){window.dataLayer.push(arguments);};
+    window.gtag('js',new Date());
+    window.gtag('config',GA_ID,{anonymize_ip:true});
+  }catch(e){}
+};
+const dkmTrack=(name,params)=>{
+  try{if(localStorage.getItem('dkm-analytics-consent')==='granted'&&typeof window.gtag==='function') window.gtag('event',name,params||{});}catch(e){}
+};
 
 class Component extends DCLogic {
   A(f){ const R=window.__resources||{}; return R['a_'+String(f).replace(/[^a-zA-Z0-9]/g,'_')]||('assets/'+f); }
   state={screen:'home',mode:null,p1:null,i:null,n2Exact:null,box:null,rpmSel:1400,m2:'',n2:'',load:1,hours:1,z:10,temp:0,fsMinSel:null,fsOnly:false,wide:false,
     refine:false,sel:null,rfq:[],just:false,prevScreen:'home',typeQ:'',hist:[],hideLow:true,
-    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:''},invoice:false,del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null};
+    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:''},invoice:false,analyticsConsent:null,del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null};
 
   componentDidMount(){
     this._pScreen=this.state.screen; this._pRfq=this.state.rfq;
     try{const r=localStorage.getItem('dkm-rfq-v2'); if(r) this.setState({rfq:this.hydrate(JSON.parse(r)||[])});}catch(e){}
     this._hydrated=true;
+    try{const a=localStorage.getItem('dkm-analytics-consent'); if(a==='granted'||a==='denied'){ this.setState({analyticsConsent:a}); if(a==='granted') dkmAnalyticsStart(); }}catch(e){}
     try{const h=localStorage.getItem('dkm-hist-v1'); if(h) this.setState({hist:JSON.parse(h)||[]});}catch(e){}
     try{ this.mq=window.matchMedia('(min-width:900px)');
       this.onMq=e=>this.setState({wide:e.matches});
@@ -2149,6 +2177,7 @@ class Component extends DCLogic {
       body:JSON.stringify(payload)
     }).then(r=>{
       if(!r.ok) throw new Error('Wysyłka nie powiodła się');
+      dkmTrack(isOrder?'configurator_order_sent':'configurator_inquiry_sent',isOrder?{payment_method:this.PAYS[this.state.pay]||'unknown'}:{});
       this.setState({sent:true,sendFail:false,mailText:'',ordered:isOrder});
       if(isOrder){
         setTimeout(()=>this.setState({
@@ -2669,6 +2698,7 @@ class Component extends DCLogic {
           boxNet:this.boxNetOf(r),motNet:(this.motorOf(r)||{}).net||null,motName:(this.motorOf(r)||{}).name||'',withMotor:true,extras:this.extrasFor(r.box).map(e=>({...e,qty:1}))}];
       return {rfq,just:true,screen:'rfq',prevScreen:'detail',c1:false,c2:false,consentErr:false};
     });
+    dkmTrack('configurator_add_to_cart');
     setTimeout(()=>this.setState({just:false}),4000);
   };
 
@@ -3292,6 +3322,9 @@ class Component extends DCLogic {
       isTerms:S.screen==='terms',termsVer:'Wersja 1.0 · 20 sierpnia 2026 r.',
       accepted:S.accepted,acceptErr:S.acceptErr,
       toggleAccept:()=>this.setState(s=>({accepted:!s.accepted,acceptErr:false})),
+      showAnalyticsNotice:S.analyticsConsent==null,
+      acceptAnalytics:()=>{ try{localStorage.setItem('dkm-analytics-consent','granted');}catch(e){} dkmAnalyticsStart(); this.setState({analyticsConsent:'granted'}); },
+      rejectAnalytics:()=>{ try{localStorage.setItem('dkm-analytics-consent','denied');}catch(e){} this.setState({analyticsConsent:'denied'}); },
       acceptBox:S.accepted?V('accent'):'transparent',
       acceptMark:S.accepted?'✓':'',
       acceptBorder:S.acceptErr?V('warn'):(S.accepted?V('accent'):V('neutral-400')),
@@ -3447,7 +3480,7 @@ class Component extends DCLogic {
         motorNetLabel:sel.motNet!=null?zl(sel.motNet):'na zapytanie',
         setNetLabel:(sel.boxNet!=null&&sel.motNet!=null)?zl(selSet)
           :(sel.boxNet!=null?(zl(sel.boxNet+selExNet)+' + silnik na zapytanie'):'na zapytanie')}:{},
-      openRfq:()=>this.setState(s=>({screen:'rfq',prevScreen:s.screen==='rfq'?s.prevScreen:s.screen})),
+      openRfq:()=>{ dkmTrack('configurator_view_cart'); this.setState(s=>({screen:'rfq',prevScreen:s.screen==='rfq'?s.prevScreen:s.screen})); },
       closeRfq:()=>this.setState(s=>({screen:s.prevScreen||'home'})),
       rfqEmpty:rfqRows.length===0,justAdded:!!S.just,
       rfqStep:step,isStep1:step===1,isStep2:step===2,isStep3:step===3,
