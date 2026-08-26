@@ -2076,10 +2076,17 @@ class Component extends DCLogic {
     return L.join('\n');
   }
   send=()=>{
-    if(!this.state.rfq.length) return;
-    if(!this.state.accepted){ this.setState({acceptErr:true}); return; }
+    const S=this.state,c=S.c||{};
+    if(!S.rfq.length) return;
+    if(!S.accepted){ this.setState({acceptErr:true}); return; }
+    const miss=[];
+    if(!c.first) miss.push('imię');
+    if(!c.last) miss.push('nazwisko');
+    if(!c.email) miss.push('e-mail');
+    if(!c.phone) miss.push('telefon');
+    if(miss.length){ this.setState({orderErr:'Aby wysłać zapytanie, uzupełnij: '+miss.join(', ')+'.'}); return; }
     const to=this.props.rfqEmail||'sklep@d-k-m.eu';
-    const subj='Zapytanie ofertowe — przekładnie ślimakowe ('+this.state.rfq.length+' poz.)';
+    const subj='Zapytanie — dobór przekładni DKM ('+S.rfq.length+' poz.)';
     const body=this.mailBody();
     this.dispatch(to,subj,body);
   };
@@ -2140,7 +2147,13 @@ class Component extends DCLogic {
     }).then(r=>{
       if(!r.ok) throw new Error('Wysyłka nie powiodła się');
       this.setState({sent:true,sendFail:false,mailText:'',ordered:isOrder});
-      setTimeout(()=>this.setState({sent:false,ordered:false}),4000);
+      if(isOrder){
+        setTimeout(()=>this.setState({
+          sent:false,ordered:false,rfq:[],screen:'home',mode:null,sel:null,
+          c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:''},invoice:false,
+          orderErr:'',accepted:false
+        }),3500);
+      } else setTimeout(()=>this.setState({sent:false}),4000);
     }).catch(()=>{
       const msg='Nie udało się wysłać formularza. Sprawdź połączenie z internetem i spróbuj ponownie. Jeżeli problem się powtarza, skopiuj treść i wyślij ją na sklep@d-k-m.eu.';
       this.setState({sent:false,sendFail:true,mailText:body,orderErr:isOrder?msg:''});
