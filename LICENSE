@@ -1,0 +1,39 @@
+Copyright © 2026 DKM Power Transmission Sp. z o.o.
+ul. 3 Maja 20, 87-640 Czernikowo, NIP 879-268-87-36
+Wszelkie prawa zastrzeżone. All rights reserved.
+
+WŁASNOŚĆ ZASTRZEŻONA — PROPRIETARY
+
+Repozytorium jest publicznie widoczne, ale NIE jest oprogramowaniem otwartym.
+Publiczna widoczność nie oznacza udzielenia jakiejkolwiek licencji.
+
+Bez uprzedniej pisemnej zgody DKM Power Transmission Sp. z o.o. zabronione jest
+w szczególności:
+
+  - kopiowanie, powielanie i rozpowszechnianie aplikacji albo jej elementów,
+  - modyfikowanie, adaptowanie i tworzenie rozwiązań pochodnych,
+  - wykorzystywanie kodu, algorytmów i metod doboru w innych systemach,
+  - kopiowanie i wykorzystywanie baz danych zawartych w repozytorium,
+    w szczególności katalogu doboru (catalog-data.js), cennika i stanów
+    magazynowych (price-data.js) oraz tabel wymiarowych (dims-data.js),
+  - wykorzystywanie repozytorium lub jego elementów do stworzenia rozwiązania
+    konkurencyjnego.
+
+Bazy danych zawarte w tym repozytorium stanowią bazy danych w rozumieniu ustawy
+z dnia 27 lipca 2001 r. o ochronie baz danych i podlegają ochronie niezależnie
+od ochrony przysługującej programowi komputerowemu. Ich sporządzenie wymagało
+istotnego nakładu inwestycyjnego po stronie DKM Power Transmission Sp. z o.o.
+
+Oznaczenia „DKM" i „DKM Power Transmission" oraz logo mogą podlegać ochronie
+na podstawie właściwych przepisów prawa.
+
+Kontakt w sprawie licencji: sklep@d-k-m.eu
+
+---
+
+This repository is publicly visible but is NOT open source. Public visibility
+grants no licence of any kind. Copying, modification, distribution, or use of
+the source code, the databases (product catalogue, price list, stock levels,
+dimension tables) or any derived work is prohibited without prior written
+consent of DKM Power Transmission Sp. z o.o. The databases contained herein are
+protected under EU database sui generis rights.
