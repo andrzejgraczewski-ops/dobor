@@ -93,13 +93,25 @@ export class DkmLogic extends React.Component {
       wiadomosc:body
     };
     this.setState({sending:true,sendFail:false,sendErr:'',sentOk:false,sentRef:'',mailText:body});
+    // Bez limitu czasu wolne albo niedostępne Formspree potrafi wisieć minutami,
+    // a klient widzi tylko wygaszony przycisk i nie wie, czy zamówienie poszło.
+    // Po 20 s przerywamy i pokazujemy panel awaryjny z treścią do skopiowania.
+    const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    const timedOut={v:false};
+    const timer=setTimeout(()=>{ timedOut.v=true; try{ ctrl&&ctrl.abort(); }catch(e){} },20000);
     fetch(this.FORM_URL,{method:'POST',
       headers:{'Content-Type':'application/json',Accept:'application/json'},
-      body:JSON.stringify(payload)})
-      .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json().catch(()=>({})); })
+      body:JSON.stringify(payload),
+      ...(ctrl?{signal:ctrl.signal}:{})})
+      .then(r=>{ clearTimeout(timer); if(!r.ok) throw new Error('HTTP '+r.status); return r.json().catch(()=>({})); })
       .then(()=>{
         this.track(order?'submit_order':'submit_rfq',order?{payment:S.pay||'proforma'}:{});
         this.setState({sending:false,sentOk:true,sentRef:ref,ordered:order});
+        // potwierdzenie pojawia się pod przyciskiem — na telefonie bywa poza ekranem
+        setTimeout(()=>{ try{
+          const el=document.querySelector('[data-sent-panel]');
+          if(el&&el.scrollIntoView) el.scrollIntoView({block:'center',behavior:'smooth'});
+        }catch(e){} },60);
         clearTimeout(this._doneT);
         this._doneT=order
           ?setTimeout(()=>{
@@ -112,9 +124,16 @@ export class DkmLogic extends React.Component {
           // wysłać następne po poprawieniu pozycji
           :setTimeout(()=>this.setState({sentOk:false,sentRef:''}),8000);
       })
-      .catch(()=>this.setState({sending:false,mailText:body,
-        sendErr:'Nie udało się wysłać formularza. Sprawdź połączenie z internetem i spróbuj ponownie. Jeżeli problem się powtarza, skopiuj treść i wyślij ją na '
-          +(this.props.rfqEmail||'sklep@d-k-m.eu')+'.'}));
+      .catch(()=>{
+        clearTimeout(timer);
+        this.setState({sending:false,mailText:body,
+          sendErr:timedOut.v
+            ? 'Wysyłka trwała zbyt długo i została przerwana — zamówienie NIE zostało wysłane. '
+              +'Sprawdź połączenie i spróbuj ponownie albo skopiuj treść poniżej i wyślij ją na '
+              +(this.props.rfqEmail||'sklep@d-k-m.eu')+'.'
+            : 'Nie udało się wysłać formularza. Sprawdź połączenie z internetem i spróbuj ponownie. Jeżeli problem się powtarza, skopiuj treść i wyślij ją na '
+              +(this.props.rfqEmail||'sklep@d-k-m.eu')+'.'});
+      });
   }
 
   componentDidMount(){
@@ -1756,8 +1775,9 @@ export class DkmLogic extends React.Component {
       sendBg:this.canOrder()?'transparent':V('accent'),
       sendFg:this.canOrder()?V('accent'):V('bg'),
       sendBd:this.canOrder()?V('accent-300'):V('accent'),
-      orderLabel:S.ordered?'✓ zamówienie wysłane'
-        :(S.pay==='pobranie'?'Zamawiam — wysyłka za pobraniem':'Zamawiam — proszę o proformę'),
+      orderLabel:S.sending?'Wysyłam zamówienie…'
+        :(S.ordered?'✓ zamówienie wysłane'
+        :(S.pay==='pobranie'?'Zamawiam — wysyłka za pobraniem':'Zamawiam — proszę o proformę')),
       showStep,nextStep:nextStep||{title:'',hint:'',opts:[]},stepTabs,
       stdOn:S.rpmSel===1400,stdOff:S.rpmSel==null,
       stdBlocks:S.rpmSel!=null&&rowsRaw.length===0&&otherRpm>0,
@@ -2063,7 +2083,10 @@ export class DkmLogic extends React.Component {
       setName:e=>this.setC('name',e.target.value),setFirm:e=>this.setC('firm',e.target.value),
       setEmail:e=>this.setC('email',e.target.value),setPhone:e=>this.setC('phone',e.target.value),
       setNote:e=>this.setC('note',e.target.value),
-      sendRfq:this.send,sendLabel:S.sent?'✓ otwieram program pocztowy':(this.cartMissing()?'Wyślij zapytanie — wycenimy brakujące pozycje':'Mam pytanie do tego doboru'),
+      sendRfq:this.send,
+      sendLabel:S.sending?'Wysyłam zapytanie…'
+        :(S.sent?'✓ otwieram program pocztowy'
+        :(this.cartMissing()?'Wyślij zapytanie — wycenimy brakujące pozycje':'Mam pytanie do tego doboru')),
       sendFail:!!S.sendFail,mailText:S.mailText||'',roTrue:true,noop:()=>{},
       copyRfq:this.copyRfq,copyLabel:S.copied?'✓ skopiowano do schowka':'Kopiuj treść zapytania',
       rfqMailto:'mailto:'+(this.props.rfqEmail||'sklep@d-k-m.eu')+'?subject='+encodeURIComponent('Zapytanie ofertowe — przekładnie ślimakowe'),

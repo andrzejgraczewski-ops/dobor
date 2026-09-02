@@ -328,7 +328,7 @@ function Step3({ v }) {
         ) : null}
         <button data-order-btn="1" disabled={v.sending} onClick={v.orderRfq} className={hv('background:var(--color-accent-600);color:var(--color-bg);border-color:var(--color-accent-600)')} style={S(`margin-top:14px;width:100%;min-height:56px;padding:15px;background:${v.orderBg};color:${v.orderFg};border:1px solid ${v.orderBd};cursor:${v.sendCur};pointer-events:${v.sendPE};opacity:${v.sendOp};font:600 14.5px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase`)}>{v.orderLabel}</button>
         {v.sentOk ? (
-          <div style={S('margin-top:12px;padding:14px 15px;border:1px solid var(--color-ok);background:var(--color-ok-bg)')}>
+          <div data-sent-panel="1" style={S('margin-top:12px;padding:14px 15px;border:1px solid var(--color-ok);background:var(--color-ok-bg)')}>
             <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)")}>{v.sentTitle}</div>
             <div style={S("margin-top:6px;font:600 19px 'Barlow Condensed',sans-serif;letter-spacing:.04em;color:var(--color-accent)")}>Numer zgłoszenia: {v.sentRef}</div>
             <div style={S('margin-top:5px;font:400 13px/1.5 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>{v.sentNote}</div>

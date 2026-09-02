@@ -41,7 +41,8 @@ const browser = await chromium.launch({
 });
 
 // wspólne przygotowanie strony: przechwytujemy Google i Formspree
-async function open({ consent = null, formStatus = 200 } = {}) {
+// formDelay — opóźnienie odpowiedzi (ms); formHang — odpowiedź nie przychodzi wcale
+async function open({ consent = null, formStatus = 200, formDelay = 0, formHang = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 520, height: 900 } });
   const google = [];       // adresy żądań do Google
   const posts = [];        // przechwycone wysyłki formularza
@@ -56,6 +57,8 @@ async function open({ consent = null, formStatus = 200 } = {}) {
       url: req.url(), method: req.method(), headers: req.headers(),
       body: (() => { try { return JSON.parse(req.postData() || '{}'); } catch { return { __raw: req.postData() }; } })(),
     });
+    if (formHang) return;                       // celowo bez odpowiedzi — test limitu czasu
+    if (formDelay) await new Promise((r) => setTimeout(r, formDelay));
     await route.fulfill({
       status: formStatus,
       contentType: 'application/json',
@@ -312,6 +315,47 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   check('błąd wysyłki: pełna treść widoczna do skopiowania', body);
   check('błąd wysyłki: koszyk nie zniknął', !!(await page.evaluate(() => localStorage.getItem('dkm-rfq-v2'))));
   check('jedno żądanie mimo błędu', posts.length === 1, posts.length + ' żądań');
+  await ctx.close();
+}
+
+// 8b. informacja zwrotna w trakcie wysyłki
+{
+  const { ctx, page } = await open({ consent: 'no', formDelay: 2500 });
+  await addToCart(page);
+  await fillContact(page);
+  await page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+  await page.locator('[data-order-btn]').click();
+  await page.waitForTimeout(600);
+  const label = (await page.locator('[data-order-btn]').textContent()).trim();
+  check('w trakcie wysyłki przycisk mówi „Wysyłam zamówienie…"', label === 'Wysyłam zamówienie…', label);
+  await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+  const done = (await page.locator('[data-order-btn]').textContent()).trim();
+  check('po wysłaniu przycisk potwierdza wysyłkę', done === '✓ zamówienie wysłane', done);
+  const panelInView = await page.evaluate(() => {
+    const el = document.querySelector('[data-sent-panel]');
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= window.innerHeight + 1;
+  });
+  check('potwierdzenie samo przewija się na ekran', panelInView);
+  await ctx.close();
+}
+
+// 8c. wysyłka bez odpowiedzi — przerwanie po 20 s zamiast wiszenia w nieskończoność
+{
+  const { ctx, page } = await open({ consent: 'no', formHang: true });
+  await addToCart(page);
+  await fillContact(page);
+  await page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+  const t0 = Date.now();
+  await page.locator('[data-order-btn]').click();
+  await page.waitForSelector('text=Wysyłka nie udała się', { timeout: 40000 });
+  const sec = Math.round((Date.now() - t0) / 1000);
+  check('brak odpowiedzi serwera przerywa wysyłkę po ~20 s', sec >= 18 && sec <= 30, sec + ' s');
+  const msg = await page.locator('text=/Wysyłka trwała zbyt długo/').isVisible();
+  check('komunikat mówi wprost, że zamówienie NIE zostało wysłane', msg);
+  check('koszyk zostaje po przerwanej wysyłce',
+    !!(await page.evaluate(() => localStorage.getItem('dkm-rfq-v2'))));
   await ctx.close();
 }
 
