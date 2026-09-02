@@ -102,6 +102,61 @@ Gotowe konfiguracje z nagłówkami bezpieczeństwa leżą w `deploy/`:
 plików jest sprawdzana testem — `npm run verify` uruchamia aplikację pod dokładnie
 tą polityką i sprawdza, że nic się nie blokuje.
 
+## GitHub Pages
+
+W repozytorium jest gotowy przepływ `.github/workflows/pages.yml`. Po ustawieniu
+**Settings → Pages → Source: GitHub Actions** każdy push do `main` buduje aplikację
+i publikuje ją pod `https://<konto>.github.io/dobor/`. Katalog `dist/` nie jest trzymany
+w repozytorium — powstaje przy każdym wdrożeniu, więc na Pages nie może trafić stary cennik.
+
+Wdrożenie idzie przez `npm run build:dkm`, czyli z blokadą domen. Lista dozwolonych
+adresów siedzi w `package.json` (`VITE_DKM_HOSTS`) i zawiera dziś `dkm.pl`, `www.dkm.pl`
+oraz adres Pages. **Zmieniając konto lub nazwę repozytorium, popraw tę listę** — inaczej
+aplikacja pokaże komunikat „Kopia nieautoryzowana” na własnym adresie.
+
+Dwie różnice wobec wdrożenia na dkm.pl:
+
+- **GitHub Pages nie pozwala ustawiać nagłówków HTTP.** Polityka CSP jedzie więc
+  w znaczniku `<meta>` w `index.html`. Działa tak samo, z jednym wyjątkiem: reguła
+  `frame-ancestors` (zakaz osadzania w obcej ramce) działa wyłącznie w nagłówku, więc
+  na Pages jej nie ma. Na dkm.pl daje ją `deploy/nginx.conf`.
+- **Service worker aktualizuje się z opóźnieniem** — GitHub Pages cache'uje pliki
+  na kilka minut. Po wdrożeniu nowego cennika klient zobaczy go przy kolejnym wejściu,
+  nie natychmiast.
+
+### Zanim zrobisz repozytorium publiczne — przeczytaj
+
+Darmowy GitHub Pages wymaga **publicznego** repozytorium. Publiczne repozytorium znaczy,
+że każdy może je sklonować jednym poleceniem i dostać:
+
+- `src/data/price-data.js` — 1693 warianty handlowe z cenami netto i stanami magazynowymi,
+  w czytelnej postaci, z komentarzem opisującym format,
+- `src/data/catalog-data.js` — cały katalog doboru,
+- historię zmian, czyli także **poprzednie wersje cennika** — usunięcie pliku później
+  niczego nie cofa, bo zostaje w commitach.
+
+To jest dokładnie ten majątek, o który pytałeś przy ochronie przed konkurencją. Wersja
+wystawiona na stronie też zawiera te dane, ale wymieszane w jednym zminifikowanym pliku;
+publiczne repozytorium podaje je poukładane, z opisem i z historią. Blokada domen i nota
+o prawach autorskich nie mają tu żadnego znaczenia — nikt nie musi uruchamiać aplikacji,
+żeby wziąć same dane.
+
+Cztery wyjścia, od najbezpieczniejszego:
+
+1. **Wystawić na dkm.pl** (`deploy/nginx.conf`), a repozytorium zostawić prywatne.
+   Wtedy działają też nagłówki bezpieczeństwa i `frame-ancestors`.
+2. **Prywatne repozytorium + GitHub Pro** (kilka dolarów miesięcznie) — Pages działa
+   wtedy z repozytorium prywatnego.
+3. **Rozdzielić: prywatne repozytorium ze źródłami, publiczne tylko z wynikiem budowania.**
+   Dane nadal są do wzięcia z wystawionej strony, ale bez źródeł, komentarzy i historii.
+4. **Publiczne repozytorium świadomie** — sensowne tylko wtedy, gdy uznasz, że cennik
+   i tak jest jawny.
+
+Do czasu decyzji Pages nadaje się świetnie jako **adres do testów** — do klikania na
+telefonie i pokazania w firmie. Pamiętaj tylko, że pod publicznym adresem formularz
+zamówienia działa naprawdę: każdy, kto trafi na stronę, może wysłać zgłoszenie na skrzynkę
+DKM. Włącz w panelu Formspree ochronę przed spamem, zanim podasz komukolwiek ten link.
+
 ## Sprawdzenie po wdrożeniu
 
 `npm run verify` sprawdza całą logikę analityki i wysyłki, ale **nie wysyła nic na

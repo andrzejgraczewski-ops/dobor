@@ -53,7 +53,21 @@ i `deploy/.htaccess` (CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permiss
 HSTS). Polityka CSP jest testowana: `npm run verify` uruchamia aplikację dokładnie pod
 nią i sprawdza, że dobór, czcionki, analityka i wysyłka działają bez naruszeń.
 
-### 4. Drobne, do rozważenia
+### 4. Publiczne repozytorium ujawnia cennik — **rozstrzygnąć przed wystawieniem**
+
+Wybrane wdrożenie (GitHub Pages pod `andrzejgraczewski-ops.github.io/dobor/`) w darmowym
+planie wymaga **publicznego** repozytorium. Wtedy `src/data/price-data.js` — 1693 warianty
+handlowe z cenami i stanami — jest do sklonowania jednym poleceniem, w czytelnej postaci
+i razem z historią zmian (czyli także starymi cennikami; późniejsze usunięcie pliku tego
+nie cofa). Żadne zabezpieczenie w kodzie tego nie dotyczy, bo nikt nie musi uruchamiać
+aplikacji, żeby wziąć same dane.
+
+Możliwości: wystawić na dkm.pl i zostawić repozytorium prywatne (najlepsze — działają też
+nagłówki bezpieczeństwa), prywatne repozytorium + GitHub Pro, rozdzielenie na prywatne
+źródła i publiczny wynik budowania, albo świadoma zgoda na jawność cennika. Szczegóły
+w `app/README.md` → „Zanim zrobisz repozytorium publiczne”.
+
+### 5. Drobne, do rozważenia
 
 - **Walidacja e-maila** sprawdza tylko obecność znaku `@`. Literówka w adresie oznacza
   zamówienie, na które nie da się odpowiedzieć. Warto dołożyć sprawdzenie wzorca
