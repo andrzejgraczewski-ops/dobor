@@ -9,9 +9,9 @@ projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets
   z service workerem), `npm run build:offline` → jeden plik `DKM Dobor przekladni v3.html`
   (~10 MB, działa bez sieci, do wysłania handlowcom).
 - Zgodność z prototypem sprawdzana maszynowo: `npm run compare` renderuje oba warianty
-  obok siebie i liczy różniące się piksele — **0% na dwunastu ekranach w 520 i 1280 px**.
+  obok siebie i liczy różniące się piksele — **0% na dziesięciu ekranach w 520 i 1280 px**; `rodo` i `regulamin` są celowo różne (poprawione teksty RODO).
   `npm run smoke` przechodzi przypadki kontrolne z tego pliku (zamienniki, fs, ścieżka
-  doboru do koszyka) — 26/26.
+  doboru do koszyka) — 29/29, `npm run verify` (analityka, wysyłka, CSP) — 57/57.
 - Czcionki Barlow hostowane lokalnie (`public/fonts/`) zamiast z Google Fonts — inaczej
   wersja offline i PWA renderowałyby się zastępczym krojem.
 - **Poprawka błędu w `searchHits()`**: zmienna z cyframi zapytania nazywała się `num`
