@@ -5,13 +5,20 @@
 // Obrazy trafiają do window.__resources pod kluczami 'a_<nazwa_pliku>' — tak samo
 // jak w prototypie, więc metoda A() w logice znajduje je bez żadnej zmiany w kodzie.
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join, resolve, extname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(import.meta.url), '../..');
 const dist = join(root, 'dist');
 const outDir = join(root, 'dist-offline');
-const outFile = join(outDir, 'DKM Dobor przekladni v3.html');
+// Znak wodny egzemplarza. Plik offline krąży mailem, więc każdy egzemplarz może
+// dostać nazwę odbiorcy — jeśli kopia wypłynie, widać, od kogo:
+//   node scripts/build-offline.mjs --dla "Jan Kowalski, Firma XYZ"
+const argDla = (() => {
+  const i = process.argv.indexOf('--dla');
+  return i > 0 ? String(process.argv[i + 1] || '').trim() : '';
+})();
 
 const MIME = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
@@ -52,21 +59,47 @@ let appJs = await readFile(join(dist, 'build', jsName), 'utf8');
 // wstawić wyrażenia) wpisujemy data: URI.
 for (const [path, uri] of Object.entries(inlineAsset)) {
   const key = resKey(basename(path));
-  for (const q of ['"', "'"]) {
+  // bundler potrafi zapisać ten sam napis w apostrofach, cudzysłowie albo backtickach
+  for (const q of ['"', "'", '`']) {
     appJs = appJs.split(q + path + q).join('(window.__resources.' + key + ')');
   }
-  appJs = appJs.split(path).join(uri); // gdyby gdzieś została goła ścieżka
   appCss = appCss.split(path).join(uri);
 }
+
+// Gdyby bundler zapisał ścieżkę w sposób, którego nie rozpoznajemy, obraz trafiłby
+// do pliku drugi raz jako data: URI i wersja offline urosłaby o kilka megabajtów.
+// Lepiej zatrzymać budowanie, niż wysłać handlowcom spuchnięty plik.
+const leftovers = Object.keys(inlineAsset).filter((p) => appJs.includes(p));
+if (leftovers.length) {
+  console.error('Nie rozpoznano zapisu ścieżek w skrypcie: ' + leftovers.join(', '));
+  console.error('Popraw podmianę w scripts/build-offline.mjs — inaczej obrazy zdublują się w pliku.');
+  process.exit(1);
+}
+
+const wydanie = createHash('sha1').update(appJs).update(appCss).update(argDla)
+  .digest('hex').slice(0, 10);
+const dataWydania = new Date().toISOString().slice(0, 10);
+const outFile = join(outDir,
+  'DKM Dobor przekladni v3' + (argDla ? ' — ' + argDla.replace(/[\\/:*?"<>|]/g, '-') : '') + '.html');
+
+const nota = 'DKM \u00b7 Dob\u00f3r przek\u0142adni \u015blimakowych \u2014 \u00a9 2026 DKM Power Transmission Sp. z o.o. '
+  + 'Wszelkie prawa zastrze\u017cone. Kopiowanie, modyfikowanie i rozpowszechnianie bez pisemnej zgody '
+  + 'w\u0142a\u015bciciela jest zabronione. Proprietary and confidential.';
 
 const icon180 = resources[resKey('app-icon-180.png')];
 const icon192 = resources[resKey('app-icon-192.png')];
 const icon512 = resources[resKey('app-icon-512.png')];
 
 const html = `<!DOCTYPE html>
+<!--
+${nota}
+Wydanie: ${wydanie} \u00b7 ${dataWydania}${argDla ? ' \u00b7 egzemplarz dla: ' + argDla : ''}
+-->
 <html lang="pl">
 <head>
 <meta charset="utf-8">
+<meta name="dkm-wydanie" content="${wydanie} ${dataWydania}${argDla ? ' | ' + argDla.replace(/"/g, "'") : ''}">
+<meta name="copyright" content="\u00a9 2026 DKM Power Transmission Sp. z o.o.">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DKM · Dobór przekładni ślimakowych</title>
 <meta name="theme-color" content="#29265b">
@@ -79,6 +112,8 @@ const html = `<!DOCTYPE html>
 <link rel="icon" sizes="192x192" type="image/png" href="${icon192}">
 <link rel="icon" sizes="512x512" type="image/png" href="${icon512}">
 <script>
+/*! ${nota} */
+window.__dkmWydanie = ${JSON.stringify({ wydanie: '__W__', data: '__D__', dla: '__L__' })};
 // Obrazy wbudowane w plik — logika czyta je metodą A().
 window.__resources = ${JSON.stringify(resources)};
 // Manifest budujemy w pamięci, żeby „Dodaj do ekranu głównego” działało
@@ -111,5 +146,9 @@ ${appJs}
 `;
 
 await mkdir(outDir, { recursive: true });
-await writeFile(outFile, html);
-console.log('Zapisano ' + outFile + ' — ' + (Buffer.byteLength(html) / 1048576).toFixed(1) + ' MB');
+await writeFile(outFile, html
+  .split('"__W__"').join(JSON.stringify(wydanie))
+  .split('"__D__"').join(JSON.stringify(dataWydania))
+  .split('"__L__"').join(JSON.stringify(argDla)));
+console.log('Zapisano ' + outFile + ' \u2014 ' + (Buffer.byteLength(html) / 1048576).toFixed(1) + ' MB');
+console.log('Wydanie ' + wydanie + ' \u00b7 ' + dataWydania + (argDla ? (' \u00b7 egzemplarz dla: ' + argDla) : ' \u00b7 bez oznaczenia odbiorcy (--dla "...")'));

@@ -1,0 +1,29 @@
+# DKM · Dobór przekładni — dla serwera Apache.
+# Wgraj ten plik razem z zawartością `dist/` do katalogu podstrony (np. /dobor/).
+# Objaśnienie polityki CSP: patrz deploy/nginx.conf.
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self' https://dkm.pl https://www.dkm.pl; form-action 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com https://*.google-analytics.com; font-src 'self'; connect-src 'self' https://formspree.io https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  # service worker i index.html zawsze sprawdzane, reszta cache'owana na stałe
+  <FilesMatch "^(sw\.js|index\.html)$">
+    Header always set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/javascript "access plus 30 days"
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 30 days"
+</IfModule>
+
+# brak listowania katalogów
+Options -Indexes

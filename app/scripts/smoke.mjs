@@ -158,6 +158,30 @@ async function newPage(width = 520, height = 900) {
   await ctx.close();
 }
 
+// ——— PWA: po instalacji service workera aplikacja działa bez sieci ———
+{
+  const ctx = await browser.newContext({ viewport: { width: 520, height: 900 } });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    try { localStorage.setItem('dkm-analytics-consent', 'no'); } catch (e) {}
+  });
+  await page.goto(base, { waitUntil: 'networkidle' });
+  const ready = await page.evaluate(() =>
+    navigator.serviceWorker.ready.then(() => true).catch(() => false));
+  check('service worker instaluje się poprawnie', ready);
+
+  await ctx.setOffline(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('text=Znajdźmy napęd idealny', { timeout: 20000 });
+  await page.getByRole('button', { name: /Moc silnika/ }).first().click();
+  const off = await page.locator('text=Moc znamionowa silnika').isVisible();
+  const font = await page.evaluate(() => document.fonts.check('600 25px "Barlow Condensed"'));
+  check('bez sieci aplikacja startuje z pamięci urządzenia', off);
+  check('bez sieci czcionki firmowe są dostępne', font);
+  await ctx.setOffline(false);
+  await ctx.close();
+}
+
 // ——— plik offline (jeśli zbudowany) — otwarty z dysku, bez sieci ———
 {
   const offline = resolve(fileURLToPath(import.meta.url), '../../dist-offline/DKM Dobor przekladni v3.html');

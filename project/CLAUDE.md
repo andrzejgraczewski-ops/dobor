@@ -18,6 +18,19 @@ projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets
   i przesłaniała funkcję `num()` formatującą liczby, więc wpisanie SKU falownika
   (np. `E500`) kończyło się wyjątkiem i pustym ekranem. Teraz nazywa się `digits`.
   Ten sam błąd jest w prototypie `.dc.html`.
+- **Przegląd bezpieczeństwa (02.09.2026)** — `app/deploy/PRZEGLAD-BEZPIECZENSTWA.md`.
+  Poprawione: podwójny `gtag.js` po ponownej zgodzie (podwójne liczenie w GA4 — **ten sam
+  błąd jest w prototypie**), podatność serwera deweloperskiego (podniesione Vite),
+  pierwsze wejście na telefonie zeszło z 7,6 MB na 2,9 MB (reszta dociąga się w tle).
+  Do decyzji klienta: **teksty RODO w aplikacji są nieprawdziwe** od czasu wdrożenia GA4
+  i Formspree („nie prowadzi analityki”, „dane nie są przesyłane do osób trzecich”,
+  „wysyłasz ze swojego programu pocztowego”) — gotowa propozycja w
+  `app/deploy/PROPOZYCJA-tekstow-RODO.md`, nie zmieniałem sam.
+- Ochrona przed kopiowaniem: nota własnościowa w każdym zbudowanym pliku, opcjonalna
+  blokada domen (`npm run build:dkm` → działa tylko na dkm.pl i poddomenach; nie dotyczy
+  pliku offline) i znak wodny egzemplarza pliku offline
+  (`node scripts/build-offline.mjs --dla "Nazwisko"`). Szczegóły i uczciwe granice tych
+  zabezpieczeń — w `app/README.md`.
 - Usunięte jako nieaktualne: `dkm-v3-src.dc.html` (kopia robocza, bit w bit taka sama
   jak v3), `DKM Ceny - propozycja.dc.html`, `DKM Koszyk - propozycje.dc.html`,
   `ios-frame.jsx` oraz stary eksport `DKM Dobor przekladni v3.html` (buduje go teraz

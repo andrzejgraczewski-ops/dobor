@@ -18,6 +18,28 @@ async function walk(dir) {
   return out;
 }
 
+// Nota o prawach autorskich w zbudowanych plikach. Nie zatrzyma nikogo technicznie,
+// ale usuwa wymówkę „nie wiedziałem, że to cudze" — a to ma znaczenie w sporze.
+const stamp = new Date().toISOString().slice(0, 10);
+const banner = (buildId) => `/*! DKM \u00b7 Dob\u00f3r przek\u0142adni \u015blimakowych \u2014 \u00a9 2026 DKM Power Transmission Sp. z o.o.
+ * Wszelkie prawa zastrze\u017cone. Kod aplikacji, baza katalogu i cennika oraz spos\u00f3b doboru
+ * stanowi\u0105 w\u0142asno\u015b\u0107 DKM Power Transmission Sp. z o.o. Kopiowanie, modyfikowanie,
+ * rozpowszechnianie i wykorzystywanie w innych systemach bez pisemnej zgody w\u0142a\u015bciciela
+ * jest zabronione. Proprietary and confidential \u2014 unauthorized copying or use is prohibited.
+ * Wydanie: ${buildId} \u00b7 ${stamp} \u00b7 sklep@d-k-m.eu
+ */
+`;
+
+for (const dir of ['build']) {
+  for (const name of await readdir(join(dist, dir))) {
+    if (!/\.(js|css)$/.test(name)) continue;
+    const p = join(dist, dir, name);
+    const body = await readFile(p, 'utf8');
+    if (body.startsWith('/*! DKM')) continue;
+    await writeFile(p, banner(name.replace(/\.[^.]+$/, '')) + body);
+  }
+}
+
 const files = (await walk(dist))
   .map((p) => './' + relative(dist, p).split('\\').join('/'))
   .filter((p) => p !== './sw.js')
@@ -27,14 +49,28 @@ const hash = createHash('sha1');
 for (const f of files) hash.update(f).update(await readFile(join(dist, f.slice(2))));
 const version = hash.digest('hex').slice(0, 12);
 
+// Podział na to, co musi być od razu, i to, co dociąga się w tle.
+// Pierwsze wejście na telefonie w terenie ma nie ciągnąć 7 MB skanów kart
+// katalogowych — te są potrzebne dopiero na karcie zestawu.
+const isShell = (f) =>
+  f === './index.html' || f === './manifest.webmanifest' ||
+  f.startsWith('./build/') || f.startsWith('./fonts/') ||
+  /assets\/(tile-|app-icon-|dkm-logo)/.test(f);
+const shell = files.filter(isShell);
+const rest = files.filter((f) => !isShell(f));
+
 const sw = `// Service worker aplikacji DKM Dobór — generowany przez scripts/postbuild.mjs.
-// Wszystko, czego aplikacja potrzebuje (katalog, cennik, rysunki, czcionki),
-// leży w cache'u, więc po pierwszym wejściu działa bez internetu.
+//
+// SHELL pobiera się przy instalacji (aplikacja od razu działa offline w zakresie
+// doboru), RESZTA — rysunki wymiarowe i karty katalogowe — dociąga się w tle po
+// aktywacji. Dzięki temu pierwsze wejście na telefonie nie kosztuje kilku megabajtów,
+// a po chwili komplet i tak leży w pamięci urządzenia.
 const CACHE = 'dkm-dobor-${version}';
-const FILES = ${JSON.stringify(files, null, 2)};
+const SHELL = ${JSON.stringify(shell, null, 2)};
+const RESZTA = ${JSON.stringify(rest, null, 2)};
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -42,6 +78,12 @@ self.addEventListener('activate', (e) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(() => caches.open(CACHE))
+      // pojedynczo i bez pośpiechu — brak sieci w trakcie nie może wywrócić aktywacji
+      .then((c) => RESZTA.reduce(
+        (p, url) => p.then(() => c.match(url).then((hit) => hit ? null : c.add(url).catch(() => null))),
+        Promise.resolve()))
+      .catch(() => null)
   );
 });
 
@@ -67,4 +109,4 @@ self.addEventListener('fetch', (e) => {
 `;
 
 await writeFile(join(dist, 'sw.js'), sw);
-console.log('sw.js — ' + files.length + ' plików w cache, wersja ' + version);
+console.log('sw.js — ' + shell.length + ' plików od razu, ' + rest.length + ' w tle, wersja ' + version);

@@ -12,8 +12,11 @@ import './data/dims-data.js';
 import './data/price-data.js';
 
 import App from './App.jsx';
+import { domainGuard } from './lib/guard.js';
 
-createRoot(document.getElementById('app')).render(<App />);
+if (domainGuard()) {
+  createRoot(document.getElementById('app')).render(<App />);
+}
 
 // Service worker działa tylko po HTTP(S) — z pliku otwartego lokalnie (file://)
 // rejestracja i tak jest niemożliwa, a wersja offline nie potrzebuje cache'u.

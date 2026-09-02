@@ -29,8 +29,12 @@ export class DkmLogic extends React.Component {
     window.gtag=function(){window.dataLayer.push(arguments);};
     window.gtag('js',new Date());
     window.gtag('config',this.GA_ID,{anonymize_ip:true});
+    // Po cofnięciu i ponownym udzieleniu zgody skrypt jest już w dokumencie —
+    // drugi znacznik oznaczałby podwójne liczenie wejść w GA4.
+    const src='https://www.googletagmanager.com/gtag/js?id='+this.GA_ID;
+    if(document.querySelector('script[src="'+src+'"]')) return;
     const s=document.createElement('script');
-    s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id='+this.GA_ID;
+    s.async=true; s.src=src;
     document.head.appendChild(s);
   }
   // do analityki trafia wyłącznie fakt zdarzenia — żadnych danych kontaktowych ani treści

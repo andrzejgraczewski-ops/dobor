@@ -11,15 +11,17 @@
     "build:offline": "npm run build && node scripts/build-offline.mjs",
     "smoke": "node scripts/smoke.mjs",
     "fonts": "node scripts/fetch-fonts.mjs",
-    "compare": "node scripts/compare.mjs"
+    "compare": "node scripts/compare.mjs",
+    "verify": "node scripts/verify.mjs",
+    "build:dkm": "VITE_DKM_HOSTS=\"dkm.pl,www.dkm.pl\" vite build && node scripts/postbuild.mjs"
   },
   "dependencies": {
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^6.1.1",
     "playwright": "^1.62.1",
-    "vite": "^5.4.11"
+    "vite": "^8.2.2"
   }
 }
