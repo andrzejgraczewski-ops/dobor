@@ -27,33 +27,37 @@ i `npm run smoke` (29 testów).
 3. **Pierwsze wejście na telefonie kosztowało 7,6 MB.** Service worker pobiera teraz
    przy instalacji 2,9 MB (aplikacja od razu działa offline w zakresie doboru), a skany
    kart katalogowych — 4,7 MB — dociągają się w tle po aktywacji.
+4. **Teksty prawne niezgodne z działaniem aplikacji** (decyzja klienta 02.09.2026).
+   Polityka prywatności twierdziła, że aplikacja „nie prowadzi analityki”, że dane „nie są
+   przesyłane do osób trzecich” i że zapytanie wysyła się „ze swojego programu pocztowego” —
+   wszystkie trzy zdania przestały być prawdziwe po wdrożeniu GA4 i Formspree. Blok
+   „Bezpieczeństwo danych” opisuje teraz stan faktyczny, doszła pozycja „Odbiorcy danych”
+   (art. 13 RODO), a regulamin § 10 mówi o konieczności połączenia z internetem przy wysyłce.
+   Zapis zmian: `PROPOZYCJA-tekstow-RODO.md`. **Zostało do zrobienia poza aplikacją:**
+   umowa powierzenia z Formspree, wpis do rejestru czynności przetwarzania i potwierdzenie,
+   czy Formspree ma aktualną certyfikację Data Privacy Framework (nie powołuję się na nią
+   w tekście, dopóki nie jest potwierdzona).
 
 ## Co wymaga Twojej decyzji
 
-### 1. Teksty prawne są niezgodne z tym, co aplikacja robi — **do pilnej poprawy**
-
-Polityka prywatności w aplikacji mówi, że aplikacja „nie prowadzi analityki”, że dane
-„nie są przesyłane do DKM ani do osób trzecich” i że zapytanie wysyła się „ze swojego
-programu pocztowego”. Od czasu wdrożenia GA4 i Formspree wszystkie trzy zdania są
-nieprawdziwe. Brakuje też informacji o odbiorcach danych i o przekazaniu ich poza EOG
-(art. 13 RODO). Gotowa propozycja nowych tekstów: `PROPOZYCJA-tekstow-RODO.md`.
-Nie zmieniałem ich sam — to treść prawna.
-
-### 2. Formularz można zasypać spamem
+### 1. Formularz można zasypać spamem
 
 Adres `https://formspree.io/f/mgaewanz` jest widoczny w kodzie (inaczej się nie da —
 przeglądarka musi go znać). Każdy może wysyłać na niego zgłoszenia poza aplikacją.
 W panelu Formspree warto włączyć **reCAPTCHA albo honeypot** i sprawdzić limit
 zgłoszeń w planie — po jego wyczerpaniu zamówienia przestaną dochodzić.
 
-### 3. Nagłówki bezpieczeństwa na serwerze
+### 2. Nagłówki bezpieczeństwa na serwerze
 
 Aplikacja sama ich nie ustawi — to konfiguracja serwera. Gotowe pliki: `deploy/nginx.conf`
 i `deploy/.htaccess` (CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`,
 HSTS). Polityka CSP jest testowana: `npm run verify` uruchamia aplikację dokładnie pod
 nią i sprawdza, że dobór, czcionki, analityka i wysyłka działają bez naruszeń.
+Na GitHub Pages nagłówków ustawić się nie da, więc ta sama polityka jedzie tam
+w znaczniku `<meta>` w `index.html` — poza `frame-ancestors`, które działa wyłącznie
+w nagłówku.
 
-### 4. Publiczne repozytorium ujawnia cennik — **rozstrzygnąć przed wystawieniem**
+### 3. Publiczne repozytorium ujawnia cennik — **rozstrzygnąć przed wystawieniem**
 
 Wybrane wdrożenie (GitHub Pages pod `andrzejgraczewski-ops.github.io/dobor/`) w darmowym
 planie wymaga **publicznego** repozytorium. Wtedy `src/data/price-data.js` — 1693 warianty
@@ -67,7 +71,7 @@ nagłówki bezpieczeństwa), prywatne repozytorium + GitHub Pro, rozdzielenie na
 źródła i publiczny wynik budowania, albo świadoma zgoda na jawność cennika. Szczegóły
 w `app/README.md` → „Zanim zrobisz repozytorium publiczne”.
 
-### 5. Drobne, do rozważenia
+### 4. Drobne, do rozważenia
 
 - **Walidacja e-maila** sprawdza tylko obecność znaku `@`. Literówka w adresie oznacza
   zamówienie, na które nie da się odpowiedzieć. Warto dołożyć sprawdzenie wzorca
