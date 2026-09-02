@@ -1,5 +1,28 @@
 # Projekt: DKM — Dobór przekładni ślimakowych (aplikacja mobilna + web)
 
+## Aplikacja produkcyjna w `../app/` (02.09.2026)
+**Kod, nad którym pracujemy dalej, leży w `../app/`** — prototyp v3 przeniesiony na
+zwykły React (Vite), bez runtime'u Claude Design. `project/` zostaje jako źródło
+projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets/`,
+`_ds/` i teksty prawne (`_sec*.txt`, `_pay.txt`, `_del.txt`).
+- Trzy wyjścia z jednego kodu: `npm run build` → `dist/` (podstrona dkm.pl + PWA
+  z service workerem), `npm run build:offline` → jeden plik `DKM Dobor przekladni v3.html`
+  (~10 MB, działa bez sieci, do wysłania handlowcom).
+- Zgodność z prototypem sprawdzana maszynowo: `npm run compare` renderuje oba warianty
+  obok siebie i liczy różniące się piksele — **0% na dwunastu ekranach w 520 i 1280 px**.
+  `npm run smoke` przechodzi przypadki kontrolne z tego pliku (zamienniki, fs, ścieżka
+  doboru do koszyka) — 26/26.
+- Czcionki Barlow hostowane lokalnie (`public/fonts/`) zamiast z Google Fonts — inaczej
+  wersja offline i PWA renderowałyby się zastępczym krojem.
+- **Poprawka błędu w `searchHits()`**: zmienna z cyframi zapytania nazywała się `num`
+  i przesłaniała funkcję `num()` formatującą liczby, więc wpisanie SKU falownika
+  (np. `E500`) kończyło się wyjątkiem i pustym ekranem. Teraz nazywa się `digits`.
+  Ten sam błąd jest w prototypie `.dc.html`.
+- Usunięte jako nieaktualne: `dkm-v3-src.dc.html` (kopia robocza, bit w bit taka sama
+  jak v3), `DKM Ceny - propozycja.dc.html`, `DKM Koszyk - propozycje.dc.html`,
+  `ios-frame.jsx` oraz stary eksport `DKM Dobor przekladni v3.html` (buduje go teraz
+  `npm run build:offline`).
+
 Główny plik: `DKM Dobór - telefon v2.dc.html`
 Dane katalogu: `catalog-data.js` (615 pozycji, strony 17–32, `window.DKM_CATALOG`)
 Ceny i dostępność: `price-data.js` (`window.DKM_PRICE` — z `uploads/dkm-cennik-v3.xlsx`: warianty + nowe 5,5 kW 112B5, akcesoria, ramiona, nazwy silników, falowniki)

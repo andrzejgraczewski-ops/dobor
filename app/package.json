@@ -1,0 +1,25 @@
+{
+  "name": "dkm-dobor",
+  "version": "3.0.0",
+  "private": true,
+  "description": "DKM Power Transmission — dobór przekładni ślimakowych (PWA + podstrona + plik offline)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview",
+    "build:offline": "npm run build && node scripts/build-offline.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "compare": "node scripts/compare.mjs"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.62.1",
+    "vite": "^5.4.11"
+  }
+}
