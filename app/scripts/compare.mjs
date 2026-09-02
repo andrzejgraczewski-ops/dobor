@@ -85,8 +85,10 @@ const SCREENS = [
   { name: 'kartaB', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); } },
   { name: 'wyniki', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); await p.getByRole('button', { name: /Pokaż wyniki/ }).click(); } },
   { name: 'karta-zestawu', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); await p.getByRole('button', { name: /Pokaż wyniki/ }).click(); await p.locator('button', { hasText: /Motoreduktor 3F/ }).first().click(); } },
-  { name: 'regulamin', steps: async (p) => { await p.getByRole('button', { name: 'Regulamin', exact: true }).first().click(); } },
-  { name: 'rodo', steps: async (p) => { await p.getByRole('button', { name: /Informacje prawne/ }).first().click(); } },
+  // Teksty prawne poprawione 02.09.2026 (zgodność z RODO — GA4 i Formspree),
+  // więc różnica wobec prototypu na tych dwóch ekranach jest zamierzona.
+  { name: 'regulamin', zmienione: true, steps: async (p) => { await p.getByRole('button', { name: 'Regulamin', exact: true }).first().click(); } },
+  { name: 'rodo', zmienione: true, steps: async (p) => { await p.getByRole('button', { name: /Informacje prawne/ }).first().click(); } },
 ];
 
 const WIDTHS = [520, 1280];
@@ -123,14 +125,23 @@ for (const width of WIDTHS) {
       await ctx.close();
     }
     const d = await diff(helper, shots[0], shots[1]);
-    rows.push({ width, name: sc.name, ...d });
-    const flag = d.pct > 1 || Math.abs(d.sizeA[1] - d.sizeB[1]) > 4 ? ' ‹—' : '';
+    rows.push({ width, name: sc.name, zmienione: !!sc.zmienione, ...d });
+    const odbiega = d.pct > 1 || Math.abs(d.sizeA[1] - d.sizeB[1]) > 4;
+    const flag = sc.zmienione ? '  (zmienione celowo)' : (odbiega ? ' ‹—' : '');
     console.log(`${String(width).padStart(4)}px ${sc.name.padEnd(14)} różnica ${String(d.pct).padStart(5)}%  wysokość ${d.sizeA[1]} / ${d.sizeB[1]}${flag}`);
   }
 }
 
 await browser.close();
 A.s.close(); B.s.close();
-const worst = rows.filter((r) => r.pct > 1 || Math.abs(r.sizeA[1] - r.sizeB[1]) > 4);
+const worst = rows.filter((r) => !r.zmienione && (r.pct > 1 || Math.abs(r.sizeA[1] - r.sizeB[1]) > 4));
+const zmienione = [...new Set(rows.filter((r) => r.zmienione).map((r) => r.name))];
 console.log('\nZrzuty w ' + out);
-console.log(worst.length ? worst.length + ' ekranów do obejrzenia' : 'Wszystkie ekrany zgodne poniżej 1% pikseli');
+if (zmienione.length) {
+  console.log('Celowo różne od prototypu: ' + zmienione.join(', ')
+    + ' — teksty prawne poprawione 02.09.2026 (RODO: GA4 i Formspree).');
+}
+console.log(worst.length
+  ? worst.length + ' ekranów do obejrzenia'
+  : 'Wszystkie pozostałe ekrany zgodne poniżej 1% pikseli');
+process.exit(worst.length ? 1 : 0);

@@ -1,8 +1,17 @@
-# Teksty prawne do poprawienia — propozycja do akceptacji
+# Teksty prawne — WPROWADZONE 02.09.2026
 
-**Nie zmieniłem tych tekstów w aplikacji.** To treści prawne i decyzja należy do Ciebie
-(warto pokazać je osobie, która prowadzi u Was RODO). Poniżej: co jest dziś napisane,
-dlaczego to nieprawda i jaka jest propozycja.
+> **Stan: punkty 1–3 są już w aplikacji** (decyzja klienta z 02.09.2026 — „wprowadź
+> zmiany do RODO bo zbieram dane"). Ten plik zostaje jako zapis tego, co i dlaczego
+> zostało zmienione — przyda się przy rozmowie z prawnikiem i przy rejestrze czynności
+> przetwarzania. Punkt 4 to zadania po stronie DKM, poza aplikacją.
+>
+> Jedyne odstępstwo od pierwotnej propozycji: w tekście o przekazaniu danych do USA
+> została sama podstawa „standardowe klauzule umowne zatwierdzone przez Komisję
+> Europejską", bez powoływania się na Data Privacy Framework — certyfikacji Formspree
+> w DPF nie potwierdziłem, więc lepiej tego nie twierdzić. **Sprawdźcie to w umowie
+> powierzenia z Formspree i dopiszcie, jeśli certyfikacja jest aktualna.**
+
+Poniżej: co było napisane, dlaczego to była nieprawda i co jest teraz.
 
 ## Na czym polega problem
 

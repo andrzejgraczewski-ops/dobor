@@ -50,18 +50,21 @@ export default function LegalScreen({ v }) {
           <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Przez czas obsługi zapytania i współpracy handlowej, a następnie przez okres wymagany przepisami podatkowymi i terminami przedawnienia roszczeń.</div>
         </div>
         <div style={S('background:var(--color-bg);padding:12px 14px')}>
+          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Odbiorcy danych</div>
+          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Formspree Inc. (USA) — pośredniczy w dostarczeniu zamówienia lub zapytania na skrzynkę DKM. Google Ireland Limited — wyłącznie dane analityczne i wyłącznie za Twoją zgodą. Poza tym dostawca poczty elektronicznej oraz, w zakresie realizacji zamówienia, firma kurierska lub spedycyjna. Dane mogą być przekazywane poza Europejski Obszar Gospodarczy na podstawie standardowych klauzul umownych zatwierdzonych przez Komisję Europejską.</div>
+        </div>
+        <div style={S('background:var(--color-bg);padding:12px 14px')}>
           <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Twoje prawa</div>
           <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Dostęp do danych, sprostowanie, usunięcie, ograniczenie przetwarzania, przenoszenie, sprzeciw oraz skarga do Prezesa Urzędu Ochrony Danych Osobowych. Podanie danych jest dobrowolne, ale niezbędne do przygotowania oferty.</div>
         </div>
       </div>
       <div style={S('padding:14px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)')}>
         <div style={S("font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)")}>Bezpieczeństwo danych</div>
-        <p style={S('margin:8px 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Aplikacja działa <strong>w całości na Twoim urządzeniu</strong>. Nie ma serwera, nie ma konta, nie ma logowania. Katalog i obliczenia są wbudowane w plik aplikacji, więc dobór wykonuje się offline.</p>
+        <p style={S('margin:8px 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Dobór i obliczenia wykonują się <strong>w całości na Twoim urządzeniu</strong> — katalog i cennik są wbudowane w aplikację, nie ma konta ani logowania.</p>
         <ul style={S('margin:0 0 10px;padding-left:20px;font:400 13.5px/1.65 Barlow,sans-serif;color:var(--color-neutral-900)')}>
-          <li>Żadne wpisane dane nie są przesyłane do DKM ani do osób trzecich bez Twojego działania.</li>
-          <li>Koszyk zapytania i historia doborów są zapisywane wyłącznie w pamięci przeglądarki na Twoim urządzeniu — możesz je w każdej chwili usunąć, czyszcząc dane przeglądarki.</li>
-          <li>Aplikacja nie stosuje plików cookie do śledzenia, nie profiluje użytkowników i nie prowadzi analityki.</li>
-          <li>Zapytanie ofertowe wysyłasz sam, ze swojego programu pocztowego — treść widzisz przed wysłaniem, a dane trafiają do DKM dopiero po naciśnięciu „Wyślij”.</li>
+          <li>Dane, które wpiszesz w zamówieniu lub zapytaniu, wysyłamy dopiero po naciśnięciu przycisku wysyłki. Trafiają wtedy do DKM za pośrednictwem usługi <strong>Formspree</strong> (Formspree Inc., USA), która przekazuje je na naszą skrzynkę pocztową. Formspree działa jako podmiot przetwarzający na nasze zlecenie, a przekazanie danych do USA odbywa się na podstawie standardowych klauzul umownych zatwierdzonych przez Komisję Europejską.</li>
+          <li>Koszyk zapytania i historia doborów są zapisywane wyłącznie w pamięci przeglądarki na Twoim urządzeniu — możesz je w każdej chwili usunąć, czyszcząc dane przeglądarki. Danych kontaktowych nie zapisujemy na urządzeniu.</li>
+          <li><strong>Analitykę prowadzimy wyłącznie za Twoją zgodą.</strong> Po jej wyrażeniu korzystamy z Google Analytics 4 (Google Ireland Limited), która zapisuje pliki cookie <span style={S('font-family:ui-monospace,monospace')}>_ga</span> i <span style={S('font-family:ui-monospace,monospace')}>_ga_*</span> i mierzy anonimowo wejścia oraz korzystanie z koszyka. Do analityki nie trafiają dane kontaktowe ani treść zamówienia. Bez zgody Google Analytics w ogóle się nie uruchamia, a zgodę możesz cofnąć w każdej chwili powyżej — pomiar zostaje wtedy realnie zatrzymany, a pliki cookie usunięte.</li>
           <li>Korespondencja przychodząca jest przetwarzana przez upoważnionych pracowników DKM Power Transmission Sp. z o.o., na kontach zabezpieczonych hasłem i uwierzytelnianiem dostawcy poczty.</li>
         </ul>
         <p style={S('margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900)')}>Jeżeli otrzymałeś aplikację jako plik, odpowiadasz za jego przechowywanie na swoim urządzeniu zgodnie z własnymi zasadami bezpieczeństwa.</p>

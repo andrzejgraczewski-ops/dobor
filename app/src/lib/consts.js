@@ -49,7 +49,8 @@ const TERMS=[
     'Oznaczenia DKM oraz DKM Power Transmission mogą podlegać ochronie na podstawie właściwych przepisów prawa.'],b:[]},
   {n:'§ 10',t:'Wymagania techniczne',p:[
     'Do korzystania z Aplikacji wymagane jest urządzenie umożliwiające jej uruchomienie oraz aktualne oprogramowanie pozwalające na prawidłowe wyświetlanie i wykonywanie funkcji Aplikacji.',
-    'W przypadku wersji internetowej wymagane może być również połączenie z Internetem.'],b:[]},
+    'W przypadku wersji internetowej wymagane może być również połączenie z Internetem.',
+    'Złożenie zamówienia lub wysłanie zapytania ofertowego wymaga połączenia z Internetem także w wersji offline Aplikacji.'],b:[]},
   {n:'§ 11',t:'Reklamacje i zgłaszanie błędów',p:[
     'Użytkownik może zgłosić nieprawidłowe działanie Aplikacji, błąd w danych technicznych lub inne zastrzeżenia dotyczące jej działania do DKM.',
     'Zgłoszenie powinno, jeżeli jest to możliwe, zawierać:'],

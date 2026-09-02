@@ -22,10 +22,15 @@ projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets
   Poprawione: podwójny `gtag.js` po ponownej zgodzie (podwójne liczenie w GA4 — **ten sam
   błąd jest w prototypie**), podatność serwera deweloperskiego (podniesione Vite),
   pierwsze wejście na telefonie zeszło z 7,6 MB na 2,9 MB (reszta dociąga się w tle).
-  Do decyzji klienta: **teksty RODO w aplikacji są nieprawdziwe** od czasu wdrożenia GA4
-  i Formspree („nie prowadzi analityki”, „dane nie są przesyłane do osób trzecich”,
-  „wysyłasz ze swojego programu pocztowego”) — gotowa propozycja w
-  `app/deploy/PROPOZYCJA-tekstow-RODO.md`, nie zmieniałem sam.
+  **Teksty RODO poprawione (02.09.2026, decyzja klienta „wprowadź zmiany do RODO bo
+  zbieram dane")**: blok „Bezpieczeństwo danych" opisuje teraz zgodnie z prawdą wysyłkę
+  przez Formspree (Formspree Inc., USA — podmiot przetwarzający, standardowe klauzule
+  umowne) i analitykę GA4 wyłącznie za zgodą; w tabelce RODO doszła pozycja „Odbiorcy
+  danych"; regulamin § 10 mówi, że wysyłka wymaga internetu także w wersji offline.
+  Zapis zmian i zadania po stronie DKM (umowa powierzenia z Formspree, rejestr czynności,
+  ochrona formularza przed spamem) — `app/deploy/PROPOZYCJA-tekstow-RODO.md`.
+  **Prototyp `.dc.html` ma nadal stare, nieprawdziwe teksty** — porównanie pikselowe
+  oznacza ekrany `rodo` i `regulamin` jako celowo różne, reszta dalej 0%.
 - Ochrona przed kopiowaniem: nota własnościowa w każdym zbudowanym pliku, opcjonalna
   blokada domen (`npm run build:dkm` → działa tylko na dkm.pl i poddomenach; nie dotyczy
   pliku offline) i znak wodny egzemplarza pliku offline
