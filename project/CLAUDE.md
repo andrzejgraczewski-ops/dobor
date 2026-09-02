@@ -36,6 +36,13 @@ projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets
   pliku offline) i znak wodny egzemplarza pliku offline
   (`node scripts/build-offline.mjs --dla "Nazwisko"`). Szczegóły i uczciwe granice tych
   zabezpieczeń — w `app/README.md`.
+- **Materiały robocze poza repozytorium (02.09.2026)** — repozytorium jest publiczne,
+  więc `chats/` (transkrypty ustaleń) i `project/uploads/` (10 arkuszy Excel z katalogiem,
+  cennikiem i falownikami, zrzuty katalogu, logo w PDF) zostały usunięte z całej historii
+  przed pierwszą publikacją. Odwołania do plików `uploads/*.xlsx` w tym dzienniku dotyczą
+  materiałów przechowywanych po stronie DKM — dane w aplikacji są z nich wygenerowane
+  i leżą w `app/src/data/`. Osobno, wcześniej, usunięty został zrzut ekranu z listą
+  kontaktów WhatsApp (dane osobowe osób trzecich).
 - Usunięte jako nieaktualne: `dkm-v3-src.dc.html` (kopia robocza, bit w bit taka sama
   jak v3), `DKM Ceny - propozycja.dc.html`, `DKM Koszyk - propozycje.dc.html`,
   `ios-frame.jsx` oraz stary eksport `DKM Dobor przekladni v3.html` (buduje go teraz

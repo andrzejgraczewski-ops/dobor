@@ -1,9 +1,15 @@
 > **Stan na 02.09.2026 — projekt jest już zaimplementowany.**
 > Kod produkcyjny leży w [`app/`](app/README.md): prototyp v3 przeniesiony na React (Vite),
 > z trzema wyjściami — podstrona dkm.pl, PWA i jeden plik offline. Zgodność z prototypem
-> potwierdzona pikselowo (`npm run compare` → 0% różnicy na 12 ekranach w dwóch szerokościach).
-> `project/` zostaje jako źródło projektowe i punkt odniesienia; `chats/` to zapis ustaleń
-> z klientem. Poniższa instrukcja opisuje, jak ta paczka powstała.
+> potwierdzona pikselowo (`npm run compare` → 0% różnicy na 10 ekranach w dwóch szerokościach; ekrany RODO i regulaminu celowo różne po poprawkach prawnych).
+> `project/` zostaje jako źródło projektowe i punkt odniesienia dla porównania pikselowego.
+>
+> **To repozytorium jest publiczne, więc nie ma w nim materiałów roboczych.** Katalogi
+> `chats/` (transkrypty ustaleń z klientem) i `project/uploads/` (arkusze Excel z cennikiem,
+> zrzuty katalogu, logo w źródle) zostały usunięte z całej historii przed publikacją
+> i są przechowywane poza repozytorium, po stronie DKM Power Transmission Sp. z o.o.
+> Poniższa instrukcja opisuje, jak ta paczka powstała — odwołania do `chats/` i `uploads/`
+> dotyczą właśnie tych materiałów.
 
 ---
 
