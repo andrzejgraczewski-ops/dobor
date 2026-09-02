@@ -10,9 +10,7 @@ name: Publikacja na GitHub Pages
 
 on:
   push:
-    # implementacja-v3 jest tu do czasu, aż stanie się gałęzią główną — dzięki temu
-    # publikacja rusza od razu po pushu, bez przełączania gałęzi domyślnej
-    branches: [main, implementacja-v3]
+    branches: [main]
     paths: ['app/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
