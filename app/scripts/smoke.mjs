@@ -127,8 +127,7 @@ async function newPage(width = 520, height = 900) {
   const { ctx, page } = await newPage();
   await page.getByRole('button', { name: /Moc silnika/ }).first().click();
   await page.locator('button', { hasText: /^0,55/ }).first().click();
-  // etykieta kroku stoi teraz i w pasku okruszków, i w nagłówku ekranu — stąd .first()
-  check('po wyborze mocy wchodzimy w Kartę A', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').first().isVisible());
+  check('po wyborze mocy wchodzimy w Kartę A', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').isVisible());
 
   await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
   check('Karta B — warunki pracy', await page.locator('text=Jak będzie pracowała maszyna?').isVisible());
@@ -217,7 +216,7 @@ async function newPage(width = 520, height = 900) {
 
     await page.getByRole('button', { name: /Moc silnika/ }).first().click();
     await page.locator('button', { hasText: /^0,55/ }).first().click();
-    check('plik offline — dobór działa', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').first().isVisible());
+    check('plik offline — dobór działa', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').isVisible());
 
     if (offErr.length) errors.push(...offErr.map((e) => 'offline: ' + e));
     await ctx.close();

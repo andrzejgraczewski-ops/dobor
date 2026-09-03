@@ -1716,8 +1716,10 @@ export class DkmLogic extends React.Component {
         if(row) this.setState({sel:row,screen:'detail',fromRfq:true,flangePick:x.iecPick||null,borePick:(x.boreOpt&&x.boreD!=null)?x.boreD:null,inv:null,invPhase:null,mounts:[],acc:[],motPh:x.ph===1?1:3}); },
       remove:()=>this.setState(s=>({rfq:s.rfq.filter(y=>y.k!==x.k)}))}));
     const rfqNoWty=S.rfq.some(x=>x.noWty);
-    const crumb={askP1:'Krok 1 z 3 · Moc silnika',askI:'Krok 1 z 3 · Przełożenie',askN2:'Krok 1 z 3 · Prędkość obrotowa na wale',askBore:'Krok 1 z 3 · Średnica wału',askType:'Krok 1 z 3 · Typ przekładni',askM2:'Wymagania maszyny',askSwap:'Wyszukiwarka zamienników',
-      v3refine:'Krok 2 z 3 · Zawężenie doboru',v3cond:'Krok 3 z 3 · Warunki pracy',
+    // Zawężanie, warunki pracy i zamiennik same wypisują swoją nazwę w nagłówku ekranu —
+    // przy zwiniętym nagłówku na telefonie te dwa napisy stały tuż nad sobą. Tutaj zostaje
+    // sam pasek z przyciskami, etykietę niesie ekran (jest większa i ma kontekst).
+    const crumb={askP1:'Krok 1 z 3 · Moc silnika',askI:'Krok 1 z 3 · Przełożenie',askN2:'Krok 1 z 3 · Prędkość obrotowa na wale',askBore:'Krok 1 z 3 · Średnica wału',askType:'Krok 1 z 3 · Typ przekładni',askM2:'Wymagania maszyny',
       results:'Proponowany dobór',detail:'Proponowany dobór · karta produktu',rfq:'Zamówienie',
       legal:'Informacje prawne · RODO · bezpieczeństwo',terms:'Regulamin'}[S.screen]||'';
 

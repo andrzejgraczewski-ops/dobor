@@ -61,13 +61,20 @@ Zmiany wobec prototypu ograniczone są do kilku rzeczy:
 - zwinięty nagłówek na telefonie: po ekranie startowym zostaje samo logo (34 px zamiast
   58 px), bez dwuwierszowego tytułu — pełny nagłówek zjadał ~190 px, czyli blisko czwartą
   część ekranu. Wersja web bez zmian.
+- pasek nawigacji nie powtarza etykiety kroku na trzech ekranach (zawężanie, warunki pracy,
+  zamiennik) — te ekrany same wypisują swoją nazwę w nagłówku, a przy zwiniętym nagłówku
+  oba napisy stały tuż nad sobą. Zostaje sam pasek z przyciskami.
 
-> **Uwaga przy kolejnym eksporcie z Claude Design.** Zwinięty nagłówek powstał tutaj, nie
-> w Design — nanieśliśmy go równolegle na `../project/DKM Dobór - telefon v3.dc.html`, żeby
-> `npm run compare` dalej coś znaczył. Projekt w przestrzeni Claude Design go **nie ma**,
-> więc świeży eksport przywróci pełny nagłówek. Po każdym eksporcie sprawdź w `renderVals()`,
-> czy są `showBrandTitle`, `logoH` zależne od ekranu i `brandPad` — jeśli ich nie ma, trzeba
-> je nałożyć ponownie (albo wprowadzić tę zmianę w samym Design i mieć spokój).
+> **Uwaga przy kolejnym eksporcie z Claude Design.** Dwie ostatnie pozycje powstały tutaj,
+> nie w Design — nanieśliśmy je równolegle na `../project/DKM Dobór - telefon v3.dc.html`,
+> żeby `npm run compare` dalej coś znaczył. Projekt w przestrzeni Claude Design ich **nie ma**,
+> więc świeży eksport je cofnie. Po każdym eksporcie sprawdź w `renderVals()`:
+>
+> - czy są `showBrandTitle`, `logoH` zależne od ekranu i `brandPad` (zwinięty nagłówek),
+> - czy z mapy `crumb` zniknęły klucze `askSwap`, `v3refine` i `v3cond` (brak powtórzeń).
+>
+> Jeśli wróciły, trzeba je nałożyć ponownie — albo wprowadzić obie zmiany w samym Design
+> i mieć spokój.
 
 ## Układ katalogów
 
