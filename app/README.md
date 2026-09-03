@@ -58,6 +58,16 @@ Zmiany wobec prototypu ograniczone są do kilku rzeczy:
   wyrazi zgodę — inaczej GA4 liczyłoby wejście dwa razy.
 - w regulaminie doszło zdanie o tym, że złożenie zamówienia wymaga Internetu także
   w wersji offline aplikacji (§10).
+- zwinięty nagłówek na telefonie: po ekranie startowym zostaje samo logo (34 px zamiast
+  58 px), bez dwuwierszowego tytułu — pełny nagłówek zjadał ~190 px, czyli blisko czwartą
+  część ekranu. Wersja web bez zmian.
+
+> **Uwaga przy kolejnym eksporcie z Claude Design.** Zwinięty nagłówek powstał tutaj, nie
+> w Design — nanieśliśmy go równolegle na `../project/DKM Dobór - telefon v3.dc.html`, żeby
+> `npm run compare` dalej coś znaczył. Projekt w przestrzeni Claude Design go **nie ma**,
+> więc świeży eksport przywróci pełny nagłówek. Po każdym eksporcie sprawdź w `renderVals()`,
+> czy są `showBrandTitle`, `logoH` zależne od ekranu i `brandPad` — jeśli ich nie ma, trzeba
+> je nałożyć ponownie (albo wprowadzić tę zmianę w samym Design i mieć spokój).
 
 ## Układ katalogów
 

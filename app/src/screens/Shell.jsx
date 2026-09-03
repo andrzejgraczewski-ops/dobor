@@ -25,13 +25,15 @@ export default function Shell({ v }) {
     <div style={S(`min-height:100vh;display:flex;flex-direction:column;background:var(--color-bg);max-width:${v.shellW};margin:0 auto;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider);box-shadow:0 0 0 1px rgba(255,255,255,.18),0 30px 80px rgba(12,10,40,.45)`)}>
 
       <div style={S('flex:none;position:sticky;top:0;z-index:6;background:var(--color-bg);border-bottom:1px solid var(--color-divider)')}>
-        <div style={S(`padding:calc(env(safe-area-inset-top) + 14px) 20px 0;display:flex;align-items:center;justify-content:${v.brandJustify}`)}>
+        <div style={S(`padding:${v.brandPad};display:flex;align-items:center;justify-content:${v.brandJustify}`)}>
           <img src="assets/dkm-logo.png" alt="DKM Power Transmission" style={S(`height:${v.logoH};width:auto;display:block`)} />
         </div>
-        <div style={S('padding:12px 20px 12px;display:flex;align-items:stretch;justify-content:center;gap:12px')}>
-          <span style={S('width:4px;background:linear-gradient(180deg,var(--color-accent) 0 50%,var(--color-ok) 50% 100%);flex:none')}></span>
-          <h1 style={S("margin:0;font:600 25px/1.06 'Barlow Condensed',sans-serif;letter-spacing:.045em;text-transform:uppercase;color:var(--color-accent)")}>Dobór przekładni<br /><span style={S('color:var(--color-accent-700)')}>ślimakowych</span></h1>
-        </div>
+        {v.showBrandTitle ? (
+          <div style={S('padding:12px 20px 12px;display:flex;align-items:stretch;justify-content:center;gap:12px')}>
+            <span style={S('width:4px;background:linear-gradient(180deg,var(--color-accent) 0 50%,var(--color-ok) 50% 100%);flex:none')}></span>
+            <h1 style={S("margin:0;font:600 25px/1.06 'Barlow Condensed',sans-serif;letter-spacing:.045em;text-transform:uppercase;color:var(--color-accent)")}>Dobór przekładni<br /><span style={S('color:var(--color-accent-700)')}>ślimakowych</span></h1>
+          </div>
+        ) : null}
         {v.showCrumbs ? (
           <div style={S('padding:0 20px 11px;display:flex;align-items:center;gap:9px;flex-wrap:wrap')}>
             {v.canStepBack ? (

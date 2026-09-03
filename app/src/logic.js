@@ -1957,7 +1957,16 @@ export class DkmLogic extends React.Component {
           {k:'SKU silnika',v:(p&&p.v.motSku)||'—',color:V('accent')},
           {k:'Współczynnik pracy',v:'fs = '+fs1(r.fs),color:V('warn')},
           {k:'Status',v:'poza zalecanym zakresem',color:V('warn')}];})():[],
-      wide:S.wide,shellW:S.wide?'1180px':'520px',brandJustify:'center',logoH:S.wide?'76px':'58px',
+      wide:S.wide,shellW:S.wide?'1180px':'520px',brandJustify:'center',
+      // Na telefonie pełny nagłówek (logo + dwuwierszowy tytuł) zajmował ~190 px, czyli
+      // blisko czwartą część ekranu — na ekranie startowym to wizytówka, ale na kolejnych
+      // kartach tylko zabierał miejsce doborowi. Dalej zostaje samo pomniejszone logo.
+      // W wersji web nic się nie zmienia, tam miejsca nie brakuje.
+      showBrandTitle:S.wide||S.screen==='home',
+      logoH:S.wide?'76px':(S.screen==='home'?'58px':'34px'),
+      brandPad:(!S.wide&&S.screen!=='home')
+        ?'calc(env(safe-area-inset-top) + 9px) 20px 9px'
+        :'calc(env(safe-area-inset-top) + 14px) 20px 0',
       docW:S.wide?'720px':'none',
       // kroki kreatora mają wspólną szerokość z ekranem startowym i wyborem wartości
       // (pełna szerokość powłoki) — inaczej przejścia między krokami skaczą w bok
