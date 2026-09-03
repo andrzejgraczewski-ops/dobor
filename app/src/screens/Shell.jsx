@@ -97,7 +97,7 @@ export default function Shell({ v }) {
 
       {v.anaAsk ? (
         <div style={S('position:fixed;left:0;right:0;bottom:0;z-index:120;padding:15px 18px calc(env(safe-area-inset-bottom) + 15px);background:var(--color-accent);color:#fff;box-shadow:0 -6px 22px rgba(41,38,91,.28)')}>
-          <div style={S(`width:100%;max-width:${v.docW};margin:0 auto`)}>
+          <div style={S(`width:100%;max-width:${v.stepW};margin:0 auto`)}>
             <div style={S("font:600 17px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase")}>Pomóż nam poprawić konfigurator</div>
             <div style={S('margin-top:6px;font:400 12.5px/1.5 Barlow,sans-serif;color:rgba(255,255,255,.88);text-wrap:pretty')}>Za Twoją zgodą mierzymy anonimowo wejścia oraz użycie koszyka. Nie przekazujemy danych kontaktowych ani treści zamówienia do analityki.</div>
             <div style={S(`margin-top:11px;display:grid;grid-template-columns:${v.formCols};gap:9px`)}>

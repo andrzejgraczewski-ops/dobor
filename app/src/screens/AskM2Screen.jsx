@@ -51,9 +51,9 @@ export default function AskM2Screen({ v }) {
         </div>
         <div>
           <div style={S("font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px")}>Temperatura otoczenia</div>
-          <div style={S('display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px')}>
+          <div style={S(`display:grid;grid-template-columns:${v.tempCols};gap:8px`)}>
             {v.tempOpts.map((d, i) => (
-              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:46px;padding:8px 3px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
+              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:52px;padding:9px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 13px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
             ))}
           </div>
           {v.tempHasNote ? (

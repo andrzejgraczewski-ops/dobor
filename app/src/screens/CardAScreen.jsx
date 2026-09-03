@@ -16,6 +16,23 @@ export default function CardAScreen({ v }) {
       </div>
       <p style={S('margin:12px 0 20px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Wybierz kryteria, które znasz — jedno lub więcej. Możesz też przejść dalej bez zawężania i przejrzeć wszystkie zestawienia.</p>
 
+      {v.hasEntryChips ? (
+        <div style={S('margin-bottom:16px;padding:12px 14px;border:1px solid var(--color-accent-300);background:var(--color-accent-100)')}>
+          <div style={S("font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px")}>Już wybrane</div>
+          <div style={S('display:flex;flex-wrap:wrap;gap:8px')}>
+            {v.entryChips.map((c, i) => (
+              <span key={i} style={S('padding:6px 11px;background:#fff;border:1px solid var(--color-accent);display:flex;align-items:baseline;gap:7px')}>
+                <span style={S('font:400 11.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>{c.label}</span>
+                <span style={S("font:600 15px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--color-accent)")}>{c.value}</span>
+                {c.note ? (
+                  <span style={S("font:600 10px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-500)")}>{c.note}</span>
+                ) : null}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div style={S('border:1px solid var(--color-divider);background:#fff')}>
         <div style={S("padding:9px 14px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Zasilanie silnika</div>
         <div style={S(`padding:14px 15px 15px;display:grid;grid-template-columns:${v.formCols};gap:9px`)}>

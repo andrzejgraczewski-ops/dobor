@@ -7,7 +7,7 @@ export default function CardBScreen({ v }) {
   return (
     <div style={S(`width:100%;max-width:${v.stepW};margin:0 auto;padding:22px 20px 28px`)}>
       <div style={S('display:flex;flex-wrap:wrap;align-items:center;gap:9px')}>
-        <span style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Krok 3 · Warunki pracy</span>
+        <span style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Krok 3 z 3 · Warunki pracy</span>
         <span style={S("padding:3px 8px;background:var(--color-accent);color:#fff;font:600 10.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>Decyduje o doborze</span>
       </div>
       <h2 style={S("margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif")}>Jak będzie pracowała maszyna?</h2>
@@ -42,9 +42,9 @@ export default function CardBScreen({ v }) {
         </div>
         <div>
           <div style={S("font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px")}>Temperatura otoczenia</div>
-          <div style={S('display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px')}>
+          <div style={S(`display:grid;grid-template-columns:${v.tempCols};gap:8px`)}>
             {v.tempOpts.map((d, i) => (
-              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:46px;padding:8px 3px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 12px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
+              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:52px;padding:9px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 13px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
             ))}
           </div>
           {v.tempHasNote ? (

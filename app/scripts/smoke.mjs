@@ -127,7 +127,8 @@ async function newPage(width = 520, height = 900) {
   const { ctx, page } = await newPage();
   await page.getByRole('button', { name: /Moc silnika/ }).first().click();
   await page.locator('button', { hasText: /^0,55/ }).first().click();
-  check('po wyborze mocy wchodzimy w Kartę A', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').isVisible());
+  // etykieta kroku stoi teraz i w pasku okruszków, i w nagłówku ekranu — stąd .first()
+  check('po wyborze mocy wchodzimy w Kartę A', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').first().isVisible());
 
   await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
   check('Karta B — warunki pracy', await page.locator('text=Jak będzie pracowała maszyna?').isVisible());
@@ -136,7 +137,8 @@ async function newPage(width = 520, height = 900) {
   const rows = await page.locator('button', { hasText: /obr\/min/ }).filter({ hasText: /Nm/ }).count();
   check('lista wyników ma pozycje', rows > 0, rows + ' pozycji');
 
-  await page.locator('button', { hasText: /Motoreduktor 3F/ }).first().click();
+  // na telefonie podpis wiersza jest skrócony — bez słowa „Motoreduktor”
+  await page.locator('button', { hasText: /3F · .* kW · / }).first().click();
   check('karta zestawu otwarta', await page.locator('text=Proponowany dobór').first().isVisible());
 
   await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
@@ -215,7 +217,7 @@ async function newPage(width = 520, height = 900) {
 
     await page.getByRole('button', { name: /Moc silnika/ }).first().click();
     await page.locator('button', { hasText: /^0,55/ }).first().click();
-    check('plik offline — dobór działa', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').isVisible());
+    check('plik offline — dobór działa', await page.locator('text=Krok 2 z 3 · Zawężenie doboru').first().isVisible());
 
     if (offErr.length) errors.push(...offErr.map((e) => 'offline: ' + e));
     await ctx.close();

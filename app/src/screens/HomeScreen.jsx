@@ -35,7 +35,6 @@ export default function HomeScreen({ v }) {
       <img data-tile="m2" src="assets/tile-m2.png" alt="" style={S('display:none')} />
       <img data-tile="bore" src="assets/tile-bore.png" alt="" style={S('display:none')} />
       <img data-tile="type" src="assets/tile-type.png" alt="" style={S('display:none')} />
-      <div style={S("padding:22px 20px 0;font:600 15px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700);text-align:center")}>Kryteria doboru</div>
       <div style={S(`padding:12px 20px 0;display:grid;grid-template-columns:${v.tileGrid};gap:13px`)}>
         {v.entries.map((e, i) => (
           <button key={i} onClick={e.go} className={hv('border-color:var(--color-accent);box-shadow:0 6px 20px rgba(41,38,91,.13)')} style={S('position:relative;padding:20px 16px 22px;background:#fff;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;box-shadow:0 2px 10px rgba(41,38,91,.06)')}>

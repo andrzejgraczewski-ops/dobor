@@ -5,7 +5,7 @@ import { S, hv } from '../lib/style.js';
 export default function AskBoreScreen({ v }) {
   return (
     <div style={S('padding:22px 20px 26px')}>
-      <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Kryterium wejściowe</div>
+      <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Krok 1 z 3 · Kryterium wejściowe</div>
       <h2 style={S("margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif")}>Średnica wału Ød</h2>
       <p style={S('margin:0 0 12px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)')}>Wybierz średnicę wałka, na który przekładnia ma być nasadzona.</p>
       <div style={S('display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 15px;padding:10px 12px;border:1px solid var(--color-divider);background:var(--color-surface)')}>

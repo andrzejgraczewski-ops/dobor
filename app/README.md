@@ -40,16 +40,24 @@ Aplikacja jest przeniesieniem prototypu `../project/DKM Dobór - telefon v3.dc.h
 z Claude Design. Prototyp działał na własnym runtime tego narzędzia (`support.js`,
 znaczniki `<x-dc>`, `sc-if`, `sc-for`, `{{ }}`); tutaj ten runtime zniknął, a jego
 miejsce zajął zwykły React. Odwzorowanie jest sprawdzane maszynowo — `npm run compare`
-otwiera oba warianty obok siebie i liczy różniące się piksele. Na dwunastu ekranach
-w dwóch szerokościach (520 px i 1280 px) różnica wynosi **0%**.
+otwiera oba warianty obok siebie i liczy różniące się piksele. Na jedenastu ekranach
+w dwóch szerokościach (520 px i 1280 px) różnica wynosi **0%**; dwunasty — regulamin —
+różni się o jedno dopisane zdanie (patrz niżej).
 
-Zmiany wobec prototypu ograniczone są do trzech rzeczy:
+Zmiany wobec prototypu ograniczone są do kilku rzeczy:
 
 - runtime Claude Design zastąpiony Reactem (`src/logic.js` + `src/screens/`),
 - czcionki Barlow hostowane lokalnie zamiast z Google Fonts (wymóg pracy offline),
 - poprawka w `searchHits()`: zmienna z cyframi zapytania nazywa się `digits`, bo
   jako `num` przesłaniała funkcję formatującą liczby i wpisanie SKU falownika
   (np. `E500`) kończyło się wyjątkiem i pustym ekranem.
+- widoczny postęp wysyłki zamówienia: przycisk mówi „Wysyłam zamówienie…", po 20 s
+  bez odpowiedzi wysyłka jest przerywana z jasnym komunikatem, a potwierdzenie samo
+  przewija się na ekran.
+- `loadGA()` nie dokłada drugiego znacznika `gtag.js`, gdy klient cofnie i ponownie
+  wyrazi zgodę — inaczej GA4 liczyłoby wejście dwa razy.
+- w regulaminie doszło zdanie o tym, że złożenie zamówienia wymaga Internetu także
+  w wersji offline aplikacji (§10).
 
 ## Układ katalogów
 

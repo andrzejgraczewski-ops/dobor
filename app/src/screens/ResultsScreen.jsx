@@ -9,7 +9,7 @@ function Row({ v, r, note, hover }) {
     <button onClick={r.go} className={hv(hover)} style={S(`width:100%;display:grid;grid-template-columns:${v.rowCols};gap:${v.rowGap};align-items:center;padding:13px 20px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);cursor:pointer;text-align:left;min-height:64px`)}>
       <span>
         <span style={S('display:block;font:600 16.5px/1.15 Barlow,sans-serif')}>{r.box}</span>
-        <span style={S('display:block;margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>{r.phTag} · {r.p1} kW · {r.rpmLabel} · {r.flange} · {r.motVolt}</span>
+        <span style={S('display:block;margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>{r.rowSub}</span>
         <span style={S(`display:flex;align-items:center;gap:6px;margin-top:5px;font:600 11.5px Barlow,sans-serif;color:${r.noteColor}`)}><span style={S(`flex:none;width:15px;height:15px;background:${r.fsBg};color:${r.fsFg};font:600 10px/15px Barlow,sans-serif;text-align:center`)}>{r.fsIcon}</span>{note}</span>
       </span>
       <span style={S('text-align:right;font-variant-numeric:tabular-nums')}>

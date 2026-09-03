@@ -84,11 +84,11 @@ const SCREENS = [
   { name: 'kartaA', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); } },
   { name: 'kartaB', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); } },
   { name: 'wyniki', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); await p.getByRole('button', { name: /Pokaż wyniki/ }).click(); } },
-  { name: 'karta-zestawu', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); await p.getByRole('button', { name: /Pokaż wyniki/ }).click(); await p.locator('button', { hasText: /Motoreduktor 3F/ }).first().click(); } },
+  { name: 'karta-zestawu', steps: async (p) => { await p.getByRole('button', { name: /Moc silnika/ }).first().click(); await pickPower(p); await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click(); await p.getByRole('button', { name: /Pokaż wyniki/ }).click(); await p.locator('button', { hasText: /3F · .* kW · / }).first().click(); } },
   // Teksty prawne poprawione 02.09.2026 (zgodność z RODO — GA4 i Formspree),
   // więc różnica wobec prototypu na tych dwóch ekranach jest zamierzona.
   { name: 'regulamin', zmienione: true, steps: async (p) => { await p.getByRole('button', { name: 'Regulamin', exact: true }).first().click(); } },
-  { name: 'rodo', zmienione: true, steps: async (p) => { await p.getByRole('button', { name: /Informacje prawne/ }).first().click(); } },
+  { name: 'rodo', steps: async (p) => { await p.getByRole('button', { name: /Informacje prawne/ }).first().click(); } },
 ];
 
 const WIDTHS = [520, 1280];
@@ -139,7 +139,9 @@ const zmienione = [...new Set(rows.filter((r) => r.zmienione).map((r) => r.name)
 console.log('\nZrzuty w ' + out);
 if (zmienione.length) {
   console.log('Celowo różne od prototypu: ' + zmienione.join(', ')
-    + ' — teksty prawne poprawione 02.09.2026 (RODO: GA4 i Formspree).');
+    + ' — w regulaminie doszło zdanie o tym, że wysyłka zamówienia wymaga Internetu'
+    + ' także w wersji offline. Politykę prywatności prototyp ma już w wersji z 03.09.2026,'
+    + ' więc ekran RODO znów zgadza się co do piksela.');
 }
 console.log(worst.length
   ? worst.length + ' ekranów do obejrzenia'

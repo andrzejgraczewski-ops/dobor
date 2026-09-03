@@ -250,6 +250,26 @@ function Step2({ v }) {
             <input value={v.cNip} onChange={v.setNip} inputMode="numeric" placeholder="10 cyfr" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
           </label>
         </div>
+        {v.showAddr ? (
+          <div style={S('margin-top:14px;padding-top:13px;border-top:1px solid var(--color-divider)')}>
+            <div style={S("font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:4px")}>Adres dostawy</div>
+            <div style={S('margin-bottom:9px;font:400 12px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)')}>Pod ten adres wyślemy przesyłkę. Fakturę wystawiamy elektronicznie w KSeF — wystarczy NIP.</div>
+            <label style={S('display:block')}>
+              <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Ulica i numer *</span>
+              <input value={v.cStreet} onChange={v.setStreet} placeholder="np. 3 Maja 20" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
+            </label>
+            <div style={S('margin-top:9px;display:grid;grid-template-columns:120px minmax(0,1fr);gap:9px')}>
+              <label style={S('display:block')}>
+                <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Kod *</span>
+                <input value={v.cZip} onChange={v.setZip} inputMode="numeric" placeholder="87-640" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
+              </label>
+              <label style={S('display:block')}>
+                <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Miejscowość *</span>
+                <input value={v.cCity} onChange={v.setCity} placeholder="np. Czernikowo" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
+              </label>
+            </div>
+          </div>
+        ) : null}
         <label style={S('display:block;margin-top:11px')}>
           <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Uwagi (opcjonalnie)</span>
           <input value={v.cNote} onChange={v.setNote} placeholder="np. termin dostawy, numer zamówienia u Ciebie" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />

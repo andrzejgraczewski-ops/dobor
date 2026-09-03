@@ -87,7 +87,7 @@ async function addToCart(page) {
   await page.locator('button').filter({ hasText: /^\s*0,55\s*kW/ }).first().click();
   await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
   await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
-  await page.locator('button', { hasText: /Motoreduktor 3F/ }).first().click();
+  await page.locator('button', { hasText: /3F · .* kW · / }).first().click();
   await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
   await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
 }
@@ -99,6 +99,9 @@ async function fillContact(page) {
   await page.locator('input[placeholder="nazwisko"]').fill('Testowy');
   await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example.com');
   await page.locator('input[placeholder="+48"]').fill('500600700');
+  await page.locator('input[placeholder="np. 3 Maja 20"]').fill('3 Maja 20');
+  await page.locator('input[placeholder="87-640"]').fill('87-640');
+  await page.locator('input[placeholder="np. Czernikowo"]').fill('Czernikowo');
   await page.getByRole('button', { name: /Dalej →/ }).click();
   await page.locator('text=Płatność i potwierdzenie').waitFor();
 }
@@ -156,7 +159,7 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   await page.getByRole('button', { name: /Pomiń — pokaż wszystkie/ }).click();
   await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
   await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
-  await page.locator('button', { hasText: /Motoreduktor 3F/ }).first().click();
+  await page.locator('button', { hasText: /3F · .* kW · / }).first().click();
   await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
   await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
   layer = await dl(page);
@@ -184,7 +187,8 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   const { ctx, page } = await open({ consent: 'yes' });
   await page.evaluate(() => { document.cookie = '_ga=GA1.1.test; path=/'; });
   await page.getByRole('button', { name: /Informacje prawne/ }).first().click();
-  await page.locator('text=Analityka · RODO').waitFor();
+  // nazwa kafelka pada też w treści polityki prywatności — bierzemy pierwszy, czyli kafelek
+  await page.locator('text=Analityka · RODO').first().waitFor();
   const stateOn = await page.locator('text=Analityka włączona').isVisible();
   check('ekran prawny pokazuje aktualny stan zgody', stateOn);
 
@@ -225,9 +229,25 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await addToCart(page);
   await page.getByRole('button', { name: /Dalej →/ }).click();
   await page.getByRole('button', { name: /Dalej →/ }).click();
-  const stuck = await page.locator('text=Uzupełnij imię, nazwisko, e-mail i telefon').isVisible();
+  const stuck = await page.locator('text=Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy').isVisible();
   check('bez danych kontaktowych nie da się przejść do płatności', stuck);
   check('brak niepotrzebnej wysyłki', posts.length === 0, posts.length + ' żądań');
+
+  // adres dostawy jest wymagany — jedyny sposób dostawy to wysyłka kurierem
+  await page.locator('input[placeholder="imię"]').fill('Jan');
+  await page.locator('input[placeholder="nazwisko"]').fill('Testowy');
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example.com');
+  await page.locator('input[placeholder="+48"]').fill('500600700');
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  check('sam kontakt bez adresu nie wystarcza przy wysyłce kurierem',
+    await page.locator('text=Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy').isVisible());
+
+  await page.locator('input[placeholder="np. 3 Maja 20"]').fill('3 Maja 20');
+  await page.locator('input[placeholder="87-640"]').fill('87-640');
+  await page.locator('input[placeholder="np. Czernikowo"]').fill('Czernikowo');
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  check('z pełnym adresem przechodzimy do płatności',
+    await page.locator('text=Płatność i potwierdzenie').isVisible());
   await ctx.close();
 }
 
@@ -261,13 +281,15 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
     (p.headers['content-type'] || '') + ' / ' + (p.headers['accept'] || ''));
 
   const b = p.body || {};
-  const wanted = ['_subject', 'numer_zgloszenia', 'rodzaj', 'imie', 'nazwisko', 'firma', 'nip', 'email', 'telefon', 'dostawa', 'platnosc', 'pozycje', 'wiadomosc'];
+  const wanted = ['_subject', 'numer_zgloszenia', 'rodzaj', 'imie', 'nazwisko', 'firma', 'nip', 'email', 'telefon', 'adres_dostawy', 'dostawa', 'platnosc', 'pozycje', 'wiadomosc'];
   const missing = wanted.filter((k) => !(k in b));
   check('komplet pól w zgłoszeniu', missing.length === 0, missing.join(', '));
   check('numer zgłoszenia w formacie DKM-RRRRMMDD-GGMMSS-XXX',
     /^DKM-\d{8}-\d{6}-\d{3}$/.test(b.numer_zgloszenia || ''), b.numer_zgloszenia);
   check('rodzaj = Zamówienie', b.rodzaj === 'Zamówienie', b.rodzaj);
   check('dane kontaktowe w treści', b.imie === 'Jan' && b.nazwisko === 'Testowy' && b.email === 'jan.testowy@example.com' && b.telefon === '500600700');
+  check('adres dostawy w zgłoszeniu', b.adres_dostawy === '3 Maja 20, 87-640 Czernikowo', b.adres_dostawy);
+  check('adres dostawy w treści maila', (b.wiadomosc || '').includes('Adres dostawy: 3 Maja 20, 87-640 Czernikowo'));
   check('dostawa i płatność', b.dostawa === 'Kurier / spedycja' && b.platnosc === 'Proforma', b.dostawa + ' / ' + b.platnosc);
   check('pozycje wypisane w zgłoszeniu', /DKM\d{3}/.test(b.pozycje || ''), (b.pozycje || '').slice(0, 60));
   check('pełna treść maila dołączona', (b.wiadomosc || '').includes('ZAMÓWIENIE') && (b.wiadomosc || '').includes('Razem brutto'),

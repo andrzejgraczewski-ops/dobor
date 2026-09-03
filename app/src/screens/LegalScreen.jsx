@@ -34,41 +34,75 @@ export default function LegalScreen({ v }) {
         <p style={S('margin:0 0 12px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Użytkownik jest zobowiązany do zweryfikowania poprawności doboru w odniesieniu do rzeczywistych warunków pracy, parametrów instalacji, dokumentacji technicznej urządzeń oraz obowiązujących norm i przepisów — w szczególności wymaganej mocy, momentu obrotowego, prędkości obrotowej, współczynnika pracy, obciążeń promieniowych i osiowych, warunków środowiskowych oraz sposobu montażu.</p>
         <p style={S('margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>DKM Power Transmission Sp. z o.o. nie ponosi odpowiedzialności za skutki zastosowania wyników wygenerowanych przez aplikację bez ich odpowiedniej weryfikacji technicznej, z zastrzeżeniem odpowiedzialności, której zgodnie z obowiązującym prawem nie można wyłączyć ani ograniczyć.</p>
       </div>
-      <h2 style={S("margin:26px 0 6px;font:600 26px/1.1 'Barlow Condensed',sans-serif")}>Polityka prywatności (RODO)</h2>
-      <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}><strong>Administrator danych:</strong> DKM Power Transmission Sp. z o.o., ul. 3 Maja 20, 87-640 Czernikowo, NIP 879-268-87-36. Kontakt w sprawach danych osobowych: <a href="mailto:sklep@d-k-m.eu">sklep@d-k-m.eu</a>.</p>
-      <div style={S('display:grid;gap:1px;background:var(--color-divider);border:1px solid var(--color-divider);margin-bottom:14px')}>
-        <div style={S('background:var(--color-bg);padding:12px 14px')}>
-          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Jakie dane i po co</div>
-          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Wyłącznie dane, które sam wpiszesz w zapytaniu ofertowym: firma, osoba kontaktowa, e-mail, telefon, uwagi oraz wybrane pozycje. Służą do przygotowania i przedstawienia oferty oraz kontaktu handlowego.</div>
-        </div>
-        <div style={S('background:var(--color-bg);padding:12px 14px')}>
-          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Podstawa prawna</div>
-          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Art. 6 ust. 1 lit. b RODO — czynności zmierzające do zawarcia umowy, oraz art. 6 ust. 1 lit. f RODO — prawnie uzasadniony interes w prowadzeniu korespondencji handlowej.</div>
-        </div>
-        <div style={S('background:var(--color-bg);padding:12px 14px')}>
-          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Okres przechowywania</div>
-          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Przez czas obsługi zapytania i współpracy handlowej, a następnie przez okres wymagany przepisami podatkowymi i terminami przedawnienia roszczeń.</div>
-        </div>
-        <div style={S('background:var(--color-bg);padding:12px 14px')}>
-          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Odbiorcy danych</div>
-          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Formspree Inc. (USA) — pośredniczy w dostarczeniu zamówienia lub zapytania na skrzynkę DKM. Google Ireland Limited — wyłącznie dane analityczne i wyłącznie za Twoją zgodą. Poza tym dostawca poczty elektronicznej oraz, w zakresie realizacji zamówienia, firma kurierska lub spedycyjna. Dane mogą być przekazywane poza Europejski Obszar Gospodarczy na podstawie standardowych klauzul umownych zatwierdzonych przez Komisję Europejską.</div>
-        </div>
-        <div style={S('background:var(--color-bg);padding:12px 14px')}>
-          <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)")}>Twoje prawa</div>
-          <div style={S('margin-top:4px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Dostęp do danych, sprostowanie, usunięcie, ograniczenie przetwarzania, przenoszenie, sprzeciw oraz skarga do Prezesa Urzędu Ochrony Danych Osobowych. Podanie danych jest dobrowolne, ale niezbędne do przygotowania oferty.</div>
-        </div>
-      </div>
-      <div style={S('padding:14px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)')}>
-        <div style={S("font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)")}>Bezpieczeństwo danych</div>
-        <p style={S('margin:8px 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Dobór i obliczenia wykonują się <strong>w całości na Twoim urządzeniu</strong> — katalog i cennik są wbudowane w aplikację, nie ma konta ani logowania.</p>
-        <ul style={S('margin:0 0 10px;padding-left:20px;font:400 13.5px/1.65 Barlow,sans-serif;color:var(--color-neutral-900)')}>
-          <li>Dane, które wpiszesz w zamówieniu lub zapytaniu, wysyłamy dopiero po naciśnięciu przycisku wysyłki. Trafiają wtedy do DKM za pośrednictwem usługi <strong>Formspree</strong> (Formspree Inc., USA), która przekazuje je na naszą skrzynkę pocztową. Formspree działa jako podmiot przetwarzający na nasze zlecenie, a przekazanie danych do USA odbywa się na podstawie standardowych klauzul umownych zatwierdzonych przez Komisję Europejską.</li>
-          <li>Koszyk zapytania i historia doborów są zapisywane wyłącznie w pamięci przeglądarki na Twoim urządzeniu — możesz je w każdej chwili usunąć, czyszcząc dane przeglądarki. Danych kontaktowych nie zapisujemy na urządzeniu.</li>
-          <li><strong>Analitykę prowadzimy wyłącznie za Twoją zgodą.</strong> Po jej wyrażeniu korzystamy z Google Analytics 4 (Google Ireland Limited), która zapisuje pliki cookie <span style={S('font-family:ui-monospace,monospace')}>_ga</span> i <span style={S('font-family:ui-monospace,monospace')}>_ga_*</span> i mierzy anonimowo wejścia oraz korzystanie z koszyka. Do analityki nie trafiają dane kontaktowe ani treść zamówienia. Bez zgody Google Analytics w ogóle się nie uruchamia, a zgodę możesz cofnąć w każdej chwili powyżej — pomiar zostaje wtedy realnie zatrzymany, a pliki cookie usunięte.</li>
-          <li>Korespondencja przychodząca jest przetwarzana przez upoważnionych pracowników DKM Power Transmission Sp. z o.o., na kontach zabezpieczonych hasłem i uwierzytelnianiem dostawcy poczty.</li>
+      <h2 style={S("margin:26px 0 6px;font:600 26px/1.1 'Barlow Condensed',sans-serif")}>Polityka prywatności i plików cookies</h2>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:16px 0 6px")}>1 · Administrator danych</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Administratorem danych osobowych jest <strong>DKM Power Transmission Sp. z o.o.</strong>, ul. 3 Maja 20, 87-640 Czernikowo, NIP 879-268-87-36.</p>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>W sprawach dotyczących danych osobowych można skontaktować się z Administratorem pod adresem <a href="mailto:sklep@d-k-m.eu">sklep@d-k-m.eu</a>.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>2 · Jakie dane przetwarzamy</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>W zależności od sposobu korzystania z aplikacji możemy przetwarzać:</p>
+        <ul style={S('margin:0 0 10px;padding-left:20px;font:400 14px/1.65 Barlow,sans-serif;color:var(--color-neutral-700)')}>
+          <li>dane techniczne związane z korzystaniem z aplikacji, w tym informacje o urządzeniu, przeglądarce, przybliżonej lokalizacji, adresie IP wykorzystywanym do obsługi połączenia oraz aktywności w aplikacji;</li>
+          <li>dane analityczne zbierane za pomocą Google Analytics 4, w szczególności informacje o sposobie korzystania z aplikacji, odwiedzanych widokach, źródle wejścia oraz zdarzeniach wykonywanych w aplikacji;</li>
+          <li>dane podane przy składaniu zamówienia lub wysyłaniu zapytania, w szczególności: imię i nazwisko, nazwa firmy, NIP, adres e-mail, numer telefonu, adres dostawy, dane do faktury, wybrane produkty, konfigurację, sposób płatności, sposób dostawy oraz treść uwag.</li>
         </ul>
-        <p style={S('margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900)')}>Jeżeli otrzymałeś aplikację jako plik, odpowiadasz za jego przechowywanie na swoim urządzeniu zgodnie z własnymi zasadami bezpieczeństwa.</p>
-      </div>
+        <p style={S('margin:0 0 12px;font:600 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900)')}>Nie należy wpisywać w formularzu danych, które nie są potrzebne do realizacji zamówienia lub przygotowania oferty.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 8px")}>3 · Cele i podstawy przetwarzania danych</div>
+        <div style={S('display:grid;gap:1px;background:var(--color-divider);border:1px solid var(--color-divider);margin-bottom:12px')}>
+          {v.wide ? (
+            <div style={S(`background:var(--color-surface);padding:9px 13px;display:grid;grid-template-columns:${v.formCols};gap:6px 18px`)}>
+              <span style={S("font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)")}>Cel</span>
+              <span style={S("font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)")}>Podstawa prawna</span>
+            </div>
+          ) : null}
+          {v.gdprRows.map((g, i) => (
+            <div key={i} style={S(`background:var(--color-bg);padding:11px 13px;display:grid;grid-template-columns:${v.formCols};gap:4px 18px`)}>
+              <span style={S('font:500 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-900)')}>{g.cel}</span>
+              <span style={S('font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-700)')}>{g.basis}</span>
+            </div>
+          ))}
+        </div>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Podanie danych wymaganych do złożenia zamówienia jest dobrowolne, lecz niezbędne do jego obsługi i realizacji.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>4 · Google Analytics 4 i pliki cookies</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Aplikacja korzysta z <strong>Google Analytics 4</strong>, aby sprawdzać, w jaki sposób użytkownicy korzystają z aplikacji oraz poprawiać jej funkcjonalność i czytelność.</p>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Google Analytics 4 wykorzystuje pliki cookies lub podobne technologie i może przetwarzać m.in. pseudonimowy identyfikator przeglądarki, informacje o urządzeniu, aktywności w aplikacji oraz przybliżone dane o lokalizacji. Administrator nie przekazuje do Google Analytics danych wpisywanych w formularzu zamówienia, takich jak imię i nazwisko, e-mail, telefon, adres, NIP ani treść zamówienia.</p>
+        <p style={S('margin:0 0 8px;font:600 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Analityczne pliki cookies są uruchamiane wyłącznie po wyrażeniu zgody. Zgodę można w każdej chwili wycofać poprzez zmianę ustawień cookies w aplikacji (blok „Analityka · RODO” powyżej) lub w przeglądarce. Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej wycofaniem.</p>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Google działa w odniesieniu do usługi Google Analytics jako podmiot przetwarzający dane na rzecz Administratora. Szczegółowe informacje o sposobie przetwarzania danych przez Google znajdują się w <a href="https://policies.google.com/privacy?hl=pl" target="_blank" rel="noopener">Polityce prywatności Google</a>.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>5 · Odbiorcy danych</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Dane mogą być przekazywane wyłącznie podmiotom wspierającym Administratora w obsłudze aplikacji i zamówień, w szczególności:</p>
+        <ul style={S('margin:0 0 10px;padding-left:20px;font:400 14px/1.65 Barlow,sans-serif;color:var(--color-neutral-700)')}>
+          <li>dostawcy usługi Google Analytics 4 — Google;</li>
+          <li>dostawcy formularza wysyłki zamówień i zapytań — Formspree;</li>
+          <li>dostawcy hostingu, poczty elektronicznej oraz usług informatycznych;</li>
+          <li>podmiotom realizującym dostawę, płatność lub obsługę księgową, jeżeli będzie to konieczne do realizacji zamówienia;</li>
+          <li>organom publicznym, gdy obowiązek przekazania danych wynika z przepisów prawa.</li>
+        </ul>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Podmioty te otrzymują dane wyłącznie w zakresie niezbędnym do wykonania swoich usług.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>6 · Przekazywanie danych poza EOG</div>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Niektórzy dostawcy usług, w tym Google i Formspree, mogą przetwarzać dane poza Europejskim Obszarem Gospodarczym, w szczególności w Stanach Zjednoczonych. W takim przypadku przekazanie danych odbywa się zgodnie z mechanizmami dopuszczonymi przez RODO, w tym na podstawie decyzji stwierdzającej odpowiedni stopień ochrony danych lub standardowych klauzul umownych Komisji Europejskiej.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>7 · Okres przechowywania danych</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Dane z zamówień i zapytań przechowujemy przez czas niezbędny do ich obsługi, realizacji umowy oraz później przez okres wymagany przepisami podatkowymi i terminami przedawnienia roszczeń.</p>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Dane analityczne w Google Analytics 4 są przechowywane przez okres ustawiony w konfiguracji usługi, nie dłużej niż jest to potrzebne do celów analitycznych.</p>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>8 · Twoje prawa</div>
+        <p style={S('margin:0 0 8px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>Masz prawo do:</p>
+        <ul style={S('margin:0 0 12px;padding-left:20px;font:400 14px/1.65 Barlow,sans-serif;color:var(--color-neutral-700)')}>
+          <li>dostępu do swoich danych;</li>
+          <li>ich sprostowania;</li>
+          <li>usunięcia danych, gdy pozwalają na to przepisy;</li>
+          <li>ograniczenia przetwarzania;</li>
+          <li>przenoszenia danych;</li>
+          <li>wniesienia sprzeciwu wobec przetwarzania opartego na uzasadnionym interesie Administratora;</li>
+          <li>wycofania zgody na analityczne pliki cookies w dowolnym momencie;</li>
+          <li>wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych.</li>
+        </ul>
+        <div style={S('padding:14px 15px;border:1px solid var(--color-divider);border-left:4px solid var(--color-ok);background:var(--color-ok-bg)')}>
+          <div style={S("font:600 12.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ok-ink)")}>9 · Bezpieczeństwo i działanie aplikacji</div>
+          <p style={S('margin:8px 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Dobór urządzeń i obliczenia wykonywane są w aplikacji uruchomionej w przeglądarce użytkownika. Koszyk i historia doborów mogą być zapisywane w pamięci przeglądarki na urządzeniu użytkownika; można je usunąć przez wyczyszczenie danych przeglądarki.</p>
+          <p style={S('margin:0 0 10px;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Dane z formularza są przesyłane do DKM wyłącznie po naciśnięciu przycisku wysyłki zamówienia lub zapytania. Są wykorzystywane wyłącznie do obsługi złożonego zamówienia, przygotowania oferty, kontaktu z klientem oraz realizacji dalszych obowiązków związanych z transakcją.</p>
+          <p style={S('margin:0;font:400 13.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Administrator stosuje odpowiednie środki techniczne i organizacyjne chroniące dane przed dostępem osób nieuprawnionych, utratą, zmianą lub nieuprawnionym ujawnieniem.</p>
+        </div>
+        <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700);margin:18px 0 6px")}>10 · Zmiany polityki</div>
+        <p style={S('margin:0 0 12px;font:400 14px/1.6 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Polityka może być aktualizowana w razie zmiany sposobu działania aplikacji, wykorzystywanych usług lub obowiązujących przepisów. Aktualna wersja jest dostępna w aplikacji.</p>
+        
       <p style={S('margin:18px 0 0;font:400 12.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-500)')}>This application and its components are proprietary to DKM Power Transmission Sp. z o.o. Unauthorized copying, modification, distribution or use is prohibited.</p>
       <p style={S('margin:8px 0 0;font:600 12.5px/1.6 Barlow,sans-serif;color:var(--color-neutral-700)')}>© 2026 DKM Power Transmission Sp. z o.o. All rights reserved.</p>
       <button onClick={v.closeLegal} className={hv('background:var(--color-accent-700)')} style={S("width:100%;min-height:52px;margin-top:20px;padding:14px;background:var(--color-accent);border:1px solid var(--color-accent);color:#fff;cursor:pointer;font:600 13.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>← Zamknij</button>

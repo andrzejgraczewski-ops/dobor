@@ -15,7 +15,7 @@ export class DkmLogic extends React.Component {
   A(f){ const R=window.__resources||{}; return R['a_'+String(f).replace(/[^a-zA-Z0-9]/g,'_')]||('assets/'+f); }
   state={screen:'home',mode:null,p1:null,i:null,n2Exact:null,box:null,rpmSel:1400,m2:'',n2:'',load:1,hours:1,z:10,temp:0,fsMinSel:null,fsOnly:false,wide:false,
     refine:false,sel:null,rfq:[],just:false,prevScreen:'home',typeQ:'',hist:[],hideLow:true,
-    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:''},del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null,borePick:null,
+    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:'',street:'',zip:'',city:''},del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null,borePick:null,
     anaConsent:null,sending:false,sentOk:false,sentRef:'',sendErr:''};
 
   GA_ID='G-79013G7BXL';
@@ -85,6 +85,8 @@ export class DkmLogic extends React.Component {
       imie:c.first||'',nazwisko:c.last||'',
       firma:c.firm||'—',nip:c.nip||'—',
       email:c.email||'',telefon:c.phone||'',
+      adres_dostawy:(c.street||c.zip||c.city)
+        ?[c.street,[c.zip,c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '):'—',
       dostawa:order?(S.del==='odbior'?'Odbiór osobisty':'Kurier / spedycja'):'—',
       platnosc:order?(S.pay==='pobranie'?'Za pobraniem':'Proforma'):'—',
       pozycje:S.rfq.map(x=>this.tradeOf(x).name+' · '+x.box+' · i '+x.i
@@ -117,7 +119,7 @@ export class DkmLogic extends React.Component {
           ?setTimeout(()=>{
             try{ localStorage.removeItem('dkm-rfq-v2'); }catch(e){}
             this.setState({rfq:[],ordered:false,sentOk:false,sentRef:'',screen:'home',
-              c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:''},
+              c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:'',street:'',zip:'',city:''},
               accepted:false,rfqStep:1});
           },5000)
           // zapytanie nie czyści koszyka, ale panel musi zgaśnąć, żeby klient mógł
@@ -496,6 +498,8 @@ export class DkmLogic extends React.Component {
     L.push('Osoba: '+(person||'—'));
     L.push('E-mail: '+(c.email||'—'));
     L.push('Telefon: '+(c.phone||'—'));
+    if(c.street||c.zip||c.city)
+      L.push('Adres dostawy: '+[c.street,[c.zip,c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '));
     if(c.note) L.push('','Uwagi: '+c.note);
     if(order){
       L.push('','— Zamówienie —');
@@ -528,6 +532,11 @@ export class DkmLogic extends React.Component {
     if(c.nip&&!c.firm) miss.push('nazwa firmy (uzupełnij razem z NIP-em)');
     if(!c.phone) miss.push('telefon');
     if(!c.email) miss.push('e-mail');
+    if(S.del!=='odbior'){
+      if(!c.street) miss.push('ulica i numer');
+      if(!c.zip) miss.push('kod pocztowy');
+      if(!c.city) miss.push('miejscowość');
+    }
     if(!S.del) miss.push('sposób dostawy');
     if(!S.pay) miss.push('forma płatności');
     if(!S.accepted) miss.push('akceptacja regulaminu');
@@ -589,7 +598,8 @@ export class DkmLogic extends React.Component {
     return r1(L.lo+(L.hi-L.lo)*t+HOURS[S.hours].add);
   }
   fsReqNum(){ const S=this.state;
-    // na ekranie warunk\u00f3w licz\u0119 wykres od razu, \u017ceby wymagane fs aktualizowa\u0142o si\u0119 na \u017cywo\n    if(!(S.mode==='m2'||S.condDone||S.screen==='v3cond')) return this.props.fsMin ?? 1.0;
+    // na ekranie warunków liczę wykres od razu, żeby wymagane fs aktualizowało się na żywo
+    if(!(S.mode==='m2'||S.condDone||S.screen==='v3cond')) return this.props.fsMin ?? 1.0;
     const m=TEMPS[S.temp].m; return m==null?this.fsChart():r1(this.fsChart()*m); }
   numIn(v){ const n=parseFloat(String(v).replace(',','.')); return isFinite(n)&&n>0?n:null; }
 
@@ -728,6 +738,9 @@ export class DkmLogic extends React.Component {
   }
   group(f,label,unit,cols){
     const cur=this.state[this.fieldOf(f)];
+    // na telefonie węższe siatki — 6 kolumn na 390 px daje 52 px na kafelek,
+    // czyli mniej niż wygodny obszar dotyku i łamiące się liczby
+    const nCols=this.state.wide?cols:({p1:3,i:4,n2:3,box:2,bore:3,rpm:3}[f]||3);
     const fmt=v=>f==='box'?String(v):(f==='bore'?('⌀ '+num(v)):num(v));
     const opts=[{v:null,l:'wszystkie',c:null}].concat(this.facet(f).map(o=>({v:o.v,l:fmt(o.v),c:o.count,optOnly:o.optOnly})))
       .map(o=>{const on=cur===o.v, any=o.v==null;
@@ -739,7 +752,7 @@ export class DkmLogic extends React.Component {
           bd:on?V('accent'):V('divider'),
           cg:(on&&!any)?'rgba(255,255,255,.7)':V('neutral-500'),
           go:()=>this.setField(f,o.v)};});
-    return {label:label,unit:unit,cols:String(cols),opts,f,cur};
+    return {label:label,unit:unit,cols:String(nCols),opts,f,cur};
   }
 
   // 'flange' w katalogu występuje w dwóch formatach:
@@ -1052,10 +1065,12 @@ export class DkmLogic extends React.Component {
     // Gdy klient podał warunki pracy, obowiązuje wynik wykresu — także gdy wypada
     // poniżej 1,2. Inaczej ekran mówiłby „wymagany fs ≥ 1,0”, a pozycja z fs 1,0
     // dostawała pomarańczowy status. Próg 1,2 zostaje jako domyślny bez warunków.
-    const S=this.state;
-    const req=(S.mode==='m2'||S.condDone)?this.fsReqNum():1.2;
-    return v<req?'mid':'ok';
+    return v<this.fsReqEff()?'mid':'ok';
   }
+  // jeden wymagany zapas dla całej aplikacji — klasyfikacja pasm, karta PDF i teksty
+  // muszą cytować tę samą liczbę, inaczej ekran mówi co innego niż wydruk
+  fsReqEff(){ const S=this.state;
+    return (S.mode==='m2'||S.condDone)?this.fsReqNum():1.2; }
   FS_META={
     ok:{order:0,label:'Dobór wstępnie odpowiedni',short:'wstępnie odpowiedni',icon:'✓',
       msg:'Zestawienie mieści się w przyjętym orientacyjnym zakresie doboru. Ostateczna przydatność zależy od rzeczywistych warunków pracy maszyny.'},
@@ -1078,6 +1093,12 @@ export class DkmLogic extends React.Component {
       rpmLabel:r.rpm?r.rpm+' obr/min':'silnik 1-biegowy',
       motVolt:this.motVoltOf(r,this.motorOf(r))||'napięcie potwierdzimy',
       phTag:'Motoreduktor '+this.phTag(r),
+      // na telefonie kolumna nazwy ma ~100 px — pełny podpis łamał się na pięć linii,
+      // więc kołnierz i napięcie zostają na karcie produktu
+      rowSub:this.state.wide
+        ?('Motoreduktor '+this.phTag(r)+' · '+num(r.p1)+' kW · '+(r.rpm?r.rpm+' obr/min':'silnik 1-biegowy')
+          +' · '+r.flange+' · '+(this.motVoltOf(r,this.motorOf(r))||'napięcie potwierdzimy'))
+        :(this.phTag(r)+' · '+num(r.p1)+' kW · '+(r.rpm?r.rpm+' obr/min':'1-biegowy')),
       fsBand:band,fsIcon:M.icon,fsStatus:M.label,fsShort:M.short,fsMsg:M.msg,
       fsIsLow:band==='low',fsIsMid:band==='mid',fsIsOk:band==='ok',fsIsNone:band==='none',
       noWty:band==='low',warn:band==='low',warnOnly:band==='mid',edge:band==='mid',
@@ -1091,8 +1112,13 @@ export class DkmLogic extends React.Component {
   stepValid(n){
     const c=this.state.c||{};
     if(n===1) return this.state.rfq.length>0;
-    if(n===2) return !!(String(c.first||'').trim()&&String(c.last||'').trim()
-      &&/@/.test(String(c.email||''))&&String(c.phone||'').replace(/\D/g,'').length>=9);
+    if(n===2){
+      const base=!!(String(c.first||'').trim()&&String(c.last||'').trim()
+        &&/@/.test(String(c.email||''))&&String(c.phone||'').replace(/\D/g,'').length>=9);
+      // adres wymagany tylko przy wysyłce — przy odbiorze osobistym służy do faktury
+      if(this.state.del==='odbior') return base;
+      return base&&!!(String(c.street||'').trim()&&String(c.zip||'').trim()&&String(c.city||'').trim());
+    }
     return true;
   }
   goStep(n){
@@ -1409,7 +1435,7 @@ export class DkmLogic extends React.Component {
       dims.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</table>'):'';
     let note='';
     if(d.noWty) note='<div class="note bad"><b>fs = '+d.fs+' · poniżej 1,0 — dostawa bez gwarancji.</b><br>DKM Power Transmission Sp. z o.o. realizuje takie zamówienie na życzenie klienta, ale nie obejmuje go gwarancją.</div>';
-    else if(d.warnOnly) note='<div class="note"><b>fs = '+d.fs+' · poniżej wymaganego '+fs1(this.fsReqNum())+'.</b><br>Zbyt mały zapas na rozruchy i przeciążenia.</div>';
+    else if(d.warnOnly) note='<div class="note"><b>fs = '+d.fs+' · poniżej wymaganego '+fs1(this.fsReqEff())+'.</b><br>Zbyt mały zapas na rozruchy i przeciążenia.</div>';
     else if(d.edge) note='<div class="note"><b>fs = '+d.fs+' · na granicy.</b><br>Gwarancja obowiązuje, ale nie ma zapasu na rozruchy i przeciążenia.</div>';
     const src=this.cardSrc(s.box);
     const drawing=src?('<h2>Karta techniczna</h2><div class="dw"><img src="'+new URL(src,location.href).href+'"></div>'):'';
@@ -1690,14 +1716,15 @@ export class DkmLogic extends React.Component {
         if(row) this.setState({sel:row,screen:'detail',fromRfq:true,flangePick:x.iecPick||null,borePick:(x.boreOpt&&x.boreD!=null)?x.boreD:null,inv:null,invPhase:null,mounts:[],acc:[],motPh:x.ph===1?1:3}); },
       remove:()=>this.setState(s=>({rfq:s.rfq.filter(y=>y.k!==x.k)}))}));
     const rfqNoWty=S.rfq.some(x=>x.noWty);
-    const crumb={askP1:'Krok 1 · Moc silnika',askI:'Krok 1 · Przełożenie',askN2:'Krok 1 · Prędkość obrotowa na wale',askBore:'Krok 1 · Średnica wału',askType:'Krok 1 · Typ przekładni',askM2:'Krok 1 · Wymagania maszyny',
+    const crumb={askP1:'Krok 1 z 3 · Moc silnika',askI:'Krok 1 z 3 · Przełożenie',askN2:'Krok 1 z 3 · Prędkość obrotowa na wale',askBore:'Krok 1 z 3 · Średnica wału',askType:'Krok 1 z 3 · Typ przekładni',askM2:'Wymagania maszyny',askSwap:'Wyszukiwarka zamienników',
+      v3refine:'Krok 2 z 3 · Zawężenie doboru',v3cond:'Krok 3 z 3 · Warunki pracy',
       results:'Proponowany dobór',detail:'Proponowany dobór · karta produktu',rfq:'Zamówienie',
       legal:'Informacje prawne · RODO · bezpieczeństwo',terms:'Regulamin'}[S.screen]||'';
 
     return {
       tileGrid:S.wide?'repeat(3,minmax(0,1fr))':'repeat(2,minmax(0,1fr))',
-      rowCols:S.wide?'minmax(150px,1fr) 78px 88px 112px':'minmax(0,1fr) 72px 84px 96px',
-      rowGap:S.wide?'8px':'10px',
+      rowCols:S.wide?'minmax(150px,1fr) 78px 88px 112px':'minmax(0,1fr) 62px 72px 90px',
+      rowGap:S.wide?'8px':'8px',
       priceUpdated:(window.DKM_PRICE||{}).updated||'',hasPriceDate:!!((window.DKM_PRICE||{}).updated),
       stockOnly:!!S.stockOnly,
       stockCount:String(this.matches('stock').filter(r=>this.inStock(r)).length),
@@ -1833,10 +1860,17 @@ export class DkmLogic extends React.Component {
       hasQNote:!!((this.searchHits(S.q)[0]||{}).note),
       qEmpty:String(S.q||'').trim().length>=2&&this.searchHits(S.q).length===0,
       cardGroups:(()=>{
-        const defs=[['i','Przełożenie i','',6],['n2','Prędkość obrotowa na wale wyjściowym n₂','obr/min',5],
+        const defs=[['p1','Moc silnika P₁ₙ','kW',4],['i','Przełożenie i','',6],
+          ['n2','Prędkość obrotowa na wale wyjściowym n₂','obr/min',5],
           ['box','Typ przekładni','',4],['bore','Średnica wału Ød','mm',5]];
         const pickd=S.refinePick||[];
-        return defs.filter(d=>pickd.indexOf(d[0])>=0).map(d=>{
+        // kryterium podane na ekranie startowym pomijamy — klient nie ma wybierać
+        // dwa razy tego samego. Zostaje, gdy sam zaznaczy je w tym kroku.
+        const entry=f=>S[this.fieldOf(f)]!=null&&pickd.indexOf(f)<0;
+        // n₂ = n₁ / i, więc przy ustalonej prędkości silnika jedno wynika z drugiego —
+        // pokazywanie obu jako osobnych kryteriów byłoby pozorną możliwością wyboru
+        const derived=f=>S.rpmSel!=null&&((f==='n2'&&entry('i'))||(f==='i'&&entry('n2')));
+        return defs.filter(d=>pickd.indexOf(d[0])>=0&&!entry(d[0])&&!derived(d[0])).map(d=>{
           const g=this.group(d[0],d[1],d[2],d[3]);
           const fmt=v=>g.f==='box'?String(v):(g.f==='bore'?('⌀ '+num(v)):num(v));
           return {...g,headline:g.label+(g.unit?(' '+g.unit):''),
@@ -1847,8 +1881,16 @@ export class DkmLogic extends React.Component {
             clear:()=>this.setField(g.f,null)};});})(),
       // bramka: null = jeszcze nie pytano, false = klient nie zna parametrów, true = zna
       refineAsk:S.refineAsk===true,
-      refineTiles:[['i','Przełożenie','i'],['n2','Prędkość obrotowa','n₂'],
-        ['box','Typ przekładni','DKM'],['bore','Średnica wału','Ød']].map(([f,label,sym])=>{
+      refineTiles:[['p1','Moc silnika','P₁'],['i','Przełożenie','i'],['n2','Prędkość obrotowa','n₂'],
+        ['box','Typ przekładni','DKM'],['bore','Średnica wału','Ød']]
+        // to samo co wyżej: bez kryterium podanego przed tym krokiem i bez tego,
+        // które z niego wynika (i ↔ n₂ przy ustalonej prędkości silnika)
+        .filter(([f])=>{const pickd=S.refinePick||[];
+          const entry=g=>S[this.fieldOf(g)]!=null&&pickd.indexOf(g)<0;
+          if(entry(f)) return false;
+          if(S.rpmSel!=null&&((f==='n2'&&entry('i'))||(f==='i'&&entry('n2')))) return false;
+          return true;})
+        .map(([f,label,sym])=>{
         const on=(S.refinePick||[]).indexOf(f)>=0;
         return {label,sym,on,
           tile:'url("'+this.A('tile-'+(f==='box'?'type':f)+'.png')+'")',
@@ -1865,8 +1907,27 @@ export class DkmLogic extends React.Component {
             return p;
           })};}),
       hasRefinePick:(S.refinePick||[]).length>0,
+      // co klient podał przed tym krokiem — pokazujemy zamiast pustego miejsca
+      entryChips:(()=>{const pickd=S.refinePick||[];
+        const out=[['p1','Moc silnika','kW'],['i','Przełożenie i',''],
+          ['n2','Prędkość n₂','obr/min'],['box','Typ przekładni',''],['bore','Średnica wału','mm']]
+          .filter(([f])=>S[this.fieldOf(f)]!=null&&pickd.indexOf(f)<0)
+          .map(([f,label,unit])=>{const v=S[this.fieldOf(f)];
+            return {label,value:(f==='box'?String(v):(f==='bore'?('⌀ '+num(v)):num(v)))+(unit?(' '+unit):''),note:''};});
+        // prędkość wynikająca z przełożenia — pokazujemy jako wynik, nie jako wybór
+        if(S.rpmSel!=null&&S.i!=null&&pickd.indexOf('i')<0&&pickd.indexOf('n2')<0&&S.n2Exact==null){
+          const vals=[...new Set(rowsRaw.map(r=>r.n2))];
+          if(vals.length===1) out.push({label:'Prędkość n₂',value:num(vals[0])+' obr/min',note:'wynik'});
+        }
+        return out;})(),
+      hasEntryChips:(()=>{const pickd=S.refinePick||[];
+        return ['p1','i','n2','box','bore'].some(f=>S[this.fieldOf(f)]!=null&&pickd.indexOf(f)<0);})(),
+      // „Pomiń” rezygnuje z zawężania w TYM kroku, ale nie unieżywa kryterium
+      // podanego na ekranie startowym — tego klient już nie widzi i nie mógłby go przywrócić
       pickAnswerNo:()=>{this.track('refine_step',{choice:'skip'});
-        this.setState({refineAsk:false,refinePick:[],i:null,n2Exact:null,box:null,boreSel:null,sel:null});},
+        this.setState(s=>{const p={refineAsk:false,refinePick:[],sel:null};
+          (s.refinePick||[]).forEach(f=>{p[this.fieldOf(f)]=null;});
+          return p;});},
       pickAnswerYes:()=>{this.track('refine_step',{choice:'narrow'});
         this.setState({refineAsk:true});},
       answerNoBg:S.refineAsk===false?V('accent'):'#fff',
@@ -1902,8 +1963,19 @@ export class DkmLogic extends React.Component {
       // (pełna szerokość powłoki) — inaczej przejścia między krokami skaczą w bok
       stepW:'none',specCols:S.wide?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)',
       resCols:S.wide?'392px minmax(0,1fr)':'minmax(0,1fr)',
-      tileCols:S.wide?'repeat(6,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',
-      powerCols:S.wide?'repeat(3,minmax(0,1fr))':'minmax(0,1fr)',
+      // dwie kolumny tylko tam, gdzie kafelek ma kilka linii opisu (średnice, zamiennik);
+      // czysto liczbowe siatki (przełożenie, n₂) zostają przy trzech — przy dwóch lista
+      // n₂ rośnie z 9 do 14 rzędów, a kafelek 169 px na dwuznakową liczbę to strata miejsca
+      tileCols:S.wide?'repeat(6,minmax(0,1fr))':'repeat(2,minmax(0,1fr))',
+      numTileCols:S.wide?'repeat(6,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',
+      powerCols:S.wide?'repeat(3,minmax(0,1fr))':'repeat(2,minmax(0,1fr))',
+      // na telefonie kafelek mocy ma ~169 px — liczba i opis jeden pod drugim,
+      // obok siebie zderzały się i łamały „kW” do osobnej linii
+      powDir:S.wide?'row':'column',
+      powAlign:S.wide?'baseline':'flex-start',
+      powGap:S.wide?'14px':'5px',
+      powSubAlign:S.wide?'right':'left',
+      tempCols:S.wide?'repeat(5,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',
       leftBorder:S.wide?'1px solid var(--color-divider)':'0',
       cardImg:S.sel?this.cardSrc(S.sel.box):null,hasCard:!!(S.sel&&this.cardSrc(S.sel.box)),
       cardBg:S.sel&&this.cardSrc(S.sel.box)?('url("'+this.cardSrc(S.sel.box)+'")'):'none',
@@ -2070,13 +2142,21 @@ export class DkmLogic extends React.Component {
       nextLabel:step<3?'Dalej →':'↓ Potwierdź',
       nextHint:step===3?'do zapłaty':'razem brutto',
       nextBg:nLow?V('warn'):V('accent'),
-      stepErrMsg:S.stepErr===2?'Uzupełnij imię, nazwisko, e-mail i telefon.':'',
+      stepErrMsg:S.stepErr===2?(S.del==='odbior'
+        ?'Uzupełnij imię, nazwisko, e-mail i telefon.'
+        :'Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy.'):'',
       hasStepErr:!!S.stepErr,
       rfqLines:rfqRows.length+' '+plural(rfqRows.length,'pozycja','pozycje','pozycji')+' · '+S.rfq.reduce((a,x)=>a+x.qty,0)+' szt.',rfqCount:String(S.rfq.reduce((a,x)=>a+x.qty,0)),
       // wartość towaru netto w pasku koszyka — gdy choć jedna pozycja jest bez ceny,
       // pokazujemy „do wyceny” zamiast sumy zaniżonej o brakujące składniki
       rfqBarSum:this.cartMissing()?'do wyceny':zl(this.cartGoods()),
       cFirst:S.c.first||'',cLast:S.c.last||'',cNip:S.c.nip||'',
+      cStreet:S.c.street||'',cZip:S.c.zip||'',cCity:S.c.city||'',
+      setStreet:e=>this.setC('street',e.target.value),setZip:e=>this.setC('zip',e.target.value),
+      setCity:e=>this.setC('city',e.target.value),
+      // adres tylko przy wysyłce — fakturę wystawiamy w KSeF na NIP, więc przy odbiorze
+      // osobistym żaden adres nie jest potrzebny
+      showAddr:S.del!=='odbior',
       cName:S.c.name,cFirm:S.c.firm,cEmail:S.c.email,cPhone:S.c.phone,cNote:S.c.note,
       setFirst:e=>this.setC('first',e.target.value),setLast:e=>this.setC('last',e.target.value),
       setNip:e=>this.setC('nip',e.target.value),
@@ -2276,6 +2356,14 @@ export class DkmLogic extends React.Component {
       footCols:S.wide?'repeat(2,minmax(0,1fr))':'minmax(0,1fr) minmax(0,1fr)',
       rfqBarLabel:S.rfq.length?'Twój koszyk — zamów lub zapytaj':'Koszyk pusty — dodaj przekładnię',
       // baner zgody na analitykę — widoczny tylko dopóki decyzji nie ma
+      gdprRows:(()=>{const pre=S.wide?'':'Podstawa prawna: ';
+        return [
+          ['Przyjęcie, weryfikacja i realizacja zamówienia albo przygotowanie oferty','art. 6 ust. 1 lit. b RODO — działania przed zawarciem umowy i wykonanie umowy'],
+          ['Kontakt dotyczący złożonego zamówienia lub zapytania','art. 6 ust. 1 lit. b RODO'],
+          ['Wystawienie dokumentów księgowych i wypełnienie obowiązków podatkowych','art. 6 ust. 1 lit. c RODO'],
+          ['Dochodzenie lub obrona przed roszczeniami','art. 6 ust. 1 lit. f RODO — prawnie uzasadniony interes Administratora'],
+          ['Analiza sposobu korzystania z aplikacji i jej ulepszanie przy użyciu Google Analytics 4','art. 6 ust. 1 lit. a RODO — zgoda użytkownika na analityczne pliki cookies']
+        ].map(([cel,b])=>({cel,basis:pre+b}));})(),
       anaAsk:S.anaConsent==null,
       anaYes:()=>this.anaSet('yes'),
       anaNo:()=>this.anaSet('no'),

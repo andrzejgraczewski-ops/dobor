@@ -6,8 +6,8 @@ import { S, hv } from '../lib/style.js';
 export default function SwapScreen({ v }) {
   return (
     <div style={S(`width:100%;max-width:${v.stepW};margin:0 auto;padding:22px 20px 28px`)}>
-      <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Krok 1 · Zamiennik</div>
-      <h2 style={S("margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif")}>Szukam zamiennika</h2>
+      <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700)")}>Wyszukiwarka zamienników</div>
+      <h2 style={S("margin:5px 0 4px;font:600 30px/1.05 'Barlow Condensed',sans-serif")}>Masz już przekładnię innej marki?</h2>
       <p style={S('margin:0 0 16px;font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-700);text-wrap:pretty')}>Wpisz oznaczenie przekładni, którą wymieniasz. Rozpoznaję serie NMRV, CMI, PMRV, SMI, VMR i WMI — wystarczą dwie pierwsze litery marki.</p>
       <input value={v.q} onChange={v.setQ} placeholder="np. NMRV063, PMRV 40, wmi6" style={S("width:100%;min-height:56px;padding:13px 15px;background:#fff;border:1px solid var(--color-divider);color:var(--color-text);font:600 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em")} />
       {v.hasQNote ? (
