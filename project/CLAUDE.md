@@ -5,7 +5,7 @@
 zwykły React (Vite), bez runtime'u Claude Design. `project/` zostaje jako źródło
 projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets/`,
 `_ds/` i teksty prawne (`_sec*.txt`, `_pay.txt`, `_del.txt`).
-- Trzy wyjścia z jednego kodu: `npm run build` → `dist/` (podstrona dkm.pl + PWA
+- Trzy wyjścia z jednego kodu: `npm run build` → `dist/` (podstrona dkmpower.pl + PWA
   z service workerem), `npm run build:offline` → jeden plik `DKM Dobor przekladni v3.html`
   (~10 MB, działa bez sieci, do wysłania handlowcom).
 - Zgodność z prototypem sprawdzana maszynowo: `npm run compare` renderuje oba warianty
@@ -32,7 +32,7 @@ projektowe i punkt odniesienia: `DKM Dobór - telefon v3.dc.html`, dane, `assets
   **Prototyp `.dc.html` ma nadal stare, nieprawdziwe teksty** — porównanie pikselowe
   oznacza ekrany `rodo` i `regulamin` jako celowo różne, reszta dalej 0%.
 - Ochrona przed kopiowaniem: nota własnościowa w każdym zbudowanym pliku, opcjonalna
-  blokada domen (`npm run build:dkm` → działa tylko na dkm.pl i poddomenach; nie dotyczy
+  blokada domen (`npm run build:dkm` → działa tylko na dkmpower.pl i poddomenach; nie dotyczy
   pliku offline) i znak wodny egzemplarza pliku offline
   (`node scripts/build-offline.mjs --dla "Nazwisko"`). Szczegóły i uczciwe granice tych
   zabezpieczeń — w `app/README.md`.

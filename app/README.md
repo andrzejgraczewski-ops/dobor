@@ -3,7 +3,7 @@
 Aplikacja doboru przekładni ślimakowych DKM Power Transmission Sp. z o.o. —
 jedno źródło kodu, trzy sposoby wystawienia:
 
-1. **Podstrona na dkm.pl** — zawartość `dist/` wrzucona do katalogu (np. `/dobor/`)
+1. **Podstrona na dkmpower.pl** — zawartość `dist/` wrzucona do katalogu (np. `/dobor/`)
    albo osadzona w `<iframe>`. Wszystkie ścieżki są względne, więc katalog może
    nazywać się dowolnie; nie ma routingu po adresach, więc serwer nie potrzebuje
    żadnych przekierowań.
@@ -20,7 +20,7 @@ jedno źródło kodu, trzy sposoby wystawienia:
 npm install
 npm run dev            # serwer deweloperski
 npm run build          # dist/ (podstrona + PWA, generuje też sw.js)
-npm run build:dkm      # to samo, ale z blokadą domen dkm.pl — wersja na produkcję
+npm run build:dkm      # to samo, ale z blokadą domen dkmpower.pl — wersja na produkcję
 npm run build:offline  # dist/ + dist-offline/DKM Dobor przekladni v3.html
 npm run smoke          # testy dymne w Chromium na zbudowanym dist/
 npm run verify         # analityka GA4, wysyłka zamówień, nagłówki bezpieczeństwa
@@ -135,16 +135,16 @@ i publikuje ją pod `https://<konto>.github.io/dobor/`. Katalog `dist/` nie jest
 w repozytorium — powstaje przy każdym wdrożeniu, więc na Pages nie może trafić stary cennik.
 
 Wdrożenie idzie przez `npm run build:dkm`, czyli z blokadą domen. Lista dozwolonych
-adresów siedzi w `package.json` (`VITE_DKM_HOSTS`) i zawiera dziś `dkm.pl`, `www.dkm.pl`
+adresów siedzi w `package.json` (`VITE_DKM_HOSTS`) i zawiera dziś `dkmpower.pl`, `www.dkmpower.pl`
 oraz adres Pages. **Zmieniając konto lub nazwę repozytorium, popraw tę listę** — inaczej
 aplikacja pokaże komunikat „Kopia nieautoryzowana” na własnym adresie.
 
-Dwie różnice wobec wdrożenia na dkm.pl:
+Dwie różnice wobec wdrożenia na dkmpower.pl:
 
 - **GitHub Pages nie pozwala ustawiać nagłówków HTTP.** Polityka CSP jedzie więc
   w znaczniku `<meta>` w `index.html`. Działa tak samo, z jednym wyjątkiem: reguła
   `frame-ancestors` (zakaz osadzania w obcej ramce) działa wyłącznie w nagłówku, więc
-  na Pages jej nie ma. Na dkm.pl daje ją `deploy/nginx.conf`.
+  na Pages jej nie ma. Na dkmpower.pl daje ją `deploy/nginx.conf`.
 - **Service worker aktualizuje się z opóźnieniem** — GitHub Pages cache'uje pliki
   na kilka minut. Po wdrożeniu nowego cennika klient zobaczy go przy kolejnym wejściu,
   nie natychmiast.
@@ -168,7 +168,7 @@ o prawach autorskich nie mają tu żadnego znaczenia — nikt nie musi uruchamia
 
 Cztery wyjścia, od najbezpieczniejszego:
 
-1. **Wystawić na dkm.pl** (`deploy/nginx.conf`), a repozytorium zostawić prywatne.
+1. **Wystawić na dkmpower.pl** (`deploy/nginx.conf`), a repozytorium zostawić prywatne.
    Wtedy działają też nagłówki bezpieczeństwa i `frame-ancestors`.
 2. **Prywatne repozytorium + GitHub Pro** (kilka dolarów miesięcznie) — Pages działa
    wtedy z repozytorium prywatnego.
@@ -186,7 +186,7 @@ DKM. Włącz w panelu Formspree ochronę przed spamem, zanim podasz komukolwiek 
 
 `npm run verify` sprawdza całą logikę analityki i wysyłki, ale **nie wysyła nic na
 zewnątrz** — żądania do Google i Formspree są przechwytywane. Poniższe trzy rzeczy
-trzeba potwierdzić na żywo, już na dkm.pl:
+trzeba potwierdzić na żywo, już na dkmpower.pl:
 
 1. **Wysyłka zamówienia.** Złóż zamówienie testowe na własne dane. Powinno: pokazać
    zielony panel z numerem `DKM-RRRRMMDD-GGMMSS-XXX`, wrócić po 5 sekundach na ekran
@@ -217,7 +217,7 @@ od noty własnościowej z datą wydania. Nie zatrzyma nikogo technicznie, ale us
 „nie wiedziałem, że to cudze” — a w sporze to ma znaczenie.
 
 **Blokada domen** (`npm run build:dkm`). Wersja produkcyjna uruchomi się tylko pod
-`dkm.pl`, jej poddomenami i lokalnie; pod obcym adresem pokazuje komunikat
+`dkmpower.pl`, jej poddomenami i lokalnie; pod obcym adresem pokazuje komunikat
 „Kopia nieautoryzowana”. Nie dotyczy pliku offline ani pracy z dysku. Da się to obejść
 w kilka minut — ale obejście jest świadomym działaniem, a nie przypadkiem, i to również
 łatwiej wykazać przed sądem. Domeny zmienia się w `package.json` (`VITE_DKM_HOSTS`).

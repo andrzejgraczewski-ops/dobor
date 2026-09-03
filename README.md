@@ -1,6 +1,6 @@
 > **Stan na 02.09.2026 — projekt jest już zaimplementowany.**
 > Kod produkcyjny leży w [`app/`](app/README.md): prototyp v3 przeniesiony na React (Vite),
-> z trzema wyjściami — podstrona dkm.pl, PWA i jeden plik offline. Zgodność z prototypem
+> z trzema wyjściami — podstrona dkmpower.pl, PWA i jeden plik offline. Zgodność z prototypem
 > potwierdzona pikselowo (`npm run compare` → 0% różnicy na 11 ekranach w dwóch szerokościach; ekran regulaminu celowo różny o jedno dopisane zdanie).
 > `project/` zostaje jako źródło projektowe i punkt odniesienia dla porównania pikselowego.
 >

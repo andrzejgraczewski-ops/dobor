@@ -1,7 +1,7 @@
 # Przegląd bezpieczeństwa — 02.09.2026
 
 Zakres: kod aplikacji w `app/`, analityka GA4, wysyłka zamówień przez Formspree,
-wdrożenie na dkm.pl, ochrona przed skopiowaniem. Wszystko, co poniżej opisane jako
+wdrożenie na dkmpower.pl, ochrona przed skopiowaniem. Wszystko, co poniżej opisane jako
 sprawdzone, jest sprawdzane automatycznie — `npm run verify` (57 sprawdzeń)
 i `npm run smoke` (29 testów).
 
@@ -66,7 +66,7 @@ i razem z historią zmian (czyli także starymi cennikami; późniejsze usunięc
 nie cofa). Żadne zabezpieczenie w kodzie tego nie dotyczy, bo nikt nie musi uruchamiać
 aplikacji, żeby wziąć same dane.
 
-Możliwości: wystawić na dkm.pl i zostawić repozytorium prywatne (najlepsze — działają też
+Możliwości: wystawić na dkmpower.pl i zostawić repozytorium prywatne (najlepsze — działają też
 nagłówki bezpieczeństwa), prywatne repozytorium + GitHub Pro, rozdzielenie na prywatne
 źródła i publiczny wynik budowania, albo świadoma zgoda na jawność cennika. Szczegóły
 w `app/README.md` → „Zanim zrobisz repozytorium publiczne”.

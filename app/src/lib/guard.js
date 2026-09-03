@@ -6,7 +6,7 @@
 // gdyby sprawa trafiła do prawnika: usunięcie zabezpieczenia jest świadomym działaniem.
 //
 // Włącza się wyłącznie wtedy, gdy przy budowaniu podasz listę domen:
-//   VITE_DKM_HOSTS="dkm.pl,www.dkm.pl" npm run build
+//   VITE_DKM_HOSTS="dkmpower.pl,www.dkmpower.pl" npm run build
 // Bez tej zmiennej aplikacja działa wszędzie. Nigdy nie dotyczy pliku offline
 // (rozpoznajemy go po window.__resources) ani pracy lokalnej.
 
@@ -21,7 +21,7 @@ export function domainGuard() {
   if (!/^https?:$/.test(location.protocol)) return true;     // file://, podgląd z dysku
   const host = location.hostname.toLowerCase();
   if (LOCAL.includes(host) || allowed.includes(host)) return true;
-  // dopuszczamy też poddomeny dozwolonych domen (np. test.dkm.pl przy dkm.pl)
+  // dopuszczamy też poddomeny dozwolonych domen (np. test.dkmpower.pl przy dkmpower.pl)
   if (allowed.some((a) => host.endsWith('.' + a))) return true;
 
   const box = document.getElementById('app') || document.body;

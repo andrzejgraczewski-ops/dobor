@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// base './' — aplikacja ma działać zarówno pod adresem dkm.pl/dobor,
+// base './' — aplikacja ma działać zarówno pod adresem dkmpower.pl/dobor,
 // w <iframe> na podstronie, jak i z pliku otwartego lokalnie (file://).
 export default defineConfig({
   base: './',
