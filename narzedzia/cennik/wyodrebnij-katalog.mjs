@@ -16,12 +16,21 @@ const wczytaj = (sciezka) => {
 const P = wczytaj('app/src/data/price-data.js').DKM_PRICE;
 const KAT = wczytaj('app/src/data/catalog-data.js').DKM_CATALOG;
 
-// „56B5/B14" to jedna pozycja katalogowa pasująca do dwóch kołnierzy
+// „56B5/B14" to jedna pozycja katalogowa pasująca do dwóch kołnierzy, a
+// „80B5/B14/71B5/B14" — do czterech. Rozwijamy dokładnie tak samo jak
+// flangeList() w logic.js: ramka obowiązuje aż do następnej podanej wprost.
+// Rozjazd tych dwóch miejsc oznaczałby warianty widoczne w cenniku i niewidoczne
+// w aplikacji (albo odwrotnie), bez żadnego błędu.
 export const rozwinKolnierz = (f) => {
-  const czesci = f.split('/');
-  if (czesci.length === 1) return czesci;
-  const ramka = czesci[0].match(/^(\d+)(B\d+)$/)[1];
-  return czesci.map((c) => (/^\d/.test(c) ? c : ramka + c));
+  const out = [];
+  let ramka = null;
+  for (const seg of String(f).split('/')) {
+    const m = /^(\d+)?(B\d+)$/.exec(seg.trim());
+    if (!m) continue;
+    if (m[1]) ramka = m[1];
+    if (ramka) out.push(ramka + m[2]);
+  }
+  return out;
 };
 
 // silnik przypisany do wariantu — z raportu nie da się tego odtworzyć,
