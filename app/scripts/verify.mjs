@@ -152,6 +152,14 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   check('zgoda: consent update = granted',
     layer.some((a) => a[0] === 'consent' && a[1] === 'update' && a[2] && a[2].analytics_storage === 'granted'));
 
+  // odsłony ekranów — aplikacja jednostronicowa musi zgłaszać je sama
+  const widoki = () => layer.filter((a) => a[0] === 'event' && a[1] === 'page_view').map((a) => a[2] || {});
+  check('config nie wysyła odsłony sam (żeby nie liczyć jej dwa razy)',
+    layer.some((a) => a[0] === 'config' && a[2] && a[2].send_page_view === false));
+  check('odsłona ekranu startowego po zgodzie',
+    widoki().some((p) => p.page_title === 'Ekran startowy' && p.page_path === '/'),
+    JSON.stringify(widoki().map((p) => p.page_title)));
+
   // zdarzenia z realnej ścieżki klienta
   await page.getByRole('button', { name: /Moc silnika/ }).first().click();
   await page.locator('button').filter({ hasText: /^\s*0,55\s*kW/ }).first().click();
@@ -163,6 +171,11 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
   await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
   layer = await dl(page);
+  check('zdarzenie select_criterion z wybranym kryterium',
+    has('select_criterion', (p) => p.criterion === 'p1'));
+  check('odsłona ekranu kryterium wejściowego',
+    widoki().some((p) => p.page_title === 'Kryterium · Moc silnika'
+      && p.page_path === '/kryterium/moc-silnika'));
   check('zdarzenie refine_step · narrow', has('refine_step', (p) => p.choice === 'narrow'));
   check('zdarzenie refine_step · skip', has('refine_step', (p) => p.choice === 'skip'));
   check('zdarzenie add_to_cart z kodem korpusu', has('add_to_cart', (p) => /^DKM\d{3}$/.test(p.box || '')));

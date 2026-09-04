@@ -21,6 +21,45 @@ export class DkmLogic extends React.Component {
   GA_ID='G-79013G7BXL';
   ANA_KEY='dkm-analytics-consent';
   FORM_URL='https://formspree.io/f/mgaewanz';
+  // Aplikacja jest jednostronicowa — przejścia między ekranami nie są zwykłymi
+  // odsłonami, więc zgłaszamy je sami. Bez tego w GA4 widać jedno wejście na sesję
+  // i nie wiadomo, na którym kroku klient rezygnuje.
+  EKRANY={
+    home:['Ekran startowy','/'],
+    askP1:['Kryterium · Moc silnika','/kryterium/moc-silnika'],
+    askI:['Kryterium · Przełożenie','/kryterium/przelozenie'],
+    askN2:['Kryterium · Prędkość na wale','/kryterium/predkosc'],
+    askM2:['Kryterium · Moment na wale','/kryterium/moment'],
+    askBore:['Kryterium · Średnica wału','/kryterium/srednica-walu'],
+    askType:['Kryterium · Typ przekładni','/kryterium/typ'],
+    askSwap:['Wyszukiwarka zamienników','/zamiennik'],
+    v3refine:['Krok 2 · Zawężenie doboru','/zawezenie'],
+    v3cond:['Krok 3 · Warunki pracy','/warunki-pracy'],
+    results:['Wyniki doboru','/wyniki'],
+    detail:['Karta produktu','/karta-produktu'],
+    consent:['Potwierdzenie dostawy bez gwarancji','/bez-gwarancji'],
+    rfq:['Zamówienie','/zamowienie'],
+    legal:['Informacje prawne i RODO','/informacje-prawne'],
+    terms:['Regulamin','/regulamin']
+  };
+  // koszyk ma trzy etapy — bez nich nie widać, czy klient odpada na danych, czy na płatności
+  ETAPY={1:'krok 1 · napęd',2:'krok 2 · dane',3:'krok 3 · płatność'};
+  pageView(zgodaZnana){
+    const S=this.state;
+    if((zgodaZnana||S.anaConsent)!=='yes') return;
+    const e=this.EKRANY[S.screen]; if(!e) return;
+    let [tytul,sciezka]=e;
+    if(S.screen==='rfq'){
+      const k=this.rfqStep();
+      tytul+=' · '+(this.ETAPY[k]||('krok '+k));
+      sciezka+='/krok-'+k;
+    }
+    try{
+      window.gtag&&window.gtag('event','page_view',{
+        page_title:tytul, page_path:sciezka,
+        page_location:(location.origin+location.pathname).replace(/\/$/,'')+sciezka});
+    }catch(err){}
+  }
   // GA4 ładuje się dopiero po zgodzie — nigdy wcześniej, żeby nie zbierać danych bez niej
   loadGA(){
     if(this._ga||typeof document==='undefined') return;
@@ -28,9 +67,12 @@ export class DkmLogic extends React.Component {
     window.dataLayer=window.dataLayer||[];
     window.gtag=function(){window.dataLayer.push(arguments);};
     window.gtag('js',new Date());
-    window.gtag('config',this.GA_ID,{anonymize_ip:true});
+    // send_page_view:false — pierwszą odsłonę zgłaszamy sami przez pageView(),
+    // inaczej ekran startowy liczyłby się dwa razy
+    window.gtag('config',this.GA_ID,{anonymize_ip:true,send_page_view:false});
     // Po cofnięciu i ponownym udzieleniu zgody skrypt jest już w dokumencie —
     // drugi znacznik oznaczałby podwójne liczenie wejść w GA4.
+    this.pageView('yes');
     const src='https://www.googletagmanager.com/gtag/js?id='+this.GA_ID;
     if(document.querySelector('script[src="'+src+'"]')) return;
     const s=document.createElement('script');
@@ -228,6 +270,11 @@ export class DkmLogic extends React.Component {
     if(this._pScreen!==this.state.screen){
       this._pScreen=this.state.screen;
       try{ window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0; }catch(e){}
+      this._pStep=this.rfqStep();
+      this.pageView();
+    } else if(this.state.screen==='rfq'&&this._pStep!==this.rfqStep()){
+      this._pStep=this.rfqStep();
+      this.pageView();
     }
   }
   askAdvisor=()=>{
@@ -1508,17 +1555,17 @@ export class DkmLogic extends React.Component {
     const S=this.state, fsReq=this.fsReqNum();
     const entries=[
       {sym:'P₁',ico:'p1',title:'Znam moc silnika',desc:'Wybieram moc znamionową, potem przełożenie i wariant korpusu.',
-        go:()=>this.reset({screen:'askP1',mode:'p1'})},
+        go:()=>{this.track('select_criterion',{criterion:'p1'}); this.reset({screen:'askP1',mode:'p1'});}},
       {sym:'i',ico:'i',title:'Znam przełożenie',desc:'Wybieram przełożenie i, moc silnika dobiorę w następnym kroku.',
-        go:()=>this.reset({screen:'askI',mode:'i'})},
+        go:()=>{this.track('select_criterion',{criterion:'i'}); this.reset({screen:'askI',mode:'i'});}},
       {sym:'n₂',ico:'n2',title:'Znam prędkość obrotową na wale wyjściowym',desc:'Wybieram prędkość obrotową wału wyjściowego z katalogu — przełożenie policzy się samo.',
-        go:()=>this.reset({screen:'askN2',mode:'n2'})},
+        go:()=>{this.track('select_criterion',{criterion:'n2'}); this.reset({screen:'askN2',mode:'n2'});}},
       {sym:'M₂',ico:'m2',title:'Znam moment obrotowy na wale wyjściowym',desc:'Podaję moment i prędkość obrotową maszyny — aplikacja policzy zapas i fs.',
-        go:()=>this.reset({screen:'askM2',mode:'m2',m2:'',n2:''})},
+        go:()=>{this.track('select_criterion',{criterion:'m2'}); this.reset({screen:'askM2',mode:'m2',m2:'',n2:''});}},
       {sym:'→DKM',ico:'swap',title:'Zamiennik',desc:'Masz już przekładnię innej marki (NMRV, CMI, PMRV, SMI, VMR, WMI)? Sprawdź, czy mamy jej odpowiednik.',
-        go:()=>this.reset({screen:'askSwap',mode:null,q:''})},
+        go:()=>{this.track('select_criterion',{criterion:'swap'}); this.reset({screen:'askSwap',mode:null,q:''});}},
       {sym:'Ød',ico:'bore',title:'Znam średnicę wału',desc:'Mam wałek o danej średnicy — wybieram tuleję drążoną, która na niego wchodzi.',
-        go:()=>this.reset({screen:'askBore',mode:'bore'})}
+        go:()=>{this.track('select_criterion',{criterion:'bore'}); this.reset({screen:'askBore',mode:'bore'});}}
     ];
     const POOL=S.rpmSel==null?CAT():CAT().filter(r=>r.rpm===S.rpmSel);
     const N2POOL=CAT();
