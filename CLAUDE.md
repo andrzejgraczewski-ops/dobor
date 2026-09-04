@@ -42,6 +42,21 @@ i listą cenową przekładni (raport nie zawiera cen pozycji, których nie ma
 na stanie). Plik powstał raz, skryptem `wyodrebnij-katalog.mjs`, z ówczesnego
 cennika; zmienia się tylko wtedy, gdy dochodzi nowy produkt.
 
+### Mocowanie silnika: B34 i B35
+
+`B34` to łapy plus kołnierz `B14`, `B35` to łapy plus kołnierz `B5`. Silnik pod
+takim kodem pasuje wszędzie tam, gdzie tabela doborowa chce `B14` albo `B5` —
+łapy są naddatkiem. Część silników leży w magazynie wyłącznie w tych wykonaniach,
+więc szukanie po samym `B14` je gubi.
+
+Przypisań silnika do wariantu **generator nie zgaduje**: pod tą samą mocą
+i kołnierzem bywa kilka wykonań o różnych cenach (np. zwykłe i `HPS`, 319 zł
+kontra 760 zł), a pomyłka oznaczałaby złą cenę u klienta. Zamiast tego, gdy
+w magazynie znajdzie się silnik DKM pasujący do wariantu bez mapowania,
+generator wypisuje go jako **DO SPRAWDZENIA** — wpis do `katalog.json` dopisuje
+człowiek. Zamienniki innych marek (GAMAK, OMEC, AEMOT) są celowo pomijane:
+konfigurator nie ma sam z siebie proponować silnika innego producenta.
+
 Lista wariantów pochodzi z **tabeli doborowej aplikacji** (`catalog-data.js`),
 a nie z magazynu. To celowe: czego aplikacja nie ma w cenniku, tego w ogóle
 nie pokaże w wynikach — więc każda pozycja, którą potrafi zaproponować,

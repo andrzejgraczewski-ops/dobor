@@ -69,6 +69,27 @@ def js(v):
     return repr(round(v, 4) if isinstance(v, float) else v)
 
 
+# B34 to łapy + kołnierz B14, B35 to łapy + kołnierz B5 — pasują tam, gdzie tabela
+# chce B14 albo B5; łapy są naddatkiem. Magazyn trzyma część silników pod tymi kodami.
+ROWNOWAZNE_MOCOWANIA = {'B34': 'B14', 'B35': 'B5', 'B14': 'B14', 'B5': 'B5'}
+BIEGUNY = {'2': 2800, '4': 1400, '6': 900}
+
+
+def silniki_z_raportu(poz):
+    """Indeks trójfazowych silników DKM z raportu: (kW|obroty|kołnierz) -> kody."""
+    idx = {}
+    for kod in poz:
+        if '1 FAZOWY' in kod or 'DKM' not in kod:
+            continue
+        m = re.match(r'^(\d+(?:,\d+)?) ([246]) (\d{2,3})(B\d+)\b', kod)
+        if not m or m.group(4) not in ROWNOWAZNE_MOCOWANIA:
+            continue
+        kw = float(m.group(1).replace(',', '.'))
+        klucz = f'{kw:g}|{BIEGUNY[m.group(2)]}|{m.group(3)}{ROWNOWAZNE_MOCOWANIA[m.group(4)]}'
+        idx.setdefault(klucz, []).append(kod)
+    return idx
+
+
 def kod_przekladni(box, iec, i):
     """Kody w magazynie: „DKM025 56B14 I20", przełożenie ułamkowe z przecinkiem."""
     prz = 'I' + (str(i).replace('.', ',') if '.' in str(i) else str(i))
@@ -111,6 +132,7 @@ def main():
         return None
 
     var, uzyte_sku, bez_silnika, bez_przekladni = {}, set(), [], []
+    nieprzypisane = set()
     for box, iec, i, kw, rpm, silnik_kat in warianty:
         p = z_raportu(kod_przekladni(box, iec, i))
         # raport odświeża cenę tam, gdzie zna kod; poza tym obowiązuje lista cenowa
@@ -126,6 +148,7 @@ def main():
         stan_s = 1 if s and s['ilosc'] else 0
         if not sku:
             bez_silnika.append(f'{box} {iec} i{i} · {kw}kW {rpm}obr (katalog: silnik {silnik_kat})')
+            nieprzypisane.add(f'{float(kw):g}|{rpm}|{iec}')
         else:
             uzyte_sku.add(sku)
 
@@ -169,6 +192,18 @@ def main():
         print(f'  wariantów bez przypisanego silnika (status „zapytaj o cenę"): {len(bez_silnika)}')
         for x in sorted(set(bez_silnika))[:12]:
             print('    ', x)
+
+    # nowy silnik w magazynie sam się nie przypisze — przypisania nie zgadujemy, bo pod
+    # tą samą mocą i kołnierzem bywa kilka wykonań (np. zwykłe i HPS) o różnych cenach.
+    # Zamiast tego wypisujemy kandydatów, żeby nie zniknęli po cichu.
+    idx = silniki_z_raportu(poz)
+    kandydaci = [(k, idx[k]) for k in sorted(nieprzypisane) if k in idx]
+    if kandydaci:
+        print(f'  DO SPRAWDZENIA — magazyn ma silnik DKM, którego nie ma w katalog.json: '
+              f'{len(kandydaci)}')
+        for klucz, kody in kandydaci:
+            kw, rpm, iec = klucz.split('|')
+            print(f'    {kw} kW · {rpm} obr · {iec} → ' + ', '.join(kody))
 
     if tylko_sprawdz:
         return
