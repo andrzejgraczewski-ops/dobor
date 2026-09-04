@@ -28,6 +28,29 @@ DNI_WSTECZ = 14
 imaplib._MAXLINE = 1_000_000  # niektóre serwery zwracają bardzo długie linie
 
 
+WYMAGANE = ('POCZTA_SERWER', 'POCZTA_LOGIN', 'POCZTA_HASLO')
+
+
+def sprawdz_ustawienia():
+    """Bez tego skrypt kończy się w zerowy czas i log nie mówi, czego zabrakło."""
+    stan = {n: bool(os.environ.get(n, '').strip()) for n in WYMAGANE}
+    print('Sekrety widziane przez ten przebieg:')
+    for nazwa, jest in stan.items():
+        print(f'    {nazwa}: ' + ('ustawiony' if jest else 'BRAK'))
+    if all(stan.values()):
+        return
+    sys.exit(
+        'Do skrzynki nie mam kompletu danych — przebieg przerwany przed połączeniem.\n'
+        'Sekret musi być dodany dokładnie tu: Settings → Secrets and variables →\n'
+        '  **Actions** → zakładka „Secrets" → „New repository secret".\n'
+        'Najczęstsze pomyłki:\n'
+        '  · dodanie w zakładce Dependabot albo Codespaces zamiast Actions —\n'
+        '    tamte sekrety nie trafiają do przebiegów Actions,\n'
+        '  · dodanie jako „Variable" zamiast „Secret",\n'
+        '  · polska litera w nazwie: ma być POCZTA_HASLO, nie POCZTA_HASŁO,\n'
+        '  · nazwa małymi literami albo ze spacją na końcu.')
+
+
 def zmienna(nazwa, domyslna=None):
     w = os.environ.get(nazwa, domyslna)
     if not w:
@@ -78,6 +101,7 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     cel = Path(sys.argv[1])
+    sprawdz_ustawienia()
     szukany = zmienna('POCZTA_TEMAT', 'STANY MAGAZYNOWE').upper()
     serwer, login = zmienna('POCZTA_SERWER'), zmienna('POCZTA_LOGIN')
 
