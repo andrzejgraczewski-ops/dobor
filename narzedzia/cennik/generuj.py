@@ -208,9 +208,11 @@ def main():
     if tylko_sprawdz:
         return
 
+    # bez znacznika czasu generowania: przy tych samych danych plik ma wychodzić
+    # bit w bit taki sam, inaczej automat commituje i publikuje codziennie, choć
+    # nic się nie zmieniło. Kiedy plik powstał, mówi historia repozytorium.
     L = [f"""/* DKM — ceny netto i dostępność.
    Wygenerowane automatycznie z raportu magazynowego: {dzien:%d.%m.%Y}
-   Wygenerowano: {datetime.now():%Y-%m-%d %H:%M}
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
