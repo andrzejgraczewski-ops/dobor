@@ -67,6 +67,20 @@ i tylko wtedy, gdy jest jednolita (co najmniej 80% wskazań). Gdyby producent ki
 zróżnicował ceny w obrębie korpusu, generator przestanie uzupełniać i wypisze UWAGĘ
 — lepiej zostawić „zapytaj o cenę" niż podać klientowi złą kwotę.
 
+### „Zapytaj o cenę" bywa poprawną odpowiedzią
+
+Około 460 wariantów nie ma przypisanego silnika — to 24 kombinacje mocy, obrotów
+i kołnierza, przy których DKM nie prowadzi silnika albo nie zna jeszcze jego ceny.
+**Właściciel świadomie zostawia je ze statusem „zapytaj o cenę".** Uzasadnienie:
+gdy klient zapyta, silnik można domówić u lokalnego dostawcy albo poczekać
+na dostawę — a wymyślona cena i obiecany termin byłyby gorsze niż prośba o kontakt.
+
+To nie jest usterka do naprawienia i nie należy tych pozycji wypełniać
+domysłami. Gdy cena się pojawi, wpis do `katalog.json` zajmuje dwie linijki.
+Automat sam podpowie, kiedy będzie na to moment: silnik już przypisany zapali
+się z pierwszym raportem, w którym dostanie cenę, a silnik bez przypisania
+wypadnie w logu przebiegu jako **DO SPRAWDZENIA**.
+
 ### Mocowanie silnika: B34 i B35
 
 `B34` to łapy plus kołnierz `B14`, `B35` to łapy plus kołnierz `B5`. Silnik pod
