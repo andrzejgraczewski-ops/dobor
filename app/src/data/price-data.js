@@ -1,6 +1,6 @@
 /* DKM — ceny netto i dostępność.
    Wygenerowane automatycznie z raportu magazynowego: 04.09.2026
-   Wygenerowano: 2026-09-04 18:37
+   Wygenerowano: 2026-09-04 18:56
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
