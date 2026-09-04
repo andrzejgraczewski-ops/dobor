@@ -42,6 +42,17 @@ i listą cenową przekładni (raport nie zawiera cen pozycji, których nie ma
 na stanie). Plik powstał raz, skryptem `wyodrebnij-katalog.mjs`, z ówczesnego
 cennika; zmienia się tylko wtedy, gdy dochodzi nowy produkt.
 
+### Domyślne przyłącze silnika
+
+DKM110, DKM130 i DKM150 mają jako standard kołnierz **B5**, mniejsze korpusy
+do 1,5 kW — **B14**. Aplikacja odstępuje od standardu tylko wtedy, gdy ten
+byłby gorzej dostępny: przy tej samej cenie proponuje wykonanie, które leży
+na półce, zamiast takiego, które trzeba domówić. Klient może przełączyć
+ręcznie w sekcji „Przyłącze silnika".
+
+Właściciel to potwierdził — **to nie jest usterka**. Jeśli kiedyś zobaczysz,
+że DKM110 proponuje B14, sprawdź najpierw stany: najpewniej właśnie dlatego.
+
 ### Cena przekładni bez wpisu w magazynie
 
 Raport podaje cenę tylko tego, co leży na półce, więc kod chwilowo niedostępny
