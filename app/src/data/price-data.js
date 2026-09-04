@@ -1,6 +1,6 @@
 /* DKM — ceny netto i dostępność.
    Wygenerowane automatycznie z raportu magazynowego: 04.09.2026
-   Wygenerowano: 2026-09-04 18:17
+   Wygenerowano: 2026-09-04 18:25
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
@@ -1499,22 +1499,6 @@ window.DKM_PRICE = {
   'DKM075|90B14|40|2.2|2800': [475,1,525,1,1000,1,0,'2,2 2 90B14 DKM'],
   'DKM075|90B5|50|2.2|2800': [null,0,525,1,null,0,2,'2,2 2 90B5 DKM YE3'],
   'DKM075|90B14|50|2.2|2800': [null,0,525,1,null,0,2,'2,2 2 90B14 DKM'],
-  'DKM075|100B5|7.5|2.2|2800': [475,0,null,0,null,0,2,''],
-  'DKM075|100B14|7.5|2.2|2800': [475,1,null,0,null,0,2,''],
-  'DKM075|100B5|10|2.2|2800': [475,1,null,0,null,0,2,''],
-  'DKM075|100B14|10|2.2|2800': [475,0,null,0,null,0,2,''],
-  'DKM075|100B5|15|2.2|2800': [475,0,null,0,null,0,2,''],
-  'DKM075|100B14|15|2.2|2800': [475,1,null,0,null,0,2,''],
-  'DKM075|100B5|20|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B14|20|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B5|25|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B14|25|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B5|30|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B14|30|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B5|40|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B14|40|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B5|50|2.2|2800': [null,0,null,0,null,0,2,''],
-  'DKM075|100B14|50|2.2|2800': [null,0,null,0,null,0,2,''],
   'DKM090|90B5|10|2.2|2800': [680,1,525,1,1205,1,0,'2,2 2 90B5 DKM YE3'],
   'DKM090|90B14|10|2.2|2800': [680,1,525,1,1205,1,0,'2,2 2 90B14 DKM'],
   'DKM090|90B5|15|2.2|2800': [680,1,525,1,1205,1,0,'2,2 2 90B5 DKM YE3'],
