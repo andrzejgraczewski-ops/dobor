@@ -2,19 +2,20 @@
 
 ## Stan na 4 września 2026
 
-Automat **jeszcze nie działa**. Cennik jest na razie podmieniany ręcznie:
-właściciel dostaje wygenerowany plik i wrzuca go do czatu z prośbą o podmianę.
-
-Docelowo ma to robić skrypt na VPS-ie — opis niżej. Kiedy automat ruszy,
-ten akapit trzeba poprawić.
+Cennik odświeża się sam — workflow `.github/workflows/cennik.yml`, w dni robocze.
+Do czasu jego uruchomienia właściciel podmieniał plik ręcznie; automat miał
+pierwotnie stać na VPS-ie (`/opt/dkm-stany`) i z tego zrezygnowano: wszystko,
+czego potrzebuje, jest już w GitHub Actions, a serwer byłby drugim miejscem
+do pilnowania.
 
 ## Plik z cennikiem jest generowany, nie pisany
 
 `app/src/data/price-data.js` powstaje automatycznie i **nie wolno go edytować
 ręcznie ani poprawiać pojedynczych pozycji** — najbliższy przebieg automatu
-i tak nadpisze plik w całości. Podmienia się go zawsze całym plikiem.
+i tak nadpisze plik w całości. Poprawki wprowadza się w źródle: albo w raporcie
+magazynowym, albo w `narzedzia/cennik/katalog.json`.
 
-## Skąd przychodzi (docelowo)
+## Skąd przychodzi
 
 ```
 Comarch ERP Optima
@@ -22,19 +23,29 @@ Comarch ERP Optima
      załącznik XLSX "7.02 Stan magazynów na dzień ilościowo DKM"
   └─ Optima potrafi wysyłać tylko na adres właściciela, więc filtr na jego
      skrzynce przekazuje wiadomość na raporty@d-k-m.eu
-  └─ skrypt na VPS (/opt/dkm-stany) odbiera go po IMAP, przelicza
-     i commituje price-data.js do tego repozytorium
-  └─ GitHub Actions przebudowuje i publikuje na dobor.dkmpower.pl
+  └─ narzedzia/cennik/pobierz.py odbiera ją po IMAP (dane logowania
+     w GitHub Secrets: POCZTA_SERWER, POCZTA_LOGIN, POCZTA_HASLO)
+  └─ narzedzia/cennik/generuj.py przelicza i zapisuje price-data.js
+  └─ ten sam workflow commituje, buduje i publikuje na dobor.dkmpower.pl
 ```
 
-Skrypty automatu (`pobierz_raport.py`, `generuj_price_data.py`, `katalog.json`,
-`uruchom.sh`) mają leżeć na VPS-ie, nie w tym repozytorium. Są już napisane
-i przetestowane, ale nie zostały jeszcze wgrane na serwer — dopóki tak jest,
-każdy nowy cennik przychodzi do czatu ręcznie.
+Publikacja siedzi w tym samym przebiegu celowo: commit zrobiony tokenem GitHuba
+nie uruchamia innych workflow, więc `pages.yml` by nie wystartował i strona
+zostałaby na starych danych bez żadnego błędu.
 
-Do czasu uruchomienia automatu obowiązuje jedna zasada: **plik zawsze
-przychodzi z zewnątrz gotowy.** Nie ma sensu generować go ani poprawiać
-w tym repozytorium.
+## Co skąd pochodzi
+
+Raport magazynowy daje **ceny netto i ilości**. Nie wie natomiast, który silnik
+pasuje do którego wariantu — to jest w `narzedzia/cennik/katalog.json`, razem
+z listą falowników, osprzętu, silników jednofazowych, masami do przesyłki
+i listą cenową przekładni (raport nie zawiera cen pozycji, których nie ma
+na stanie). Plik powstał raz, skryptem `wyodrebnij-katalog.mjs`, z ówczesnego
+cennika; zmienia się tylko wtedy, gdy dochodzi nowy produkt.
+
+Lista wariantów pochodzi z **tabeli doborowej aplikacji** (`catalog-data.js`),
+a nie z magazynu. To celowe: czego aplikacja nie ma w cenniku, tego w ogóle
+nie pokaże w wynikach — więc każda pozycja, którą potrafi zaproponować,
+musi mieć swój wiersz, choćby ze statusem „zapytaj o cenę".
 
 ## Format danych
 
@@ -59,10 +70,12 @@ window.DKM_PRICE = { updated, var, nam, opt, inv, m1f, wt }
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji
   (Vite kopiuje `public/` do `dist/`, workflow publikuje `app/dist`).
   Bez tego pliku domena przestaje działać.
-- **Jeśli zmieni się ścieżka albo nazwa pliku z cennikiem, trzeba o tym
-  powiedzieć właścicielowi** — na VPS-ie jest skrypt, który wpisuje dane
-  pod konkretną ścieżkę. Po cichej zmianie automat będzie codziennie
-  nadpisywał plik, którego nikt już nie czyta, a strona zamrozi się na
-  ostatnich danych bez żadnego błędu.
+- **Jeśli zmieni się ścieżka albo nazwa pliku z cennikiem, trzeba to poprawić
+  w `narzedzia/cennik/generuj.py` i powiedzieć właścicielowi.** Po cichej
+  zmianie automat będzie codziennie nadpisywał plik, którego nikt już nie
+  czyta, a strona zamrozi się na ostatnich danych bez żadnego błędu.
+- Harmonogram w publicznym repozytorium GitHub wyłącza po 60 dniach bez
+  aktywności i wysyła o tym maila do właściciela. Wtedy wystarczy włączyć
+  workflow z powrotem jednym kliknięciem.
 - Cennik jest danymi produkcyjnymi: ceny netto i dostępność, na podstawie
   których klienci wysyłają zapytania ofertowe.

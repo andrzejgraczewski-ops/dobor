@@ -1,0 +1,88 @@
+# Codzienne odświeżenie cennika z raportu magazynowego Comarch ERP Optima.
+#
+# Wszystko w jednym przebiegu — pobranie poczty, przeliczenie, commit, budowa
+# i publikacja. Osobny workflow publikujący nie zadziałałby: commit zrobiony
+# tokenem GitHuba celowo nie uruchamia innych workflow, więc strona zostałaby
+# na starych danych bez żadnego błędu.
+#
+# Wymagane sekrety (Settings → Secrets and variables → Actions):
+#   POCZTA_SERWER · POCZTA_LOGIN · POCZTA_HASLO
+name: Cennik z magazynu
+
+on:
+  schedule:
+    # 05:20 UTC = 07:20 latem / 06:20 zimą — raport z Optimy jest już na skrzynce
+    - cron: '20 5 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  cennik:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publikacja.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: pip install --quiet openpyxl
+
+      - name: Pobierz raport ze skrzynki
+        env:
+          POCZTA_SERWER: ${{ secrets.POCZTA_SERWER }}
+          POCZTA_LOGIN: ${{ secrets.POCZTA_LOGIN }}
+          POCZTA_HASLO: ${{ secrets.POCZTA_HASLO }}
+        run: python3 narzedzia/cennik/pobierz.py raport.xlsx
+
+      # generuj.py sam przerywa, gdy raport jest okrojony albo starszy niż cennik
+      - name: Przelicz cennik
+        run: python3 narzedzia/cennik/generuj.py raport.xlsx
+
+      - id: zmiana
+        run: |
+          rm -f raport.xlsx
+          if git diff --quiet -- app/src/data/price-data.js; then
+            echo "jest=nie" >> "$GITHUB_OUTPUT"
+            echo "Cennik bez zmian — nie publikuję."
+          else
+            echo "jest=tak" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Zapisz w repozytorium
+        if: steps.zmiana.outputs.jest == 'tak'
+        run: |
+          git config user.name  "Automat cennika DKM"
+          git config user.email "raporty@d-k-m.eu"
+          git add app/src/data/price-data.js
+          git commit -m "Cennik: $(sed -n "s/.*updated: 'stan na \(.*\)',/\1/p" app/src/data/price-data.js)"
+          for p in 1 2 3 4; do git push && break || sleep $((2**p)); done
+
+      - name: Zbuduj aplikację
+        if: steps.zmiana.outputs.jest == 'tak'
+        working-directory: app
+        run: |
+          npm ci
+          npm run build:dkm
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.zmiana.outputs.jest == 'tak'
+        with:
+          path: app/dist
+
+      - id: publikacja
+        if: steps.zmiana.outputs.jest == 'tak'
+        uses: actions/deploy-pages@v4
