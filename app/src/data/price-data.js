@@ -1,6 +1,6 @@
 /* DKM — ceny netto i dostępność.
    Wygenerowane automatycznie z raportu magazynowego: 04.09.2026
-   Wygenerowano: 2026-09-04 17:37
+   Wygenerowano: 2026-09-04 17:49
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
@@ -1864,6 +1864,7 @@ window.DKM_PRICE = {
   'SS|DKM075': [45,1],
   'SS|DKM090': [65,1],
   'SS|DKM110': [105,1],
+  'SS|DKM130': [135,1],
   'SS|DKM150': [170,1]
   },
   inv: [
