@@ -105,6 +105,23 @@ window.DKM_PRICE = { updated, var, nam, opt, inv, m1f, wt }
 - **updated** — `"stan na DD.MM.RRRR"`, data raportu magazynowego.
   Pokazywana klientowi, więc musi odpowiadać prawdzie.
 
+## Co widzi wyszukiwarka i komunikator
+
+`scripts/postbuild.mjs` dokłada przy każdej publikacji: `robots.txt`, `sitemap.xml`,
+adres kanoniczny, znaczniki Open Graph i dane strukturalne JSON-LD. Data w mapie
+strony to **data raportu magazynowego**, nie dzień budowania — mówi wyszukiwarce,
+kiedy naprawdę zmieniła się treść, a ta zmienia się codziennie razem z cennikiem.
+
+Obrazek pokazywany przy linku (`public/obrazek-linku.png`, 1200 × 630 px) składa
+`scripts/obrazek-linku.mjs` — renderuje stronę w przeglądarce i robi zrzut.
+Uruchamia się go ręcznie, tylko gdy zmienia się logo albo hasło.
+
+Aplikacja to **jeden adres**, bez osobnych URL-i dla wyników. To celowe: katalog
+produktowy dla wyszukiwarki jest w sklepie `dkmpower.pl`, a 1802 wygenerowane
+strony różniące się liczbami konkurowałyby z nim o te same zapytania i wyglądały
+jak zapychacz. Konfigurator ma wygrywać zapytania narzędziowe („dobór przekładni
+ślimakowej"), nie produktowe.
+
 ## Rzeczy, które łatwo zepsuć
 
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji

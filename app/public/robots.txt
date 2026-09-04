@@ -1,0 +1,5 @@
+# DKM · Dobór przekładni ślimakowych
+User-agent: *
+Allow: /
+
+Sitemap: https://dobor.dkmpower.pl/sitemap.xml

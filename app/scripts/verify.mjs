@@ -464,6 +464,49 @@ console.log('\n— Nagłówki bezpieczeństwa (polityka z deploy/nginx.conf) —
   cspServer.close();
 }
 
+// --- co widzi wyszukiwarka i komunikator ----------------------------------
+{
+  const html = await readFile(join(root, 'index.html'), 'utf8');
+  const ma = (co) => html.includes(co);
+  check('adres kanoniczny wskazuje domenę aplikacji',
+    ma('<link rel="canonical" href="https://dobor.dkmpower.pl/">'));
+  for (const t of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:width'])
+    check('podgląd linku: ' + t, ma('property="' + t + '"'));
+  check('podgląd linku: duży kafelek na Twitterze/X',
+    ma('name="twitter:card" content="summary_large_image"'));
+
+  const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  check('dane strukturalne są poprawnym JSON-em', !!ld && (() => {
+    try { return JSON.parse(ld[1])['@type'] === 'WebApplication'; } catch { return false; }
+  })());
+
+  const robots = await readFile(join(root, 'robots.txt'), 'utf8');
+  check('robots.txt wskazuje mapę strony', robots.includes('Sitemap: https://dobor.dkmpower.pl/sitemap.xml'));
+  const mapa = await readFile(join(root, 'sitemap.xml'), 'utf8');
+  const cennik = await readFile(resolve(root, '../src/data/price-data.js'), 'utf8');
+  const d = cennik.match(/updated:\s*'stan na (\d{2})\.(\d{2})\.(\d{4})'/);
+  check('mapa strony podaje datę treści z cennika',
+    !!d && mapa.includes('<lastmod>' + d[3] + '-' + d[2] + '-' + d[1] + '</lastmod>'));
+
+  // obrazek podglądu musi istnieć i mieć wymiary deklarowane w og:image
+  const png = await readFile(join(root, 'obrazek-linku.png'));
+  const szer = png.readUInt32BE(16), wys = png.readUInt32BE(20);
+  check('obrazek podglądu ma 1200 × 630 px', szer === 1200 && wys === 630, szer + '×' + wys);
+
+  // JSON-LD to blok danych, nie skrypt — CSP nie może go blokować
+  const ctx = await browser.newContext();
+  const bledy = [];
+  const pg = await ctx.newPage();
+  pg.on('console', (m) => { if (m.type() === 'error') bledy.push(m.text()); });
+  await pg.goto(base, { waitUntil: 'domcontentloaded' });
+  const wDom = await pg.locator('script[type="application/ld+json"]').count();
+  check('dane strukturalne trafiają do strony', wDom === 1, wDom + ' bloków');
+  check('CSP nie zgłasza naruszenia przy danych strukturalnych',
+    !bledy.some((b) => /Content Security Policy/i.test(b)),
+    bledy.filter((b) => /Content Security Policy/i.test(b)).join(' | ').slice(0, 160));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 

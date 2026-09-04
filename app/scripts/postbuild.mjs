@@ -7,6 +7,10 @@ import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dist = resolve(fileURLToPath(import.meta.url), '../../dist');
+const zrodla = resolve(fileURLToPath(import.meta.url), '../../src');
+// adres, pod którym aplikacja stoi naprawdę — stąd adres kanoniczny, mapa strony
+// i adresy obrazków w podglądzie linku; wersja offline i podstrona go nie dostają
+const ADRES = process.env.DKM_ADRES || 'https://dobor.dkmpower.pl/';
 
 async function walk(dir) {
   const out = [];
@@ -42,7 +46,10 @@ for (const dir of ['build']) {
 
 const files = (await walk(dist))
   .map((p) => './' + relative(dist, p).split('\\').join('/'))
-  .filter((p) => p !== './sw.js')
+  // sw.js sam siebie nie cache'uje; obrazek podglądu linku, robots i mapa strony
+  // są dla wyszukiwarek i komunikatorów, aplikacji offline do niczego nie służą
+  .filter((p) => !['./sw.js', './obrazek-linku.png', './robots.txt', './sitemap.xml',
+                   './CNAME'].includes(p))
   .sort();
 
 const hash = createHash('sha1');
@@ -135,4 +142,69 @@ self.addEventListener('fetch', (e) => {
 `;
 
 await writeFile(join(dist, 'sw.js'), sw);
+
+// --- co widzi wyszukiwarka i komunikator -----------------------------------
+// Data w mapie strony to data raportu magazynowego, a nie dzień budowania:
+// mówi wyszukiwarce, kiedy naprawdę zmieniła się treść, a ta zmienia się
+// codziennie razem z cennikiem.
+const cennik = await readFile(join(zrodla, 'data/price-data.js'), 'utf8');
+const dm = cennik.match(/updated:\s*'stan na (\d{2})\.(\d{2})\.(\d{4})'/);
+const dataTresci = dm ? `${dm[3]}-${dm[2]}-${dm[1]}` : stamp;
+
+await writeFile(join(dist, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${ADRES}</loc>
+    <lastmod>${dataTresci}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
+`);
+
+const TYTUL = 'DKM · Dobór przekładni ślimakowych';
+const OPIS = 'Dobierz przekładnię ślimakową, silnik i falownik na podstawie warunków '
+  + 'pracy maszyny — z cenami netto i dostępnością magazynową. Korpusy DKM025–DKM150, '
+  + 'moce 0,06–15 kW.';
+
+const dane = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: TYTUL,
+  url: ADRES,
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  inLanguage: 'pl-PL',
+  description: OPIS,
+  image: ADRES + 'obrazek-linku.png',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'PLN' },
+  publisher: {
+    '@type': 'Organization',
+    name: 'DKM Power Transmission Sp. z o.o.',
+    url: 'https://www.dkmpower.pl/',
+    email: 'sklep@d-k-m.eu',
+    telephone: '+48512082994',
+  },
+};
+
+const glowa = [
+  `<link rel="canonical" href="${ADRES}">`,
+  `<meta property="og:type" content="website">`,
+  `<meta property="og:site_name" content="DKM Power Transmission">`,
+  `<meta property="og:locale" content="pl_PL">`,
+  `<meta property="og:title" content="${TYTUL}">`,
+  `<meta property="og:description" content="${OPIS}">`,
+  `<meta property="og:url" content="${ADRES}">`,
+  `<meta property="og:image" content="${ADRES}obrazek-linku.png">`,
+  `<meta property="og:image:width" content="1200">`,
+  `<meta property="og:image:height" content="630">`,
+  `<meta property="og:image:alt" content="Dobór przekładni ślimakowych DKM">`,
+  `<meta name="twitter:card" content="summary_large_image">`,
+  `<script type="application/ld+json">${JSON.stringify(dane)}</script>`,
+].join('\n');
+
+const strona = await readFile(join(dist, 'index.html'), 'utf8');
+await writeFile(join(dist, 'index.html'), strona.replace('</head>', glowa + '\n</head>'));
+console.log('sitemap.xml — treść z ' + dataTresci + ' · index.html — kanoniczny, Open Graph, JSON-LD');
 console.log('sw.js — ' + shell.length + ' plików od razu, ' + rest.length + ' w tle, wersja ' + version);
