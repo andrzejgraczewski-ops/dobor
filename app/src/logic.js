@@ -54,10 +54,14 @@ export class DkmLogic extends React.Component {
       tytul+=' · '+(this.ETAPY[k]||('krok '+k));
       sciezka+='/krok-'+k;
     }
+    // Ścieżkę poprzedzamy katalogiem, w którym aplikacja stoi (/dobor na GitHub Pages,
+    // tak samo będzie na dkmpower.pl). Bez tego ekrany aplikacji mieszają się w raportach
+    // ze stronami sklepu, bo ta sama właściwość GA4 zbiera dane z obu źródeł.
+    const baza=(location.pathname||'/').replace(/\/index\.html$/,'').replace(/\/+$/,'');
+    const pelna=(baza+sciezka).replace(/^([^/])/,'/$1');
     try{
       window.gtag&&window.gtag('event','page_view',{
-        page_title:tytul, page_path:sciezka,
-        page_location:(location.origin+location.pathname).replace(/\/$/,'')+sciezka});
+        page_title:tytul, page_path:pelna, page_location:location.origin+pelna});
     }catch(err){}
   }
   // GA4 ładuje się dopiero po zgodzie — nigdy wcześniej, żeby nie zbierać danych bez niej

@@ -175,7 +175,11 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
     has('select_criterion', (p) => p.criterion === 'p1'));
   check('odsłona ekranu kryterium wejściowego',
     widoki().some((p) => p.page_title === 'Kryterium · Moc silnika'
-      && p.page_path === '/kryterium/moc-silnika'));
+      && p.page_path.endsWith('/kryterium/moc-silnika')));
+  check('ścieżka i adres odsłony są zgodne',
+    widoki().every((p) => typeof p.page_location === 'string'
+      && p.page_location.endsWith(p.page_path)),
+    JSON.stringify(widoki().map((p) => p.page_path)));
   check('zdarzenie refine_step · narrow', has('refine_step', (p) => p.choice === 'narrow'));
   check('zdarzenie refine_step · skip', has('refine_step', (p) => p.choice === 'skip'));
   check('zdarzenie add_to_cart z kodem korpusu', has('add_to_cart', (p) => /^DKM\d{3}$/.test(p.box || '')));
