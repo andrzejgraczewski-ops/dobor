@@ -28,7 +28,7 @@ export default function CardBScreen({ v }) {
           <div style={S("font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:8px")}>Czas pracy na dobę</div>
           <div style={S('display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px')}>
             {v.hourOpts.map((d, i) => (
-              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:56px;padding:10px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 21px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
+              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:56px;padding:10px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif`)}>{d.label}</button>
             ))}
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function CardBScreen({ v }) {
           <div style={S("font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:8px")}>Ile razy na godzinę napęd rusza</div>
           <div style={S('display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px')}>
             {v.zOpts.map((d, i) => (
-              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:56px;padding:10px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 21px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums`)}>{d.label}</button>
+              <button key={i} onClick={d.go} className={hv('border-color:var(--color-accent)')} style={S(`min-height:56px;padding:10px 4px;background:${d.bg};color:${d.fg};border:1px solid var(--color-divider);cursor:pointer;font:600 15px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums`)}>{d.label}</button>
             ))}
           </div>
         </div>
