@@ -11,8 +11,11 @@ name: Cennik z magazynu
 
 on:
   schedule:
-    # 05:20 UTC = 07:20 latem / 06:20 zimą — raport z Optimy jest już na skrzynce
-    - cron: '20 5 * * 1-5'
+    # Raport z Optimy przychodzi w dni powszechne o 1:15, więc o 5:00 czeka od dawna.
+    # GitHub liczy harmonogram w UTC i nie zna czasu letniego: 03:00 UTC to 5:00
+    # naszego czasu latem i 4:00 zimą. Obie godziny są długo po 1:15, więc zmiana
+    # czasu niczego nie psuje. Poniedziałek–piątek, bo w weekend raport nie przychodzi.
+    - cron: '0 3 * * 1-5'
   workflow_dispatch:
 
 permissions:
