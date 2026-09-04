@@ -76,6 +76,23 @@ Zmiany wobec prototypu ograniczone są do kilku rzeczy:
 > Jeśli wróciły, trzeba je nałożyć ponownie — albo wprowadzić obie zmiany w samym Design
 > i mieć spokój.
 
+## Własna domena (dobor.dkmpower.pl)
+
+Adres jest ustawiony w Settings → Pages, ale samo ustawienie bywa czyszczone przez
+kolejne wdrożenia z GitHub Actions. Dlatego `public/CNAME` trafia do `dist/` przy każdym
+budowaniu i przypina domenę na stałe. Zmiana adresu = zmiana zawartości tego pliku.
+
+DNS po stronie dkmpower.pl: rekord **CNAME** `dobor` → `andrzejgraczewski-ops.github.io`
+(dla poddomeny CNAME, nie rekordy A — te są dla domeny głównej).
+
+Certyfikat HTTPS wystawia GitHub sam, po rozejściu się DNS. Do tego czasu działa samo
+`http://`, a to znaczy, że **service worker się nie rejestruje** — aplikacja nie zainstaluje
+się jako PWA i nie zadziała offline. Przeglądarki dopuszczają service workery wyłącznie
+po HTTPS (poza `localhost`).
+
+Blokady domen ruszać nie trzeba: `guard.js` dopuszcza poddomeny dozwolonych domen,
+więc `dobor.dkmpower.pl` przechodzi na podstawie wpisu `dkmpower.pl`.
+
 ## Układ katalogów
 
 ```
