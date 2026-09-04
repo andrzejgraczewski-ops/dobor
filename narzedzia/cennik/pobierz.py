@@ -25,6 +25,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DNI_WSTECZ = 14
+# Po ilu dniach brak nowego raportu przestaje być normalny. Raport przychodzi
+# w dni powszechne, więc czterodniowe okno przechodzi przez weekend i jeden
+# dzień świąteczny. Bez tego progu zatrzymanie się raportu wyglądałoby przez
+# dwa tygodnie jak sukces: automat brałby ostatni stary plik, nie zmieniał nic
+# i kończył się na zielono, a strona stałaby na nieaktualnych cenach.
+MAX_WIEK_DNI = 4
 imaplib._MAXLINE = 1_000_000  # niektóre serwery zwracają bardzo długie linie
 
 
@@ -134,6 +140,9 @@ def main():
                 if szukany not in temat.upper() or not zalaczniki:
                     continue
                 data = email.utils.parsedate_to_datetime(wiad.get('Date'))
+                # nagłówek Date bywa bez strefy; bez tego porównanie dat wywala krok
+                if data.tzinfo is None:
+                    data = data.replace(tzinfo=timezone.utc)
                 if najlepsza is None or data > najlepsza[0]:
                     najlepsza = (data, zalaczniki[0], folder)
 
@@ -148,6 +157,14 @@ def main():
                 f'i ustaw sekret POCZTA_TEMAT na jego fragment (wielkość liter bez znaczenia).')
 
         data, czesc, folder = najlepsza
+        wiek = (datetime.now(timezone.utc) - data).days
+        if wiek > MAX_WIEK_DNI:
+            sys.exit(f'Najnowszy raport ma {wiek} dni ({data:%Y-%m-%d}), a powinien przychodzić '
+                     f'w każdy dzień powszechny.\nCennik zostaje bez zmian — ale coś się zacięło. '
+                     f'Sprawdź kolejno:\n'
+                     f'  1. czy Optima nadal wysyła raport,\n'
+                     f'  2. czy filtr przekazuje go na skrzynkę {os.environ.get("POCZTA_LOGIN", "")},\n'
+                     f'  3. czy temat wiadomości się nie zmienił.')
         nazwa = str(make_header(decode_header(czesc.get_filename())))
         cel.write_bytes(czesc.get_payload(decode=True))
         print(f'wiadomość z {data:%Y-%m-%d %H:%M} · folder {folder}')

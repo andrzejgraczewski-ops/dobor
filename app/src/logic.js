@@ -153,7 +153,11 @@ export class DkmLogic extends React.Component {
       ...(ctrl?{signal:ctrl.signal}:{})})
       .then(r=>{ clearTimeout(timer); if(!r.ok) throw new Error('HTTP '+r.status); return r.json().catch(()=>({})); })
       .then(()=>{
-        this.track(order?'submit_order':'submit_rfq',order?{payment:S.pay||'proforma'}:{});
+        // wartość i liczba pozycji — bez nich GA4 pokazuje same sztuki zgłoszeń
+        // i nie da się powiedzieć, ile aplikacja realnie przynosi
+        this.track(order?'submit_order':'submit_rfq',
+          {...(order?{payment:S.pay||'proforma'}:{}),
+           value:Math.round(this.cartNet()*100)/100,currency:'PLN',items:S.rfq.length});
         this.setState({sending:false,sentOk:true,sentRef:ref,ordered:order});
         // potwierdzenie pojawia się pod przyciskiem — na telefonie bywa poza ekranem
         setTimeout(()=>{ try{

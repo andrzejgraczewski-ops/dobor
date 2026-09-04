@@ -291,6 +291,20 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
 
   check('jedno żądanie wysyłki', posts.length === 1, posts.length + ' żądań');
+
+  // bez wartości i liczby pozycji GA4 pokazuje same sztuki zgłoszeń, a nie to,
+  // ile aplikacja realnie przynosi
+  const wyslano = await page.evaluate(() => (window.dataLayer || [])
+    .map((a) => Array.prototype.slice.call(a))
+    .filter((a) => a[0] === 'event' && /^submit_(order|rfq)$/.test(a[1])));
+  check('wysyłka zgłasza się do analityki', wyslano.length === 1,
+    JSON.stringify(wyslano).slice(0, 120));
+  const par = (wyslano[0] || [])[2] || {};
+  check('zdarzenie wysyłki niesie wartość zamówienia',
+    typeof par.value === 'number' && par.value > 0 && par.currency === 'PLN',
+    JSON.stringify(par));
+  check('zdarzenie wysyłki niesie liczbę pozycji', par.items >= 1, String(par.items));
+
   const p = posts[0] || { headers: {}, body: {} };
   check('adres: https://formspree.io/f/mgaewanz', p.url === 'https://formspree.io/f/mgaewanz', p.url);
   check('metoda POST', p.method === 'POST', p.method);
