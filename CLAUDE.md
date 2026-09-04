@@ -53,33 +53,20 @@ ręcznie w sekcji „Przyłącze silnika".
 Właściciel to potwierdził — **to nie jest usterka**. Jeśli kiedyś zobaczysz,
 że DKM110 proponuje B14, sprawdź najpierw stany: najpewniej właśnie dlatego.
 
-### Cena przekładni bez wpisu w magazynie
+### Ceny przekładni nie uzupełniamy ceną korpusu
 
-Raport podaje cenę tylko tego, co leży na półce, więc kod chwilowo niedostępny
-nie miałby ceny i wypadał z oferty jako „zapytaj o cenę". Cena przekładni jest
-jednak **stała w obrębie korpusu** (DKM025 = 125 zł, DKM110 = 1100 zł i tak dalej),
-więc generator uzupełnia brakujące pozycje ceną ich korpusu. Powstaje wtedy status
-„dostawa 1–3 dni" — właściciel potwierdził, że ten termin utrzyma dla każdej
-przekładni z katalogu.
+Cena przekładni jest w obrębie korpusu stała (DKM025 = 125 zł, DKM110 = 1100 zł),
+więc uzupełnianie nią kodów bez własnej ceny wygląda na oczywiste ulepszenie.
+**Zostało zrobione i cofnięte.** Powód: tabela doborowa producenta wymienia
+kombinacje kołnierza i przełożenia, których DKM nie ma w ofercie — właściciel
+wskazał `DKM063 71B14 i20`. Takie pozycje przechodziły z „zapytaj o cenę"
+na „dostawa 1–3 dni", czyli z prośby o kontakt na obietnicę terminu dla czegoś,
+czego nie da się zamówić. Dotyczyło to 93 kombinacji i 227 wariantów.
 
-Cena korpusu nie jest wpisana na sztywno: liczy się ją z pozycji, które cenę mają,
-i tylko wtedy, gdy jest jednolita (co najmniej 80% wskazań). Gdyby producent kiedyś
-zróżnicował ceny w obrębie korpusu, generator przestanie uzupełniać i wypisze UWAGĘ
-— lepiej zostawić „zapytaj o cenę" niż podać klientowi złą kwotę.
-
-### „Zapytaj o cenę" bywa poprawną odpowiedzią
-
-Około 460 wariantów nie ma przypisanego silnika — to 24 kombinacje mocy, obrotów
-i kołnierza, przy których DKM nie prowadzi silnika albo nie zna jeszcze jego ceny.
-**Właściciel świadomie zostawia je ze statusem „zapytaj o cenę".** Uzasadnienie:
-gdy klient zapyta, silnik można domówić u lokalnego dostawcy albo poczekać
-na dostawę — a wymyślona cena i obiecany termin byłyby gorsze niż prośba o kontakt.
-
-To nie jest usterka do naprawienia i nie należy tych pozycji wypełniać
-domysłami. Gdy cena się pojawi, wpis do `katalog.json` zajmuje dwie linijki.
-Automat sam podpowie, kiedy będzie na to moment: silnik już przypisany zapali
-się z pierwszym raportem, w którym dostanie cenę, a silnik bez przypisania
-wypadnie w logu przebiegu jako **DO SPRAWDZENIA**.
+Obowiązuje zasada: **cenę ma tylko to, co widzieliśmy jako realny produkt** —
+pozycja z raportu magazynowego albo wpis z listy cenowej w `katalog.json`.
+Reszta zostaje przy „zapytaj o cenę", bo obecność w tabeli doborowej nie
+dowodzi, że produkt istnieje.
 
 ### Mocowanie silnika: B34 i B35
 

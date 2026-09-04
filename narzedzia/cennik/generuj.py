@@ -90,21 +90,6 @@ def silniki_z_raportu(poz):
     return idx
 
 
-def ceny_korpusow(znane):
-    """Cena przekładni jest stała w obrębie korpusu, więc kod bez własnej ceny
-    dostaje cenę swojego korpusu — inaczej wypadałby z oferty jako „zapytaj o cenę",
-    choć cena jest znana. Wyliczamy ją z pozycji, które cenę mają, i tylko wtedy,
-    gdy jest naprawdę jednolita: przy rozjeździe (gdyby producent kiedyś zróżnicował
-    ceny w obrębie korpusu) wolimy nie uzupełnić niż podać złą kwotę."""
-    from collections import Counter
-    wynik = {}
-    for box, ceny in znane.items():
-        cena, ile = Counter(ceny).most_common(1)[0]
-        if ile / len(ceny) >= 0.8:
-            wynik[box] = cena
-    return wynik
-
-
 def kod_przekladni(box, iec, i):
     """Kody w magazynie: „DKM025 56B14 I20", przełożenie ułamkowe z przecinkiem."""
     prz = 'I' + (str(i).replace('.', ',') if '.' in str(i) else str(i))
@@ -147,7 +132,7 @@ def main():
         return None
 
     surowe, uzyte_sku, bez_silnika, bez_przekladni = [], set(), [], []
-    nieprzypisane, znane_ceny = set(), {}
+    nieprzypisane = set()
     for box, iec, i, kw, rpm, silnik_kat in warianty:
         p = z_raportu(kod_przekladni(box, iec, i))
         # raport odświeża cenę tam, gdzie zna kod; poza tym obowiązuje lista cenowa
@@ -167,18 +152,17 @@ def main():
         else:
             uzyte_sku.add(sku)
 
-        if cena_p is not None:
-            znane_ceny.setdefault(box, []).append(cena_p)
         surowe.append((box, f'{box}|{iec}|{i}|{kw}|{rpm}', cena_p, stan_p, cena_s, stan_s, sku))
 
-    # cena przekładni bez własnego wpisu = cena korpusu; termin dostawy 1–3 dni
-    # potwierdzony przez właściciela dla wszystkich przekładni z katalogu
-    korpusy = ceny_korpusow(znane_ceny)
-    uzupelnione, var = 0, {}
+    # Ceny przekładni NIE uzupełniamy ceną korpusu. Wyglądało to kusząco — cena jest
+    # w obrębie korpusu stała — ale tabela doborowa producenta wymienia kombinacje
+    # kołnierza i przełożenia, których DKM nie ma w ofercie (np. DKM063 71B14 i20).
+    # Uzupełnienie zamieniało im status z „zapytaj o cenę" na „dostawa 1–3 dni",
+    # czyli z prośby o kontakt na obietnicę terminu dla czegoś, czego nie da się
+    # zamówić. Cenę ma tylko to, co widzieliśmy jako realny produkt: pozycja
+    # z raportu magazynowego albo wpis z listy cenowej w katalog.json.
+    var = {}
     for box, klucz, cena_p, stan_p, cena_s, stan_s, sku in surowe:
-        if cena_p is None and box in korpusy:
-            cena_p = korpusy[box]
-            uzupelnione += 1
         brak = cena_p is None or cena_s is None
         cena_z = None if brak else round(cena_p + cena_s, 2)
         stan_z = 0 if brak else (1 if stan_p and stan_s else 0)
@@ -212,12 +196,6 @@ def main():
     na_stanie = sum(1 for w in var.values() if w[5])
     print(f'raport {dzien:%d.%m.%Y} · pozycji {len(poz)} · wariantów {len(var)} '
           f'· zestawów na stanie {na_stanie} · silników {len(nam)}')
-    if uzupelnione:
-        print(f'  cen przekładni uzupełnionych ceną korpusu: {uzupelnione}')
-    bez_korpusu = [b for b in znane_ceny if b not in korpusy]
-    if bez_korpusu:
-        print('  UWAGA — cena przekładni nie jest jednolita, nie uzupełniam: '
-              + ', '.join(sorted(bez_korpusu)))
     brak_ceny = sum(1 for w in var.values() if w[0] is None)
     if brak_ceny:
         print(f'  wariantów wciąż bez ceny przekładni: {brak_ceny}')
