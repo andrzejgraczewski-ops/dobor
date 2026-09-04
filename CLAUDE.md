@@ -123,6 +123,32 @@ strony różniące się liczbami konkurowałyby z nim o te same zapytania i wygl
 jak zapychacz. Konfigurator ma wygrywać zapytania narzędziowe („dobór przekładni
 ślimakowej"), nie produktowe.
 
+## Podział odpowiedzialności: Claude Design a kod
+
+Ustalone z właścicielem 4 września 2026.
+
+**Design odpowiada wyłącznie za wygląd.** Za resztę — logikę doboru, dane,
+automat cennika, analitykę, wysyłkę zamówień, tryb offline i publikację —
+odpowiada kod w tym repozytorium.
+
+Plik `project/DKM Dobór - telefon v3.dc.html` to **zrzut eksportu, wzorzec
+do porównań**, a nie źródło prawdy. Zawiera także logikę doboru (`pickVar`,
+`fsReqNum`, `flangeList`), bo prototyp z natury ją niesie — ale przy
+przenoszeniu nowego eksportu **bierze się z niego tylko szablon ekranów**.
+Logiki z eksportu nie wgrywa się hurtem; jeśli zmiana wyglądu wymaga zmiany
+w logice, przenosi się ją pojedynczo i świadomie.
+
+Powód jest konkretny: eksport nie wie o niczym, co powstało w kodzie po jego
+wygenerowaniu. Wgrany na ślepo skasowałby śledzenie ekranów w GA4, wartość
+zamówienia w zdarzeniu wysyłki i datę cennika nad wynikami — **a aplikacja
+działałaby dalej normalnie**, więc nikt by tego nie zauważył, dopóki nie
+przestałyby napływać dane.
+
+Sposób pracy przy eksporcie: porównać plik z wzorcem linijka po linijce
+i rozdzielić realne zmiany od szumu narzędzia (przy eksporcie z 3 września
+było to 17 zmian na 84 różnice), przenieść tylko te ze szablonu, a potem
+zaraportować właścicielowi, co doszło i co pominięto.
+
 ## Rzeczy, które łatwo zepsuć
 
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji
