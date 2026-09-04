@@ -87,10 +87,36 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// otwarcie aplikacji: najpierw pytamy serwer, z pamięci korzystamy dopiero,
+// gdy sieci nie ma albo za długo nie odpowiada. Cennik zmienia się codziennie,
+// więc zainstalowana aplikacja nie może pokazywać cen sprzed tygodnia tylko
+// dlatego, że nikt jej nie zamknął. Reszta plików ma nazwy ze skrótem treści
+// — nowa wersja to nowa nazwa — więc te bierzemy z pamięci od razu.
+const CZEKAM_NA_SIEC = 3000;
+
+function zPamieci(req) {
+  return caches.match(req, { ignoreSearch: true })
+    .then((hit) => hit || caches.match('./index.html'));
+}
+
+function swiezaStrona(req) {
+  const zapas = new Promise((ok) => setTimeout(() => ok(null), CZEKAM_NA_SIEC));
+  const siec = fetch(req).then((res) => {
+    if (res && res.ok && res.type === 'basic') {
+      const copy = res.clone();
+      caches.open(CACHE).then((c) => c.put('./index.html', copy));
+    }
+    return res;
+  }).catch(() => null);
+  return Promise.race([siec, zapas]).then((res) => res || siec.catch(() => null))
+    .then((res) => res || zPamieci(req));
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   // wysyłka formularza i cokolwiek spoza tego adresu idzie prosto do sieci
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  if (req.mode === 'navigate') { e.respondWith(swiezaStrona(req)); return; }
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
@@ -102,7 +128,7 @@ self.addEventListener('fetch', (e) => {
           }
           return res;
         })
-        .catch(() => (req.mode === 'navigate' ? caches.match('./index.html') : Promise.reject()));
+        .catch(() => Promise.reject());
     })
   );
 });

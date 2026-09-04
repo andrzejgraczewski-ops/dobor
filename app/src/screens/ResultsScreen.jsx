@@ -150,7 +150,7 @@ export default function ResultsScreen({ v }) {
           <span style={S('text-align:right')}>M₂<br />fs</span>
           <span style={S('text-align:right;color:var(--color-accent-700);text-transform:uppercase;letter-spacing:.12em;font-size:13px')}>Cena netto<br />dostępność</span>
         </div>
-        <div style={S("padding:8px 20px;background:var(--color-accent-100);border-bottom:1px solid var(--color-divider);font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700)")}>Wszystkie ceny w aplikacji są cenami netto — bez podatku VAT</div>
+        <div style={S("padding:8px 20px;background:var(--color-accent-100);border-bottom:1px solid var(--color-divider);font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700)")}>Wszystkie ceny w aplikacji są cenami netto — bez podatku VAT{v.hasPriceDate ? ` · ${v.priceUpdated}` : ''}</div>
         {v.rows.map((r, i) => (
           <Row key={i} v={v} r={r} note={r.fsShort} hover="background:var(--color-accent-100)" />
         ))}

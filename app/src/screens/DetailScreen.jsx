@@ -373,7 +373,7 @@ export default function DetailScreen({ v }) {
                 ) : null}
               </div>
             </div>
-            <div style={S("padding:8px 16px;border-top:1px solid var(--color-divider);background:var(--color-accent-100);font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700)")}>Ceny netto — bez podatku VAT</div>
+            <div style={S("padding:8px 16px;border-top:1px solid var(--color-divider);background:var(--color-accent-100);font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent-700)")}>Ceny netto — bez podatku VAT{v.hasPriceDate ? ` · ${v.priceUpdated}` : ''}</div>
             {v.hasSelExtras ? (
               <div style={S('padding:12px 16px;border-top:1px solid var(--color-divider)')}>
                 <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px")}>Wybrane wyposażenie — cena netto</div>
