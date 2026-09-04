@@ -203,7 +203,14 @@ DKM. Włącz w panelu Formspree ochronę przed spamem, zanim podasz komukolwiek 
 
 `npm run verify` sprawdza całą logikę analityki i wysyłki, ale **nie wysyła nic na
 zewnątrz** — żądania do Google i Formspree są przechwytywane. Poniższe trzy rzeczy
-trzeba potwierdzić na żywo, już na dkmpower.pl:
+trzeba potwierdzić na żywo. Stan na 4 września 2026:
+
+- **Wysyłka zamówienia — potwierdzona.** Zamówienie testowe złożone z `dobor.dkmpower.pl`
+  dotarło na `sklep@d-k-m.eu`. Ścieżka klient → Formspree → skrzynka DKM działa.
+- **Analityka — potwierdzona.** Odsłony ekranów widoczne w GA4 w *Czasie rzeczywistym*.
+
+Instrukcja poniżej zostaje na wypadek powtórzenia sprawdzenia po większej zmianie
+albo po przeniesieniu aplikacji pod inny adres.
 
 1. **Wysyłka zamówienia.** Złóż zamówienie testowe na własne dane. Powinno: pokazać
    zielony panel z numerem `DKM-RRRRMMDD-GGMMSS-XXX`, wrócić po 5 sekundach na ekran
