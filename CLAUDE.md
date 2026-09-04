@@ -42,6 +42,20 @@ i listą cenową przekładni (raport nie zawiera cen pozycji, których nie ma
 na stanie). Plik powstał raz, skryptem `wyodrebnij-katalog.mjs`, z ówczesnego
 cennika; zmienia się tylko wtedy, gdy dochodzi nowy produkt.
 
+### Cena przekładni bez wpisu w magazynie
+
+Raport podaje cenę tylko tego, co leży na półce, więc kod chwilowo niedostępny
+nie miałby ceny i wypadał z oferty jako „zapytaj o cenę". Cena przekładni jest
+jednak **stała w obrębie korpusu** (DKM025 = 125 zł, DKM110 = 1100 zł i tak dalej),
+więc generator uzupełnia brakujące pozycje ceną ich korpusu. Powstaje wtedy status
+„dostawa 1–3 dni" — właściciel potwierdził, że ten termin utrzyma dla każdej
+przekładni z katalogu.
+
+Cena korpusu nie jest wpisana na sztywno: liczy się ją z pozycji, które cenę mają,
+i tylko wtedy, gdy jest jednolita (co najmniej 80% wskazań). Gdyby producent kiedyś
+zróżnicował ceny w obrębie korpusu, generator przestanie uzupełniać i wypisze UWAGĘ
+— lepiej zostawić „zapytaj o cenę" niż podać klientowi złą kwotę.
+
 ### Mocowanie silnika: B34 i B35
 
 `B34` to łapy plus kołnierz `B14`, `B35` to łapy plus kołnierz `B5`. Silnik pod
