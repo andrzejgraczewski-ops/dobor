@@ -127,27 +127,38 @@ jak zapychacz. Konfigurator ma wygrywać zapytania narzędziowe („dobór przek
 
 Ustalone z właścicielem 4 września 2026.
 
-**Design odpowiada wyłącznie za wygląd.** Za resztę — logikę doboru, dane,
-automat cennika, analitykę, wysyłkę zamówień, tryb offline i publikację —
+**Design odpowiada za wygląd i za sposób doboru.** Za dane i integracje
 odpowiada kod w tym repozytorium.
 
-Plik `project/DKM Dobór - telefon v3.dc.html` to **zrzut eksportu, wzorzec
-do porównań**, a nie źródło prawdy. Zawiera także logikę doboru (`pickVar`,
-`fsReqNum`, `flangeList`), bo prototyp z natury ją niesie — ale przy
-przenoszeniu nowego eksportu **bierze się z niego tylko szablon ekranów**.
-Logiki z eksportu nie wgrywa się hurtem; jeśli zmiana wyglądu wymaga zmiany
-w logice, przenosi się ją pojedynczo i świadomie.
+`logic.js` jest przez to plikiem mieszanym i przy przenoszeniu eksportu
+trzeba go dzielić:
 
-Powód jest konkretny: eksport nie wie o niczym, co powstało w kodzie po jego
-wygenerowaniu. Wgrany na ślepo skasowałby śledzenie ekranów w GA4, wartość
+| Z eksportu bierzemy (Design) | Zostawiamy nietknięte (kod) |
+|---|---|
+| `matches()`, `varOf()`, `flangeList()` | `pageView()`, `EKRANY`, `loadGA()`, `track()` |
+| `pickVar()`, `prefFlange()` | `send()`, `mailBody()`, `refNo()` |
+| `fsReqNum()`, `fsBand()` | `hydrate()` i zapis w pamięci przeglądarki |
+| `invPick()`, `optOf()` | zgoda na analitykę (`anaConsent`) |
+| szablon wszystkich ekranów | dane w `app/src/data/` |
+
+Powód takiego podziału: eksport nie wie o niczym, co powstało w kodzie po jego
+wygenerowaniu. Wgrany hurtem skasowałby śledzenie ekranów w GA4, wartość
 zamówienia w zdarzeniu wysyłki i datę cennika nad wynikami — **a aplikacja
 działałaby dalej normalnie**, więc nikt by tego nie zauważył, dopóki nie
 przestałyby napływać dane.
 
-Sposób pracy przy eksporcie: porównać plik z wzorcem linijka po linijce
-i rozdzielić realne zmiany od szumu narzędzia (przy eksporcie z 3 września
-było to 17 zmian na 84 różnice), przenieść tylko te ze szablonu, a potem
-zaraportować właścicielowi, co doszło i co pominięto.
+Plik `project/DKM Dobór - telefon v3.dc.html` to zrzut eksportu i **wzorzec
+do porównań**, a nie źródło prawdy o wdrożonej wersji.
+
+Sposób pracy przy eksporcie: porównać z wzorcem linijka po linijce i oddzielić
+realne zmiany od szumu narzędzia (przy eksporcie z 3 września było to 17 zmian
+na 84 różnice), przenieść wygląd i dobór, zostawić integracje, uruchomić testy,
+a potem zaraportować właścicielowi, co doszło i co pominięto.
+
+**Siatka bezpieczeństwa to testy.** `verify.mjs` sprawdza między innymi odsłony
+ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę,
+wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
+z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
 ## Rzeczy, które łatwo zepsuć
 
