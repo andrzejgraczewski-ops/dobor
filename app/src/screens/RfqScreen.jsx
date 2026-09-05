@@ -234,7 +234,7 @@ function Step2({ v }) {
       <div style={S('padding:16px 20px 20px')}>
         <div style={S('margin-bottom:12px')}>
           <div style={S("font:600 21px/1.05 'Barlow Condensed',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--color-accent)")}>Dane do zamówienia</div>
-          <div style={S('margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>firmę i NIP podaj, jeśli chcesz fakturę</div>
+          <div style={S('margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>do faktury podaj oba pola — firmę i NIP</div>
         </div>
         <div style={S(`display:grid;grid-template-columns:${v.formCols};gap:11px`)}>
           {field('Imię', v.cFirst, v.setFirst, 'imię')}
