@@ -521,6 +521,99 @@ console.log('\n— Nagłówki bezpieczeństwa (polityka z deploy/nginx.conf) —
   await ctx.close();
 }
 
+console.log('\n— Wejście z linku (?start=…) —');
+
+// 10. sześć adresów dla bloga i sklepu; muszą otwierać właściwy ekran,
+//     czyścić pasek adresu i nie psuć niczego, gdy ktoś je przekręci
+{
+  // otwarcie adresu bez czekania na ekran startowy — bo linki go właśnie pomijają
+  async function wejdz(adres, { consent = null } = {}) {
+    const ctx = await browser.newContext({ viewport: { width: 520, height: 900 } });
+    await ctx.route(/googletagmanager\.com|google-analytics\.com/, (r) =>
+      r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    if (consent !== null) {
+      await page.addInitScript((c) => {
+        try { localStorage.setItem('dkm-analytics-consent', c); } catch (e) {}
+      }, consent);
+    }
+    await page.goto(base + adres, { waitUntil: 'networkidle' });
+    return { ctx, page, errors };
+  }
+
+  const LINKI = [
+    ['?start=p1', 'Moc silnika P', '/kryterium/moc-silnika'],
+    ['?start=i', 'Przełożenie i', '/kryterium/przelozenie'],
+    ['?start=n2', 'Prędkość obrotowa na wale', '/kryterium/predkosc'],
+    ['?start=m2', 'Wymagania maszyny', '/kryterium/moment'],
+    ['?start=bore', 'Średnica wału', '/kryterium/srednica-walu'],
+    ['?start=swap', 'Masz już przekładnię innej marki?', '/zamiennik'],
+  ];
+  for (const [adres, naglowek, sciezka] of LINKI) {
+    const { ctx, page, errors } = await wejdz(adres, { consent: 'yes' });
+    const widac = await page.locator('h2', { hasText: naglowek }).first()
+      .isVisible().catch(() => false);
+    check(adres + ' otwiera właściwy ekran', widac, naglowek);
+    check(adres + ' czyści pasek adresu', new URL(page.url()).search === '', page.url());
+    // klient wchodzi prosto na kryterium, więc GA4 ma zobaczyć jedną odsłonę — tę właściwą
+    const widoki = (await dl(page))
+      .filter((a) => a[0] === 'event' && a[1] === 'page_view').map((a) => a[2] || {});
+    check(adres + ' zgłasza jedną odsłonę, właściwego ekranu',
+      widoki.length === 1 && widoki[0].page_path === sciezka,
+      JSON.stringify(widoki.map((p) => p.page_path)));
+    check(adres + ' bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
+    await ctx.close();
+  }
+
+  // kod z linku w wyszukiwarce zamienników — po to powstał parametr q
+  {
+    const { ctx, page, errors } = await wejdz('?start=swap&q=NMRV063');
+    const pole = page.locator('input[placeholder^="np. NMRV063"]');
+    check('?start=swap&q=… wpisuje kod w pole wyszukiwarki',
+      (await pole.inputValue()) === 'NMRV063', await pole.inputValue());
+    const trafienia = await page.locator('button', { hasText: /DKM0\d\d/ }).count();
+    check('?start=swap&q=… pokazuje od razu odpowiedniki DKM', trafienia > 0, trafienia + ' trafień');
+    check('?start=swap&q=… czyści pasek adresu', new URL(page.url()).search === '', page.url());
+    check('?start=swap&q=… bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
+    await ctx.close();
+  }
+
+  // przekręcony link nie może niczego zepsuć — ma być zwykłym wejściem na stronę
+  {
+    const { ctx, page, errors } = await wejdz('?start=cokolwiek&q=NMRV063');
+    const dom = await page.locator('text=Znajdźmy napęd idealny').isVisible().catch(() => false);
+    check('nieznana wartość start= otwiera ekran startowy', dom);
+    check('nieznana wartość start= bez błędu w konsoli', errors.length === 0,
+      errors.join(' | ').slice(0, 160));
+    await ctx.close();
+  }
+
+  // treść z adresu trafia na ekran — musi być tekstem, nigdy kodem
+  {
+    const { ctx, page, errors } = await wejdz(
+      '?start=swap&q=' + encodeURIComponent('<img src=x onerror="window.__x=1">ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'));
+    const st = await page.evaluate(() => ({
+      x: window.__x, img: document.querySelectorAll('img[src="x"]').length,
+    }));
+    check('kod w parametrze q nie wykonuje się', st.x === undefined && st.img === 0,
+      JSON.stringify(st));
+    const val = await page.locator('input[placeholder^="np. NMRV063"]').inputValue();
+    check('parametr q przycięty do 40 znaków', val.length === 40, val.length + ' znaków');
+    check('długi/dziwny q bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
+    await ctx.close();
+  }
+
+  // adres kanoniczny nie może się rozjeżdżać — inaczej Google zobaczy sześć kopii strony
+  {
+    const html = await readFile(join(root, 'index.html'), 'utf8');
+    const kan = /<link rel="canonical" href="([^"]+)">/.exec(html);
+    check('adres kanoniczny wskazuje jeden adres, bez parametrów',
+      !!kan && kan[1] === 'https://dobor.dkmpower.pl/', kan ? kan[1] : 'brak');
+  }
+}
+
 await browser.close();
 server.close();
 

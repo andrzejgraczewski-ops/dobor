@@ -139,7 +139,8 @@ trzeba go dzielić:
 | `pickVar()`, `prefFlange()` | `send()`, `mailBody()`, `refNo()` |
 | `fsReqNum()`, `fsBand()` | `hydrate()` i zapis w pamięci przeglądarki |
 | `invPick()`, `optOf()` | zgoda na analitykę (`anaConsent`) |
-| szablon wszystkich ekranów | dane w `app/src/data/` |
+| szablon wszystkich ekranów | `START` i `zLinku()` — wejście z linku |
+| | dane w `app/src/data/` |
 
 Powód takiego podziału: eksport nie wie o niczym, co powstało w kodzie po jego
 wygenerowaniu. Wgrany hurtem skasowałby śledzenie ekranów w GA4, wartość
@@ -159,6 +160,44 @@ a potem zaraportować właścicielowi, co doszło i co pominięto.
 ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę,
 wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
+
+## Wejście z linku: `?start=…`
+
+Wdrożone 5 września 2026, na potrzeby bloga i kart produktów w `dkmpower.pl`.
+Link może otworzyć aplikację od razu na wybranym kryterium, z pominięciem
+ekranu startowego:
+
+| Adres | Otwiera |
+|---|---|
+| `?start=p1` | moc silnika |
+| `?start=i` | przełożenie |
+| `?start=n2` | prędkość na wale |
+| `?start=m2` | moment na wale (wymagania maszyny) |
+| `?start=bore` | średnica wału |
+| `?start=swap` | wyszukiwarka zamienników |
+| `?start=swap&q=NMRV063` | wyszukiwarka z wpisanym kodem i gotowymi trafieniami |
+
+Kod siedzi w `logic.js`: stała `START`, funkcja `zLinku()` i jedna linijka
+w `componentDidMount()`. To **strona kodu, nie Design** — eksport o tym nie wie.
+
+Trzy rozstrzygnięcia, które trzeba zachować przy przenoszeniu eksportu:
+
+- **Ekran ustawiamy w stanie początkowym**, przed pierwszym rysowaniem. Gdyby
+  ustawiać go po zamontowaniu, klient zobaczyłby mignięcie ekranu startowego,
+  a GA4 policzyłby dwie odsłony zamiast jednej.
+- **Adres jest jednorazowy** — po wejściu pasek wraca do `/`. Inaczej klient
+  zapisałby w zakładkach albo przesłał dalej adres pomijający ekran startowy.
+- **Nieznana wartość to zwykłe wejście na stronę** — ekran startowy, bez błędu.
+  Literówka w linku na blogu nie może wywrócić aplikacji.
+
+`q` jest przycinane do 40 znaków i trafia wyłącznie do pola tekstowego
+wyszukiwarki. Adres kanoniczny pozostaje jeden (`https://dobor.dkmpower.pl/`),
+więc te linki nie tworzą Google'owi sześciu kopii strony.
+
+`verify.mjs` sprawdza każdy z sześciu adresów osobno: właściwy ekran,
+wyczyszczony pasek adresu, jedna odsłona w GA4 pod właściwą ścieżką i brak
+błędu w konsoli — plus wpisanie kodu z linku, przycięcie `q`, to, że treść
+z adresu nie wykonuje się jako kod, i zachowanie przy przekręconej wartości.
 
 ## Do zrobienia i do ustalenia
 
@@ -199,8 +238,9 @@ do 13:00"), a nie twardą gwarancją.
   czcionki na ekranie warunków pracy oraz poprawioną podpowiedź przy firmie
   i NIP-ie. Po eksporcie: porównać z wzorcem, przenieść wygląd i dobór,
   zostawić integracje.
-- **Linkowanie sklep ↔ konfigurator** — najsilniejsza dźwignia dla ruchu,
-  wymaga zmiany w Magento. Właściciel prosił o gotowy fragment, gdy zdecyduje.
+- **Linkowanie sklep ↔ konfigurator** — strona konfiguratora gotowa
+  (adresy `?start=…` wyżej). Zostaje wstawienie linków w Magento:
+  na kartach produktów i w artykułach na blogu.
 - **Po stronie właściciela**: oznaczyć `submit_order` jako zdarzenie kluczowe
   w GA4, ochrona antyspamowa w Formspree, umowa powierzenia i wpis do rejestru
   czynności przetwarzania.

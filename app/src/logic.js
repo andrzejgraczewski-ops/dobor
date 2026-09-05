@@ -10,13 +10,47 @@
 import React from 'react';
 import { CAT, TERMS, LOADS, HOURS, ZVALS, TEMPS, r1, FSMINS, fsPass, num, fs1, zl, zl2, V, plural } from './lib/consts.js';
 
+// Wejście z linku — dla artykułów na blogu sklepu i linków z kart produktów.
+// „?start=p1" otwiera od razu wybrane kryterium, „?start=swap&q=NMRV063"
+// dokłada do wyszukiwarki zamienników wpisany kod.
+//
+// Trzy zasady, żeby to nie zaszkodziło:
+//  • nieznana wartość = zwykłe wejście na stronę (ekran startowy, bez błędu);
+//  • adres jest jednorazowy — po wejściu pasek adresu wraca do „/" (patrz
+//    componentDidMount), żeby nikt nie zapisał w zakładkach ani nie przesłał
+//    dalej linku pomijającego ekran startowy;
+//  • ekran ustawiamy jeszcze przed pierwszym rysowaniem, więc klient nie widzi
+//    mignięcia ekranu startowego, a GA4 liczy jedną odsłonę — tę właściwą.
+const START={
+  p1:  {screen:'askP1',  mode:'p1'},
+  i:   {screen:'askI',   mode:'i'},
+  n2:  {screen:'askN2',  mode:'n2'},
+  m2:  {screen:'askM2',  mode:'m2',m2:'',n2:''},
+  bore:{screen:'askBore',mode:'bore'},
+  swap:{screen:'askSwap',mode:null,q:''}
+};
+export const zLinku=(search)=>{
+  let par;
+  try{ par=new URLSearchParams(String(search||'')); }catch(e){ return null; }
+  const klucz=String(par.get('start')||'').trim().toLowerCase();
+  if(!Object.prototype.hasOwnProperty.call(START,klucz)) return null;
+  const cel=START[klucz];
+  // q bierzemy wyłącznie tam, gdzie jest pole tekstowe, i przycinamy —
+  // treść z adresu trafia na ekran, więc nie może być dowolnie długa
+  return cel.screen==='askSwap'
+    ? {...cel,q:String(par.get('q')||'').trim().slice(0,40)}
+    : {...cel};
+};
+const stanZLinku=()=>{ try{ return zLinku(window.location.search)||{}; }catch(e){ return {}; } };
+
 export class DkmLogic extends React.Component {
   static defaultProps = { fsMin: 1.0, rfqEmail: 'sklep@d-k-m.eu' };
   A(f){ const R=window.__resources||{}; return R['a_'+String(f).replace(/[^a-zA-Z0-9]/g,'_')]||('assets/'+f); }
   state={screen:'home',mode:null,p1:null,i:null,n2Exact:null,box:null,rpmSel:1400,m2:'',n2:'',load:1,hours:1,z:10,temp:0,fsMinSel:null,fsOnly:false,wide:false,
     refine:false,sel:null,rfq:[],just:false,prevScreen:'home',typeQ:'',hist:[],hideLow:true,
     c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:'',street:'',zip:'',city:''},del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null,borePick:null,
-    anaConsent:null,sending:false,sentOk:false,sentRef:'',sendErr:''};
+    anaConsent:null,sending:false,sentOk:false,sentRef:'',sendErr:'',
+    ...stanZLinku()};
 
   GA_ID='G-79013G7BXL';
   ANA_KEY='dkm-analytics-consent';
@@ -189,6 +223,8 @@ export class DkmLogic extends React.Component {
   }
 
   componentDidMount(){
+    // link jednorazowy: ekran jest już ustawiony w state, adres czyścimy
+    try{ if(zLinku(window.location.search)) history.replaceState(null,'',window.location.pathname); }catch(e){}
     this._pScreen=this.state.screen; this._pRfq=this.state.rfq;
     try{const r=localStorage.getItem('dkm-rfq-v2'); if(r) this.setState({rfq:this.hydrate(JSON.parse(r)||[])});}catch(e){}
     this._hydrated=true;
