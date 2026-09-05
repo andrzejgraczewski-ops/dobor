@@ -567,6 +567,35 @@ console.log('\n— Wejście z linku (?start=…) —');
     await ctx.close();
   }
 
+  // GA4 musi umieć odróżnić wejście z linku od przejścia z ekranu startowego
+  {
+    const { ctx, page } = await wejdz('?start=swap&q=NMRV063', { consent: 'yes' });
+    const layer = await dl(page);
+    const zdarz = layer.filter((a) => a[0] === 'event' && a[1] === 'link_entry').map((a) => a[2] || {});
+    check('wejście z linku zgłasza zdarzenie link_entry z kryterium',
+      zdarz.length === 1 && zdarz[0].criterion === 'swap', JSON.stringify(zdarz));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open({ consent: 'yes' });   // zwykłe wejście na stronę
+    const layer = await dl(page);
+    check('zwykłe wejście na stronę nie zgłasza link_entry',
+      !layer.some((a) => a[0] === 'event' && a[1] === 'link_entry'));
+    await ctx.close();
+  }
+
+  // czyszcząc adres nie wolno wyciąć utm_… — po nich GA4 poznaje źródło wejścia
+  {
+    const { ctx, page } = await wejdz(
+      '?utm_source=blog&utm_medium=link&start=p1&utm_campaign=nmrv&q=x', { consent: 'yes' });
+    const par = new URL(page.url()).searchParams;
+    check('parametry utm_… zostają w adresie po wyczyszczeniu start=',
+      par.get('utm_source') === 'blog' && par.get('utm_medium') === 'link'
+      && par.get('utm_campaign') === 'nmrv' && !par.has('start') && !par.has('q'),
+      new URL(page.url()).search);
+    await ctx.close();
+  }
+
   // kod z linku w wyszukiwarce zamienników — po to powstał parametr q
   {
     const { ctx, page, errors } = await wejdz('?start=swap&q=NMRV063');

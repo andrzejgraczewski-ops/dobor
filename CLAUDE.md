@@ -194,6 +194,16 @@ Trzy rozstrzygnięcia, które trzeba zachować przy przenoszeniu eksportu:
 wyszukiwarki. Adres kanoniczny pozostaje jeden (`https://dobor.dkmpower.pl/`),
 więc te linki nie tworzą Google'owi sześciu kopii strony.
 
+**Czyszcząc adres wycinamy wyłącznie `start` i `q`** (`adresBezStart()`).
+Parametry `utm_…` muszą zostać: GA4 odczytuje je z paska adresu dopiero przy
+uruchomieniu znacznika, czyli po udzieleniu zgody — a to bywa kilkanaście sekund
+po wejściu. Wycięcie ich razem z `start` kasowałoby informację o źródle ruchu.
+
+W odsłonach wejście z linku wygląda identycznie jak przejście z ekranu startowego,
+więc dochodzi osobne zdarzenie **`link_entry`** z parametrem `criterion`
+(`p1`, `i`, `n2`, `m2`, `bore`, `swap`). Klucz zapamiętujemy przy montowaniu
+(`this._zLinku`), bo zgoda może paść później, gdy w adresie nie ma już `start`.
+
 `verify.mjs` sprawdza każdy z sześciu adresów osobno: właściwy ekran,
 wyczyszczony pasek adresu, jedna odsłona w GA4 pod właściwą ścieżką i brak
 błędu w konsoli — plus wpisanie kodu z linku, przycięcie `q`, to, że treść

@@ -29,11 +29,17 @@ const START={
   bore:{screen:'askBore',mode:'bore'},
   swap:{screen:'askSwap',mode:null,q:''}
 };
-export const zLinku=(search)=>{
+export const kluczZLinku=(search)=>{
   let par;
   try{ par=new URLSearchParams(String(search||'')); }catch(e){ return null; }
   const klucz=String(par.get('start')||'').trim().toLowerCase();
-  if(!Object.prototype.hasOwnProperty.call(START,klucz)) return null;
+  return Object.prototype.hasOwnProperty.call(START,klucz)?klucz:null;
+};
+export const zLinku=(search)=>{
+  const klucz=kluczZLinku(search);
+  if(!klucz) return null;
+  let par;
+  try{ par=new URLSearchParams(String(search||'')); }catch(e){ return null; }
   const cel=START[klucz];
   // q bierzemy wyłącznie tam, gdzie jest pole tekstowe, i przycinamy —
   // treść z adresu trafia na ekran, więc nie może być dowolnie długa
@@ -42,6 +48,16 @@ export const zLinku=(search)=>{
     : {...cel};
 };
 const stanZLinku=()=>{ try{ return zLinku(window.location.search)||{}; }catch(e){ return {}; } };
+// Czyszcząc adres wycinamy wyłącznie to, co sami zużyliśmy. Reszta parametrów
+// musi zostać — po utm_source, utm_medium i utm_campaign GA4 rozpoznaje, skąd
+// klient przyszedł, a odczytuje je z paska adresu dopiero po udzieleniu zgody.
+export const adresBezStart=(pathname,search)=>{
+  let par;
+  try{ par=new URLSearchParams(String(search||'')); }catch(e){ return pathname; }
+  par.delete('start'); par.delete('q');
+  const reszta=par.toString();
+  return pathname+(reszta?'?'+reszta:'');
+};
 
 export class DkmLogic extends React.Component {
   static defaultProps = { fsMin: 1.0, rfqEmail: 'sklep@d-k-m.eu' };
@@ -111,6 +127,12 @@ export class DkmLogic extends React.Component {
     // Po cofnięciu i ponownym udzieleniu zgody skrypt jest już w dokumencie —
     // drugi znacznik oznaczałby podwójne liczenie wejść w GA4.
     this.pageView('yes');
+    // Wejście z linku wygląda w odsłonach tak samo jak przejście z ekranu startowego —
+    // różni je tylko to, że jest pierwsze w sesji. Osobne zdarzenie mówi wprost,
+    // ile osób przyszło z bloga i sklepu i na które kryterium.
+    if(this._zLinku){
+      try{ window.gtag&&window.gtag('event','link_entry',{criterion:this._zLinku}); }catch(e){}
+    }
     const src='https://www.googletagmanager.com/gtag/js?id='+this.GA_ID;
     if(document.querySelector('script[src="'+src+'"]')) return;
     const s=document.createElement('script');
@@ -223,8 +245,12 @@ export class DkmLogic extends React.Component {
   }
 
   componentDidMount(){
-    // link jednorazowy: ekran jest już ustawiony w state, adres czyścimy
-    try{ if(zLinku(window.location.search)) history.replaceState(null,'',window.location.pathname); }catch(e){}
+    // link jednorazowy: ekran jest już ustawiony w state, adres czyścimy.
+    // Klucz zapamiętujemy, bo zgoda na analitykę może paść dopiero za chwilę,
+    // a wtedy w adresie nie będzie już po czym poznać, że to wejście z linku.
+    try{ this._zLinku=kluczZLinku(window.location.search);
+      if(this._zLinku)
+        history.replaceState(null,'',adresBezStart(window.location.pathname,window.location.search)); }catch(e){}
     this._pScreen=this.state.screen; this._pRfq=this.state.rfq;
     try{const r=localStorage.getItem('dkm-rfq-v2'); if(r) this.setState({rfq:this.hydrate(JSON.parse(r)||[])});}catch(e){}
     this._hydrated=true;
