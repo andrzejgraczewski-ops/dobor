@@ -160,6 +160,51 @@ ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę
 wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
+## Do zrobienia i do ustalenia
+
+### Termin dostawy w koszyku — propozycja czeka na decyzję
+
+Klient ma widzieć, kiedy dostanie towar: „wysyłka jeszcze dziś — dostawa w środę
+9 września". **Nic nie jest wdrożone.** Propozycja z sześcioma przykładami:
+`https://claude.ai/code/artifact/2b180300-9c6b-4a44-8149-0b4030b9fef6`
+
+Co już policzone i sprawdzone (prototyp uruchomiony, nie tylko napisany):
+dni robocze, 13 świąt państwowych łącznie z ruchomymi (Wielkanoc 2026 — 5 kwietnia,
+Boże Ciało — 4 czerwca), przypadki brzegowe typu 24 grudnia → dostawa 28 grudnia.
+
+Reguły zaproponowane, do zatwierdzenia:
+
+- **dwie godziny graniczne, bo dwóch przewoźników** — kurier DPD do 13:00,
+  spedycja Raben do 9:00. Godzina 9:00 jest już w kodzie, w treści maila
+  z zamówieniem; klient dowiaduje się o niej dopiero po złożeniu zamówienia.
+- **przewoźnika wyznacza masa koszyka**, którą `shipPlan()` i tak już liczy:
+  do 40 kg kurier, powyżej — spedycja; DKM110, DKM130 i DKM150 zawsze spedycją,
+  bo sam korpus DKM110 waży 42,5 kg.
+- **termin tylko wtedy, gdy cały koszyk jest od ręki**; przy „dostawa 1–3 dni"
+  widełki, przy „zapytaj o cenę" nic.
+- **przy proformie bez konkretnej daty** — aplikacja nie wie, kiedy wpłyną pieniądze.
+
+Czego brakuje: **jak szybko dowozi Raben** (D+1 czy D+2) — to jedyna rzecz
+blokująca. Poza tym: czy godziny graniczne obowiązują też w piątek, czy DPD
+wszędzie dowozi następnego dnia i czy firma ma własne dni wolne poza świętami.
+
+Zastrzeżenie, o którym trzeba pamiętać przy wdrażaniu: aplikacja nie ma serwera,
+więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wyliczy
+datę z błędnej godziny — dlatego komunikat ma być warunkowy („jeśli zamówisz
+do 13:00"), a nie twardą gwarancją.
+
+### Pozostałe otwarte wątki
+
+- **Eksport z Claude Design** — właściciel wprowadza w Design zmniejszenie
+  czcionki na ekranie warunków pracy oraz poprawioną podpowiedź przy firmie
+  i NIP-ie. Po eksporcie: porównać z wzorcem, przenieść wygląd i dobór,
+  zostawić integracje.
+- **Linkowanie sklep ↔ konfigurator** — najsilniejsza dźwignia dla ruchu,
+  wymaga zmiany w Magento. Właściciel prosił o gotowy fragment, gdy zdecyduje.
+- **Po stronie właściciela**: oznaczyć `submit_order` jako zdarzenie kluczowe
+  w GA4, ochrona antyspamowa w Formspree, umowa powierzenia i wpis do rejestru
+  czynności przetwarzania.
+
 ## Rzeczy, które łatwo zepsuć
 
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji
