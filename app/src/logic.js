@@ -69,6 +69,8 @@ export class DkmLogic extends React.Component {
     ...stanZLinku()};
 
   GA_ID='G-79013G7BXL';
+  // przedrostek ścieżek w GA4 — oddziela ekrany konfiguratora od stron sklepu
+  SCIEZKA_BAZA='/dobor';
   ANA_KEY='dkm-analytics-consent';
   FORM_URL='https://formspree.io/f/mgaewanz';
   // Aplikacja jest jednostronicowa — przejścia między ekranami nie są zwykłymi
@@ -104,11 +106,15 @@ export class DkmLogic extends React.Component {
       tytul+=' · '+(this.ETAPY[k]||('krok '+k));
       sciezka+='/krok-'+k;
     }
-    // Ścieżkę poprzedzamy katalogiem, w którym aplikacja stoi (/dobor na GitHub Pages,
-    // tak samo będzie na dkmpower.pl). Bez tego ekrany aplikacji mieszają się w raportach
-    // ze stronami sklepu, bo ta sama właściwość GA4 zbiera dane z obu źródeł.
-    const baza=(location.pathname||'/').replace(/\/index\.html$/,'').replace(/\/+$/,'');
-    const pelna=(baza+sciezka).replace(/^([^/])/,'/$1');
+    // Ścieżkę poprzedzamy na sztywno „/dobor". Ta sama właściwość GA4 zbiera dane
+    // ze sklepu i stąd, a raport „Strony i ekrany" grupuje po samej ścieżce, bez
+    // nazwy hosta — bez przedrostka ekran startowy konfiguratora i strona główna
+    // sklepu wpadają do jednego wiersza „/".
+    //
+    // Przedrostek brany był wcześniej z adresu (działało na GitHub Pages, gdzie
+    // aplikacja stała w katalogu /dobor) i przestał działać po przeniesieniu na
+    // dobor.dkmpower.pl — tam aplikacja stoi w korzeniu, więc wychodził pusty.
+    const pelna=(this.SCIEZKA_BAZA+sciezka).replace(/\/+$/,'/');
     try{
       window.gtag&&window.gtag('event','page_view',{
         page_title:tytul, page_path:pelna, page_location:location.origin+pelna});

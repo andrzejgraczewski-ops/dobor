@@ -157,8 +157,13 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   check('config nie wysyła odsłony sam (żeby nie liczyć jej dwa razy)',
     layer.some((a) => a[0] === 'config' && a[2] && a[2].send_page_view === false));
   check('odsłona ekranu startowego po zgodzie',
-    widoki().some((p) => p.page_title === 'Ekran startowy' && p.page_path === '/'),
+    widoki().some((p) => p.page_title === 'Ekran startowy' && p.page_path === '/dobor/'),
     JSON.stringify(widoki().map((p) => p.page_title)));
+  // bez przedrostka ekran startowy konfiguratora wpada w GA4 do tego samego
+  // wiersza „/" co strona główna sklepu — obie zbiera ta sama usługa
+  check('ścieżki odsłon oddzielone od stron sklepu przedrostkiem /dobor',
+    widoki().every((p) => typeof p.page_path === 'string' && p.page_path.startsWith('/dobor/')),
+    JSON.stringify(widoki().map((p) => p.page_path)));
 
   // zdarzenia z realnej ścieżki klienta
   await page.getByRole('button', { name: /Moc silnika/ }).first().click();
@@ -544,12 +549,12 @@ console.log('\n— Wejście z linku (?start=…) —');
   }
 
   const LINKI = [
-    ['?start=p1', 'Moc silnika P', '/kryterium/moc-silnika'],
-    ['?start=i', 'Przełożenie i', '/kryterium/przelozenie'],
-    ['?start=n2', 'Prędkość obrotowa na wale', '/kryterium/predkosc'],
-    ['?start=m2', 'Wymagania maszyny', '/kryterium/moment'],
-    ['?start=bore', 'Średnica wału', '/kryterium/srednica-walu'],
-    ['?start=swap', 'Masz już przekładnię innej marki?', '/zamiennik'],
+    ['?start=p1', 'Moc silnika P', '/dobor/kryterium/moc-silnika'],
+    ['?start=i', 'Przełożenie i', '/dobor/kryterium/przelozenie'],
+    ['?start=n2', 'Prędkość obrotowa na wale', '/dobor/kryterium/predkosc'],
+    ['?start=m2', 'Wymagania maszyny', '/dobor/kryterium/moment'],
+    ['?start=bore', 'Średnica wału', '/dobor/kryterium/srednica-walu'],
+    ['?start=swap', 'Masz już przekładnię innej marki?', '/dobor/zamiennik'],
   ];
   for (const [adres, naglowek, sciezka] of LINKI) {
     const { ctx, page, errors } = await wejdz(adres, { consent: 'yes' });

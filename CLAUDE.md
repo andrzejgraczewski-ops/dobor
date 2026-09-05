@@ -161,6 +161,23 @@ ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę
 wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
+## Ścieżki ekranów w GA4 mają przedrostek `/dobor`
+
+Sklep `dkmpower.pl` i konfigurator raportują do **tej samej usługi GA4**, a raport
+„Strony i ekrany" grupuje po samej ścieżce, bez nazwy hosta. Bez przedrostka
+ekran startowy konfiguratora i strona główna sklepu wpadają do jednego wiersza `/`
+— właściciel potwierdził, że taki wiersz w raporcie widać.
+
+Przedrostek jest w `pageView()`, na sztywno (`SCIEZKA_BAZA='/dobor'`). Wcześniej
+brał się z adresu — działało na GitHub Pages, gdzie aplikacja stała w katalogu
+`/dobor`, i **po cichu przestało działać po przeniesieniu na `dobor.dkmpower.pl`**,
+bo tam aplikacja stoi w korzeniu i przedrostek wychodził pusty. Testy pilnują teraz,
+że każda odsłona zaczyna się od `/dobor/`.
+
+W GA4 widać więc `/dobor/`, `/dobor/wyniki`, `/dobor/zamowienie/krok-2`. Adresy
+w `page_location` są przez to wirtualne — nie prowadzą do istniejących stron.
+To świadomy koszt czytelności raportu.
+
 ## Wejście z linku: `?start=…`
 
 Wdrożone 5 września 2026, na potrzeby bloga i kart produktów w `dkmpower.pl`.
