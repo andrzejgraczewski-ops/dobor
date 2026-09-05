@@ -268,9 +268,28 @@ do 13:00"), a nie twardą gwarancją.
 - **Linkowanie sklep ↔ konfigurator** — strona konfiguratora gotowa
   (adresy `?start=…` wyżej). Zostaje wstawienie linków w Magento:
   na kartach produktów i w artykułach na blogu.
-- **Po stronie właściciela**: oznaczyć `submit_order` jako zdarzenie kluczowe
-  w GA4, ochrona antyspamowa w Formspree, umowa powierzenia i wpis do rejestru
-  czynności przetwarzania.
+- **Po stronie właściciela**: ochrona antyspamowa w Formspree, umowa powierzenia
+  i wpis do rejestru czynności przetwarzania.
+
+### Co jest ustawione w samym GA4 (5 września 2026)
+
+Właściciel skonfigurował po swojej stronie — kodu to nie dotyczy, ale bez tego
+raporty nie działają:
+
+- wymiar niestandardowy na parametrze **`criterion`** (obejmuje `select_criterion`
+  i `link_entry` — wymiar rejestruje się po nazwie parametru, nie per zdarzenie);
+- **`submit_order`** i **`submit_rfq`** oznaczone jako zdarzenia kluczowe
+  (gwiazdka w Administracja → Zdarzenia → „Ostatnie zdarzenia");
+- eksploracja **lejka** z filtrem `Nazwa hosta = dobor.dkmpower.pl` i sześcioma
+  krokami: wejście → kryterium (`/kryterium/` **lub** `/zamiennik`) → wyniki →
+  karta → koszyk → `submit_order`.
+
+Uwaga na przyszłość: wyszukiwarka zamienników leży pod `/zamiennik`, a nie pod
+`/kryterium/…`, choć na ekranie startowym jest szóstym kryterium. Filtr po samym
+`/kryterium/` ją gubi.
+
+Stan na 5 września: 5 użytkowników w 28 dni. Narzędzie pomiarowe działa,
+brakuje ruchu — stąd linki `?start=…` i linkowanie ze sklepu.
 
 ## Rzeczy, które łatwo zepsuć
 
