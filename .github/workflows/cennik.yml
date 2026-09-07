@@ -11,11 +11,15 @@ name: Cennik z magazynu
 
 on:
   schedule:
-    # Raport z Optimy przychodzi w dni powszechne o 1:15, więc o 5:00 czeka od dawna.
-    # GitHub liczy harmonogram w UTC i nie zna czasu letniego: 03:00 UTC to 5:00
-    # naszego czasu latem i 4:00 zimą. Obie godziny są długo po 1:15, więc zmiana
+    # Raport z Optimy przychodzi w dni powszechne o 1:15, więc rano czeka od dawna.
+    # GitHub liczy harmonogram w UTC i nie zna czasu letniego: 04:48 UTC to 6:48
+    # naszego czasu latem i 5:48 zimą. Obie godziny są długo po 1:15, więc zmiana
     # czasu niczego nie psuje. Poniedziałek–piątek, bo w weekend raport nie przychodzi.
-    - cron: '0 3 * * 1-5'
+    #
+    # Nierówna minuta jest celowa. Pierwszy termin (5:00, czyli 03:00 UTC) nie
+    # odpalił się ani razu: o pełnej godzinie startują harmonogramy z całego
+    # świata, a GitHub takie przebiegi opóźnia albo pomija — nie gwarantuje ich.
+    - cron: '48 4 * * 1-5'
   workflow_dispatch:
 
 permissions:
