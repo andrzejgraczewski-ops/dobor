@@ -4,6 +4,12 @@ import React from 'react';
 import { S, hv } from '../lib/style.js';
 
 export default function HomeScreen({ v }) {
+  // Kafelki kryteriów na telefonie są ciaśniejsze: przy pełnych rozmiarach
+  // sześć kryteriów zajmowało trzy ekrany przewijania, zanim klient w ogóle
+  // zobaczył, co aplikacja potrafi. Na szerokim ekranie zostaje jak było.
+  const k = v.wide
+    ? { pad: '20px 16px 22px', gap: 14, ikona: 164, tytul: '16.5px/1.25', bpad: '7px 18px', bfont: 22 }
+    : { pad: '13px 11px 15px', gap: 9,  ikona: 100, tytul: '15px/1.2',    bpad: '5px 14px', bfont: 18 };
   return (
     <>
       <div style={S(`position:relative;padding:26px 20px 10px;overflow:hidden;background:
@@ -37,16 +43,16 @@ export default function HomeScreen({ v }) {
       <img data-tile="type" src="assets/tile-type.png" alt="" style={S('display:none')} />
       <div style={S(`padding:12px 20px 0;display:grid;grid-template-columns:${v.tileGrid};gap:13px`)}>
         {v.entries.map((e, i) => (
-          <button key={i} onClick={e.go} className={hv('border-color:var(--color-accent);box-shadow:0 6px 20px rgba(41,38,91,.13)')} style={S('position:relative;padding:20px 16px 22px;background:#fff;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;box-shadow:0 2px 10px rgba(41,38,91,.06)')}>
-            <span role="img" aria-label={e.title} style={S(`width:100%;height:164px;background-image:${e.tile};background-size:${e.tileSize};background-position:center;background-repeat:no-repeat`)}></span>
-            <span style={S('font:600 16.5px/1.25 Barlow,sans-serif;color:var(--color-accent);text-align:center;text-wrap:pretty')}>{e.short}</span>
+          <button key={i} onClick={e.go} className={hv('border-color:var(--color-accent);box-shadow:0 6px 20px rgba(41,38,91,.13)')} style={S(`position:relative;padding:${k.pad};background:#fff;border:1px solid var(--color-divider);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:${k.gap}px;box-shadow:0 2px 10px rgba(41,38,91,.06)`)}>
+            <span role="img" aria-label={e.title} style={S(`width:100%;height:${k.ikona}px;background-image:${e.tile};background-size:${e.tileSize};background-position:center;background-repeat:no-repeat`)}></span>
+            <span style={S(`font:600 ${k.tytul} Barlow,sans-serif;color:var(--color-accent);text-align:center;text-wrap:pretty`)}>{e.short}</span>
             {/* Na telefonie zostaje sam obrazek i nazwa kryterium — opis rozpychał
                 kafelki tak, że powyżej krawędzi ekranu mieściły się dwa z sześciu.
                 Na szerokim ekranie miejsca nie brakuje, więc opis zostaje. */}
             {v.wide ? (
               <span style={S('font:400 12.5px/1.45 Barlow,sans-serif;color:var(--color-neutral-700);text-align:center;text-wrap:pretty')}>{e.desc}</span>
             ) : null}
-            <span style={S("margin-top:auto;padding:7px 18px;background:var(--color-accent-200);font:600 22px/1 'Barlow Condensed',sans-serif;color:var(--color-accent);font-variant-numeric:tabular-nums")}>{e.sym}</span>
+            <span style={S(`margin-top:auto;padding:${k.bpad};background:var(--color-accent-200);font:600 ${k.bfont}px/1 'Barlow Condensed',sans-serif;color:var(--color-accent);font-variant-numeric:tabular-nums`)}>{e.sym}</span>
           </button>
         ))}
       </div>

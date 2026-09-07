@@ -108,7 +108,10 @@ function zPamieci(req) {
 
 function swiezaStrona(req) {
   const zapas = new Promise((ok) => setTimeout(() => ok(null), CZEKAM_NA_SIEC));
-  const siec = fetch(req).then((res) => {
+  // cache:'no-store' — bez tego samo zapytanie do sieci może dostać odpowiedź
+  // z pamięci przeglądarki (GitHub Pages każe ją trzymać 10 minut), więc
+  // „najpierw z sieci" bywało w praktyce „najpierw z pamięci sprzed kwadransa".
+  const siec = fetch(req.url, { cache: 'no-store', credentials: 'same-origin' }).then((res) => {
     if (res && res.ok && res.type === 'basic') {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put('./index.html', copy));
