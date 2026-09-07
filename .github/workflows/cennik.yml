@@ -19,7 +19,12 @@ on:
     # Nierówna minuta jest celowa. Pierwszy termin (5:00, czyli 03:00 UTC) nie
     # odpalił się ani razu: o pełnej godzinie startują harmonogramy z całego
     # świata, a GitHub takie przebiegi opóźnia albo pomija — nie gwarantuje ich.
-    - cron: '48 4 * * 1-5'
+    #
+    # Dwa terminy, bo 7 września nie odpalił się ani 5:00, ani 6:48. Jeśli GitHub
+    # pominie pierwszy, zostaje drugi. Podwójny przebieg jest nieszkodliwy: krok
+    # „zmiana" porówna plik i przy identycznej treści zatrzyma się przed publikacją.
+    - cron: '48 4 * * 1-5'   # 6:48 latem, 5:48 zimą
+    - cron: '33 5 * * 1-5'   # 7:33 latem, 6:33 zimą — termin zapasowy
   workflow_dispatch:
 
 permissions:
