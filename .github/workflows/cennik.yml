@@ -11,20 +11,21 @@ name: Cennik z magazynu
 
 on:
   schedule:
-    # Raport z Optimy przychodzi w dni powszechne o 1:15, więc rano czeka od dawna.
-    # GitHub liczy harmonogram w UTC i nie zna czasu letniego: 04:48 UTC to 6:48
-    # naszego czasu latem i 5:48 zimą. Obie godziny są długo po 1:15, więc zmiana
-    # czasu niczego nie psuje. Poniedziałek–piątek, bo w weekend raport nie przychodzi.
+    # Raport z Optimy przychodzi w dni powszechne o 1:15, więc nad ranem czeka
+    # od dawna. GitHub liczy harmonogram w UTC i nie zna czasu letniego, stąd
+    # przy każdym terminie dwie godziny. Najwcześniejsza z nich to 3:37 zimą —
+    # wciąż ponad dwie godziny po 1:15, więc zmiana czasu niczego nie psuje.
+    # Poniedziałek–piątek, bo w weekend raport nie przychodzi.
     #
     # Nierówna minuta jest celowa. Pierwszy termin (5:00, czyli 03:00 UTC) nie
     # odpalił się ani razu: o pełnej godzinie startują harmonogramy z całego
     # świata, a GitHub takie przebiegi opóźnia albo pomija — nie gwarantuje ich.
     #
-    # Dwa terminy, bo 7 września nie odpalił się ani 5:00, ani 6:48. Jeśli GitHub
-    # pominie pierwszy, zostaje drugi. Podwójny przebieg jest nieszkodliwy: krok
-    # „zmiana" porówna plik i przy identycznej treści zatrzyma się przed publikacją.
-    - cron: '48 4 * * 1-5'   # 6:48 latem, 5:48 zimą
-    - cron: '33 5 * * 1-5'   # 7:33 latem, 6:33 zimą — termin zapasowy
+    # Dwa terminy, bo 7 września nie odpalił się żaden. Jeśli GitHub pominie
+    # pierwszy, zostaje drugi. Podwójny przebieg jest nieszkodliwy: krok „zmiana"
+    # porówna plik i przy identycznej treści zatrzyma się przed publikacją.
+    - cron: '37 2 * * 1-5'   # 4:37 latem, 3:37 zimą
+    - cron: '23 3 * * 1-5'   # 5:23 latem, 4:23 zimą — termin zapasowy
   workflow_dispatch:
 
 permissions:
