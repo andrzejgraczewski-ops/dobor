@@ -43,9 +43,9 @@ jobs:
       name: github-pages
       url: ${{ steps.publikacja.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -90,11 +90,11 @@ jobs:
           npm ci
           npm run build:dkm
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: steps.zmiana.outputs.jest == 'tak'
         with:
           path: app/dist
 
       - id: publikacja
         if: steps.zmiana.outputs.jest == 'tak'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
