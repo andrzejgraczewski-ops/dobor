@@ -33,6 +33,31 @@ Publikacja siedzi w tym samym przebiegu celowo: commit zrobiony tokenem GitHuba
 nie uruchamia innych workflow, więc `pages.yml` by nie wystartował i strona
 zostałaby na starych danych bez żadnego błędu.
 
+### Zegar jest na zewnątrz, bo harmonogram GitHuba nie działa
+
+**Automat uruchamia cron-job.org**, nie `schedule:` z `cennik.yml`. Zadanie
+„Cennik DKM" woła `POST .../actions/workflows/cennik.yml/dispatches` z ciałem
+`{"ref":"main"}`, w dni robocze o 4:37 czasu polskiego, tokenem o zakresie
+jednego repozytorium i jednego uprawnienia (`Actions: read and write`).
+
+Powód: 7 i 8 września **żaden** termin z harmonogramu GitHuba nie wystartował —
+ani 5:00, ani 6:48, ani 4:37, ani 5:23 — mimo że workflow był aktywny,
+repozytorium publiczne, gałąź domyślna właściwa, a zmiany leżały na miejscu
+od kilkunastu godzin. GitHub nie gwarantuje zadań z zegara i **pominięty
+termin nie zostawia żadnego śladu**: nie ma wpisu, ostrzeżenia ani maila.
+Cisza wygląda tak samo jak „nie zdążyłem" i jak „nie wiedziałem".
+
+Wpisy `schedule:` zostają w pliku jako zapas — gdyby kiedyś odżyły, podwójny
+przebieg jest nieszkodliwy, bo krok „zmiana" zatrzyma się przed publikacją.
+
+Uruchomienia z cron-job.org widać w Actions jako **`workflow_dispatch`**,
+nie „scheduled". Sama usługa zapisuje historię wywołań i wysyła maila,
+gdy zadanie zacznie się nie udawać — to jedyny alarm, jaki mamy.
+
+Token wygasa po roku od 8 września 2026. **Po wygaśnięciu automat zamilknie
+tak samo cicho jak harmonogram GitHuba** — warto o tym przypomnieć
+właścicielowi latem 2027.
+
 ## Co skąd pochodzi
 
 Raport magazynowy daje **ceny netto i ilości**. Nie wie natomiast, który silnik
