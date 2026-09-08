@@ -317,24 +317,35 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
     (p.headers['content-type'] || '') + ' / ' + (p.headers['accept'] || ''));
 
   const b = p.body || {};
-  const wanted = ['_subject', 'numer_zgloszenia', 'rodzaj', 'imie', 'nazwisko', 'firma', 'nip', 'email', 'telefon', 'adres_dostawy', 'dostawa', 'platnosc', 'pozycje', 'wiadomosc'];
+  const wanted = ['_subject', '_replyto', 'Numer', 'Klient', 'Telefon', 'E-mail',
+    'Wartość netto', 'Płatność', 'Dostawa', 'Adres dostawy', 'Szczegóły'];
   const missing = wanted.filter((k) => !(k in b));
   check('komplet pól w zgłoszeniu', missing.length === 0, missing.join(', '));
   check('numer zgłoszenia w formacie DKM-RRRRMMDD-GGMMSS-XXX',
-    /^DKM-\d{8}-\d{6}-\d{3}$/.test(b.numer_zgloszenia || ''), b.numer_zgloszenia);
-  check('rodzaj = Zamówienie', b.rodzaj === 'Zamówienie', b.rodzaj);
-  check('dane kontaktowe w treści', b.imie === 'Jan' && b.nazwisko === 'Testowy' && b.email === 'jan.testowy@example.com' && b.telefon === '500600700');
-  check('adres dostawy w zgłoszeniu', b.adres_dostawy === '3 Maja 20, 87-640 Czernikowo', b.adres_dostawy);
-  check('adres dostawy w treści maila', (b.wiadomosc || '').includes('Adres dostawy: 3 Maja 20, 87-640 Czernikowo'));
-  check('dostawa i płatność', b.dostawa === 'Kurier / spedycja' && b.platnosc === 'Proforma', b.dostawa + ' / ' + b.platnosc);
-  check('pozycje wypisane w zgłoszeniu', /DKM\d{3}/.test(b.pozycje || ''), (b.pozycje || '').slice(0, 60));
-  check('pełna treść maila dołączona', (b.wiadomosc || '').includes('ZAMÓWIENIE') && (b.wiadomosc || '').includes('Razem brutto'),
-    String((b.wiadomosc || '').length) + ' znaków');
-  check('temat zawiera numer zgłoszenia', (b._subject || '').includes(b.numer_zgloszenia || 'x'), b._subject);
+    /^DKM-\d{8}-\d{6}-\d{3}$/.test(b.Numer || ''), b.Numer);
+  check('klient jednym wierszem: osoba i firma', b.Klient === 'Jan Testowy', b.Klient);
+  check('dane kontaktowe w zgłoszeniu',
+    b['E-mail'] === 'jan.testowy@example.com' && b.Telefon === '500600700');
+  // „Odpowiedz" w skrzynce musi trafiać do klienta, nie do Formspree
+  check('adres zwrotny ustawiony na klienta', b._replyto === 'jan.testowy@example.com', b._replyto);
+  check('adres dostawy w zgłoszeniu', b['Adres dostawy'] === '3 Maja 20, 87-640 Czernikowo', b['Adres dostawy']);
+  check('adres dostawy w treści maila', (b['Szczegóły'] || '').includes('Adres dostawy: 3 Maja 20, 87-640 Czernikowo'));
+  check('dostawa i płatność', b.Dostawa === 'Kurier / spedycja' && /Proforma/.test(b['Płatność'] || ''),
+    b.Dostawa + ' / ' + b['Płatność']);
+  check('wartość netto podana kwotą', /\d.*zł/.test(b['Wartość netto'] || ''), b['Wartość netto']);
+  check('pełna treść maila dołączona', (b['Szczegóły'] || '').includes('ZAMÓWIENIE') && (b['Szczegóły'] || '').includes('Razem brutto'),
+    String((b['Szczegóły'] || '').length) + ' znaków');
+  // temat ma wystarczyć do decyzji bez otwierania maila
+  check('temat zawiera numer, kwotę i klienta',
+    (b._subject || '').includes(b.Numer || 'x') && /zł netto/.test(b._subject || '')
+    && (b._subject || '').includes('Jan Testowy'), b._subject);
+  // to samo, co jest w treści, nie może wracać osobnym polem — mail rósł dwukrotnie
+  check('bez pól powtarzających treść zamówienia',
+    !('pozycje' in b) && !('imie' in b) && !('firma' in b), Object.keys(b).join(', '));
 
   // numer na ekranie musi być tym samym, co w wysłanym zgłoszeniu
   const shown = (await page.locator('text=Numer zgłoszenia').textContent()).replace('Numer zgłoszenia: ', '').trim();
-  check('numer na ekranie zgodny z wysłanym', shown === b.numer_zgloszenia, shown + ' / ' + b.numer_zgloszenia);
+  check('numer na ekranie zgodny z wysłanym', shown === b.Numer, shown + ' / ' + b.Numer);
 
   // blokada dubli — trzy dotknięcia po sukcesie
   await page.locator('[data-order-btn]').click({ force: true }).catch(() => {});

@@ -186,21 +186,37 @@ export class DkmLogic extends React.Component {
     const S=this.state,c=S.c,order=kind==='order';
     const ref=this.refNo();
     const body=this.mailBody(order?'order':undefined);
+    // Formspree wypisuje pola pod ich własnymi nazwami i w kolejności z obiektu,
+    // a układu maila nie da się zmienić na darmowym planie. Sterujemy więc tym,
+    // czym możemy: nazwy po polsku, najpierw to, co pozwala zareagować bez
+    // czytania całości, na końcu pełna treść zamówienia.
+    //
+    // Zniknęły pola „pozycje" i rozbite imię/nazwisko/firma: powtarzały słowo
+    // w słowo to, co jest niżej w treści. Ten sam fragment dwa razy w jednym
+    // mailu nie pomaga, tylko wydłuża przewijanie.
+    const osoba=[c.first,c.last].filter(Boolean).join(' ');
+    const kwota=zl(this.cartNet());
     const payload={
-      _subject:(order?'ZAMÓWIENIE':'ZAPYTANIE OFERTOWE')+' '+ref+' — przekładnie ślimakowe ('+S.rfq.length+' poz.)',
-      numer_zgloszenia:ref,
-      rodzaj:order?'Zamówienie':'Zapytanie ofertowe',
-      imie:c.first||'',nazwisko:c.last||'',
-      firma:c.firm||'—',nip:c.nip||'—',
-      email:c.email||'',telefon:c.phone||'',
-      adres_dostawy:(c.street||c.zip||c.city)
+      _subject:order
+        ? 'ZAMÓWIENIE '+ref+' · '+kwota+' netto · '+(c.firm||osoba||'—')
+        : 'ZAPYTANIE '+ref+' · '+S.rfq.length+' poz. · '+(c.firm||osoba||'—'),
+      // „Odpowiedz" w skrzynce ma pisać do klienta, a nie do Formspree
+      _replyto:c.email||'',
+      'Numer':ref,
+      'Klient':[osoba,c.firm].filter(Boolean).join(' · ')||'—',
+      'Telefon':c.phone||'—',
+      'E-mail':c.email||'—',
+      // wartość i sposób zapłaty tylko przy zamówieniu — przy zapytaniu część
+      // pozycji bywa bez ceny, więc suma wprowadzałaby w błąd
+      ...(order?{
+        'Wartość netto':kwota,
+        'Płatność':S.pay==='pobranie'?'Za pobraniem — u kuriera':'Proforma — przelew z góry',
+        'Dostawa':S.del==='odbior'?'Odbiór osobisty':'Kurier / spedycja'
+      }:{'Rodzaj':'Zapytanie ofertowe — do wyceny'}),
+      ...(c.nip?{'NIP':c.nip}:{}),
+      'Adres dostawy':(c.street||c.zip||c.city)
         ?[c.street,[c.zip,c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '):'—',
-      dostawa:order?(S.del==='odbior'?'Odbiór osobisty':'Kurier / spedycja'):'—',
-      platnosc:order?(S.pay==='pobranie'?'Za pobraniem':'Proforma'):'—',
-      pozycje:S.rfq.map(x=>this.tradeOf(x).name+' · '+x.box+' · i '+x.i
-        +(x.p1!=null?(' · '+num(x.p1)+' kW'):'')
-        +(x.fs?(' · fs '+x.fs):'')+' · '+x.qty+' szt.').join('\n'),
-      wiadomosc:body
+      'Szczegóły':body
     };
     this.setState({sending:true,sendFail:false,sendErr:'',sentOk:false,sentRef:'',mailText:body});
     // Bez limitu czasu wolne albo niedostępne Formspree potrafi wisieć minutami,
