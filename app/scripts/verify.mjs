@@ -317,7 +317,7 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
     (p.headers['content-type'] || '') + ' / ' + (p.headers['accept'] || ''));
 
   const b = p.body || {};
-  const wanted = ['_subject', '_replyto', 'Numer', 'Klient', 'Telefon', 'E-mail',
+  const wanted = ['_subject', 'Numer', 'Klient', 'Telefon', 'E-mail',
     'Wartość netto', 'Płatność', 'Dostawa', 'Pozycje', 'Adres dostawy', 'Szczegóły'];
   const missing = wanted.filter((k) => !(k in b));
   check('komplet pól w zgłoszeniu', missing.length === 0, missing.join(', '));
@@ -326,8 +326,8 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   check('klient jednym wierszem: osoba i firma', b.Klient === 'Jan Testowy', b.Klient);
   check('dane kontaktowe w zgłoszeniu',
     b['E-mail'] === 'jan.testowy@example.com' && b.Telefon === '500600700');
-  // „Odpowiedz" w skrzynce musi trafiać do klienta, nie do Formspree
-  check('adres zwrotny ustawiony na klienta', b._replyto === 'jan.testowy@example.com', b._replyto);
+  // zgłoszenie idzie wyłącznie na skrzynkę firmy — nic nie wraca do klienta
+  check('zgłoszenie nie ustawia adresu zwrotnego na klienta', !('_replyto' in b));
   check('adres dostawy w zgłoszeniu', b['Adres dostawy'] === '3 Maja 20, 87-640 Czernikowo', b['Adres dostawy']);
   check('adres dostawy w treści maila', (b['Szczegóły'] || '').includes('Adres dostawy: 3 Maja 20, 87-640 Czernikowo'));
   check('dostawa i płatność', b.Dostawa === 'Kurier / spedycja' && /Proforma/.test(b['Płatność'] || ''),

@@ -200,8 +200,6 @@ export class DkmLogic extends React.Component {
       _subject:order
         ? 'ZAMÓWIENIE '+ref+' · '+kwota+' netto · '+(c.firm||osoba||'—')
         : 'ZAPYTANIE '+ref+' · '+S.rfq.length+' poz. · '+(c.firm||osoba||'—'),
-      // „Odpowiedz" w skrzynce ma pisać do klienta, a nie do Formspree
-      _replyto:c.email||'',
       'Numer':ref,
       'Klient':[osoba,c.firm].filter(Boolean).join(' · ')||'—',
       'Telefon':c.phone||'—',
