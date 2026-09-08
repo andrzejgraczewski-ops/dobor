@@ -318,7 +318,7 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
 
   const b = p.body || {};
   const wanted = ['_subject', '_replyto', 'Numer', 'Klient', 'Telefon', 'E-mail',
-    'Wartość netto', 'Płatność', 'Dostawa', 'Adres dostawy', 'Szczegóły'];
+    'Wartość netto', 'Płatność', 'Dostawa', 'Pozycje', 'Adres dostawy', 'Szczegóły'];
   const missing = wanted.filter((k) => !(k in b));
   check('komplet pól w zgłoszeniu', missing.length === 0, missing.join(', '));
   check('numer zgłoszenia w formacie DKM-RRRRMMDD-GGMMSS-XXX',
@@ -339,9 +339,17 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   check('temat zawiera numer, kwotę i klienta',
     (b._subject || '').includes(b.Numer || 'x') && /zł netto/.test(b._subject || '')
     && (b._subject || '').includes('Jan Testowy'), b._subject);
-  // to samo, co jest w treści, nie może wracać osobnym polem — mail rósł dwukrotnie
-  check('bez pól powtarzających treść zamówienia',
-    !('pozycje' in b) && !('imie' in b) && !('firma' in b), Object.keys(b).join(', '));
+  // skrót do skompletowania towaru — bez niego magazyn czyta całą specyfikację
+  const poz = b['Pozycje'] || '';
+  check('pozycje z SKU przekładni i ceną',
+    /SKU przekładni: DKM\d{3}[^\n]*\d+ szt\. × [^\n]*zł netto/.test(poz), poz.split('\n')[1]);
+  check('pozycje z SKU silnika i ceną',
+    /SKU silnika: [^\n]*\d+ szt\. × [^\n]*zł netto/.test(poz), poz.split('\n')[2]);
+  check('pozycje ze współczynnikiem pracy', /współczynnik pracy przekładni: fs = /.test(poz),
+    poz.split('\n')[3]);
+  // rozbite dane kontaktowe wracały w mailu drugi raz — te pola mają nie wrócić
+  check('bez pól powtarzających dane kontaktowe',
+    !('imie' in b) && !('nazwisko' in b) && !('firma' in b), Object.keys(b).join(', '));
 
   // numer na ekranie musi być tym samym, co w wysłanym zgłoszeniu
   const shown = (await page.locator('text=Numer zgłoszenia').textContent()).replace('Numer zgłoszenia: ', '').trim();

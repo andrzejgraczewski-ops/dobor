@@ -213,6 +213,7 @@ export class DkmLogic extends React.Component {
         'Płatność':S.pay==='pobranie'?'Za pobraniem — u kuriera':'Proforma — przelew z góry',
         'Dostawa':S.del==='odbior'?'Odbiór osobisty':'Kurier / spedycja'
       }:{'Rodzaj':'Zapytanie ofertowe — do wyceny'}),
+      'Pozycje':this.pozycjeSkrot(),
       ...(c.nip?{'NIP':c.nip}:{}),
       'Adres dostawy':(c.street||c.zip||c.city)
         ?[c.street,[c.zip,c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '):'—',
@@ -516,6 +517,24 @@ export class DkmLogic extends React.Component {
     return this.cartMissing()||this.state.rfq.some(x=>this.itemStatus(x)!==0);
   }
   canOrder(){ return this.state.rfq.length>0&&!this.cartMissing(); }
+  // Skrót do skompletowania towaru: co zdjąć z półki, ile sztuk i po ile.
+  // Powtarza część danych ze „Szczegółów" świadomie — magazyn nie musi wtedy
+  // czytać całej specyfikacji z wymiarami montażowymi i podstawami prawnymi.
+  pozycjeSkrot(){
+    const cena=(n,q)=>q+' szt. × '+(n!=null?(zl(n)+' netto'):'cena na zapytanie');
+    return this.state.rfq.map(x=>{
+      const band=x.fsBand||this.fsBand(x.fsRaw!=null?x.fsRaw:x.fs);
+      const gq=this.gQty(x), mq=this.mQty(x), L=[];
+      L.push(this.tradeOf(x).name+' · '+x.box+' · i '+x.i
+        +(x.p1!=null?(' · '+num(x.p1)+' kW'):'')
+        +(x.fs?(' · fs '+x.fs):'')+' · '+x.qty+' szt.');
+      if(gq>0) L.push('SKU przekładni: '+(x.gearSku||'—')+' · '+cena(x.boxNet,gq));
+      if(mq>0) L.push('SKU silnika: '+(x.motSku||'—')+' · '+cena(x.motNet,mq));
+      L.push('współczynnik pracy przekładni: '+(band==='none'?'brak danych':('fs = '+x.fs))
+        +' — '+this.FS_META[band].label);
+      return L.join('\n');
+    }).join('\n\n');
+  }
   mailBody(mode){
     const S=this.state,c=S.c,L=[],order=mode==='order';
     L.push(order?'ZAMÓWIENIE — przekładnie ślimakowe DKM':'Zapytanie ofertowe — przekładnie ślimakowe DKM',
