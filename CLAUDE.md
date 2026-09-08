@@ -8,6 +8,23 @@ pierwotnie stać na VPS-ie (`/opt/dkm-stany`) i z tego zrezygnowano: wszystko,
 czego potrzebuje, jest już w GitHub Actions, a serwer byłby drugim miejscem
 do pilnowania.
 
+## Zakres zmian: tylko to, o co właściciel prosił
+
+Ustalone 8 września 2026, po tym jak przy prośbie o czytelniejszy mail
+ze zgłoszeniem dołożyłem adres zwrotny na klienta (`_replyto`) — drobiazg,
+ale **zmiana zachowania, o którą nikt nie prosił**. Właściciel: „nie mieszaj
+mi rzeczy, o które cię nie proszę, możesz sprawdzać, ale przed zmianami
+informuj".
+
+Sprawdzanie, czytanie kodu i szukanie przyczyn — bez pytania, zawsze.
+**Zmiana wykraczająca poza prośbę — dopiero po zapytaniu**, choćby wydawała
+się oczywista i bezpieczna. To jest sklep, który zarabia; właściciel musi
+wiedzieć, co się w nim zmieniło i dlaczego.
+
+Dotyczy zwłaszcza rzeczy niewidocznych na ekranie: treści maili, nagłówków,
+zdarzeń analitycznych, integracji. Ich zmiany nikt nie zauważy od razu —
+wyjdą dopiero wtedy, gdy zaczną przeszkadzać.
+
 ## Plik z cennikiem jest generowany, nie pisany
 
 `app/src/data/price-data.js` powstaje automatycznie i **nie wolno go edytować
