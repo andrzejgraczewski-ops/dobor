@@ -40,15 +40,22 @@ zostałaby na starych danych bez żadnego błędu.
 `{"ref":"main"}`, w dni robocze o 4:37 czasu polskiego, tokenem o zakresie
 jednego repozytorium i jednego uprawnienia (`Actions: read and write`).
 
-Powód: 7 i 8 września **żaden** termin z harmonogramu GitHuba nie wystartował —
-ani 5:00, ani 6:48, ani 4:37, ani 5:23 — mimo że workflow był aktywny,
-repozytorium publiczne, gałąź domyślna właściwa, a zmiany leżały na miejscu
-od kilkunastu godzin. GitHub nie gwarantuje zadań z zegara i **pominięty
-termin nie zostawia żadnego śladu**: nie ma wpisu, ostrzeżenia ani maila.
-Cisza wygląda tak samo jak „nie zdążyłem" i jak „nie wiedziałem".
+Powód: **harmonogram GitHuba spóźnia się o godziny.** 8 września oba terminy
+wystartowały, ale termin 4:37 ruszył o 10:11 (5 h 34 min po czasie), a 5:23
+o 9:23 (4 h). Zadania z zegara stoją w darmowym planie w kolejce i ruszają,
+gdy jest wolna moc — GitHub sam zastrzega, że ich nie gwarantuje. Cennik
+lądowałby więc koło południa, w losowej porze, zamiast przed pracą.
 
-Wpisy `schedule:` zostają w pliku jako zapas — gdyby kiedyś odżyły, podwójny
-przebieg jest nieszkodliwy, bo krok „zmiana" zatrzyma się przed publikacją.
+Uwaga metodyczna, bo kosztowała dzień: 7 września uznałem, że harmonogram
+w ogóle nie działa. **To był błąd diagnozy — mój.** Zmieniałem tego dnia
+godzinę trzy razy, za każdym razem wpisując porę, która już minęła, więc
+nie było czego uruchamiać. Zmiana terminu jest testowalna dopiero następnego
+dnia; wcześniejsze wnioski są bezwartościowe.
+
+Wpisy `schedule:` zostają w pliku jako zapas — spóźniona aktualizacja jest
+lepsza niż żadna, gdyby cron-job.org kiedyś przestał działać. Dodatkowe
+przebiegi są nieszkodliwe: krok „zmiana" zastaje identyczny plik
+i zatrzymuje się przed publikacją.
 
 Uruchomienia z cron-job.org widać w Actions jako **`workflow_dispatch`**,
 nie „scheduled". Sama usługa zapisuje historię wywołań i wysyła maila,
