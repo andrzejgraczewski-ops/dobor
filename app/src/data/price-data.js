@@ -1,12 +1,12 @@
 /* DKM — ceny netto i dostępność.
-   Wygenerowane automatycznie z raportu magazynowego: 07.09.2026
+   Wygenerowane automatycznie z raportu magazynowego: 08.09.2026
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
    celowo nie opuszcza magazynu.
 */
 window.DKM_PRICE = {
-  updated: 'stan na 07.09.2026',
+  updated: 'stan na 08.09.2026',
   var: {
   'DKM025|56B14|5|0.06|1400': [125,0,null,0,null,0,2,''],
   'DKM025|56B14|7.5|0.06|1400': [125,0,null,0,null,0,2,''],
