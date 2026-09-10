@@ -569,6 +569,15 @@ console.log('\n— Nagłówki bezpieczeństwa (polityka z deploy/nginx.conf) —
 
   const robots = await readFile(join(root, 'robots.txt'), 'utf8');
   check('robots.txt wskazuje mapę strony', robots.includes('Sitemap: https://dobor.dkmpower.pl/sitemap.xml'));
+  // Wersja testowa (build:test) ma noindex, zakaz w robots.txt i czerwony pasek.
+  // Gdyby którakolwiek z tych rzeczy trafiła na produkcję, Google przestałby
+  // indeksować konfigurator — i nikt by tego nie zauważył przez tygodnie.
+  {
+    const html = await readFile(join(root, 'index.html'), 'utf8');
+    check('produkcja bez zakazu indeksowania', !/name="robots"[^>]*noindex/.test(html));
+    check('produkcja bez zakazu w robots.txt', !/Disallow:\s*\/\s*$/m.test(robots), robots.trim());
+    check('produkcja bez paska wersji testowej', !html.includes('dkm-test'));
+  }
   const mapa = await readFile(join(root, 'sitemap.xml'), 'utf8');
   const cennik = await readFile(resolve(root, '../src/data/price-data.js'), 'utf8');
   const d = cennik.match(/updated:\s*'stan na (\d{2})\.(\d{2})\.(\d{4})'/);

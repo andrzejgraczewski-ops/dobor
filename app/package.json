@@ -13,7 +13,8 @@
     "fonts": "node scripts/fetch-fonts.mjs",
     "compare": "node scripts/compare.mjs",
     "verify": "node scripts/verify.mjs",
-    "build:dkm": "VITE_DKM_HOSTS=\"dkmpower.pl,www.dkmpower.pl,andrzejgraczewski-ops.github.io\" vite build && node scripts/postbuild.mjs"
+    "build:dkm": "VITE_DKM_HOSTS=\"dkmpower.pl,www.dkmpower.pl,andrzejgraczewski-ops.github.io\" vite build && node scripts/postbuild.mjs",
+    "build:test": "VITE_DKM_TEST=1 DKM_TEST=1 VITE_DKM_HOSTS=\"pages.dev\" vite build && DKM_TEST=1 node scripts/postbuild.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

@@ -47,6 +47,12 @@ export const zLinku=(search)=>{
     ? {...cel,q:String(par.get('q')||'').trim().slice(0,40)}
     : {...cel};
 };
+// Wersja testowa (npm run build:test, publikowana na Cloudflare Pages).
+// Nie wysyła zgłoszeń i nic nie mierzy — żeby testy nie trafiały do biura
+// jako prawdziwe zamówienia i nie fałszowały konwersji w Google Ads.
+// W wersji produkcyjnej zmiennej nie ma, więc ten kod jest wtedy martwy.
+const TESTOWA=String(import.meta.env.VITE_DKM_TEST||'')==='1';
+
 const stanZLinku=()=>{ try{ return zLinku(window.location.search)||{}; }catch(e){ return {}; } };
 // Czyszcząc adres wycinamy wyłącznie to, co sami zużyliśmy. Reszta parametrów
 // musi zostać — po utm_source, utm_medium i utm_campaign GA4 rozpoznaje, skąd
@@ -127,7 +133,7 @@ export class DkmLogic extends React.Component {
   }
   // GA4 ładuje się dopiero po zgodzie — nigdy wcześniej, żeby nie zbierać danych bez niej
   loadGA(){
-    if(this._ga||typeof document==='undefined') return;
+    if(TESTOWA||this._ga||typeof document==='undefined') return;
     this._ga=true;
     window.dataLayer=window.dataLayer||[];
     window.gtag=function(){window.dataLayer.push(arguments);};
@@ -159,7 +165,7 @@ export class DkmLogic extends React.Component {
   // Konfiguracji GA4 w GTM dodawać NIE WOLNO: znacznik jest już załadowany tutaj,
   // drugi liczyłby każdą odsłonę i każde zamówienie dwa razy.
   loadGTM(){
-    if(this._gtm||typeof document==='undefined'||!this.GTM_ID) return;
+    if(TESTOWA||this._gtm||typeof document==='undefined'||!this.GTM_ID) return;
     const src='https://www.googletagmanager.com/gtm.js?id='+this.GTM_ID;
     if(document.querySelector('script[src="'+src+'"]')){ this._gtm=true; return; }
     this._gtm=true;
@@ -250,6 +256,15 @@ export class DkmLogic extends React.Component {
       'Szczegóły':body
     };
     this.setState({sending:true,sendFail:false,sendErr:'',sentOk:false,sentRef:'',mailText:body});
+    if(TESTOWA){
+      // Zgłoszenie z wersji testowej nie może wyjść — inaczej ktoś w biurze
+      // zacząłby realizować testowe zamówienia. Pokazujemy je w tym samym
+      // panelu co przy awarii wysyłki, razem z treścią, która poszłaby naprawdę.
+      this.setState({sending:false,mailText:body,
+        sendErr:'WERSJA TESTOWA — zgłoszenie NIE zostało wysłane i nikt go nie zobaczy. '
+          +'Poniżej treść, która poleciałaby na produkcji.'});
+      return;
+    }
     // Bez limitu czasu wolne albo niedostępne Formspree potrafi wisieć minutami,
     // a klient widzi tylko wygaszony przycisk i nie wie, czy zamówienie poszło.
     // Po 20 s przerywamy i pokazujemy panel awaryjny z treścią do skopiowania.

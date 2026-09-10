@@ -1,7 +1,7 @@
 // Generuje service workera dla wersji wystawionej na serwerze (podstrona + PWA).
 // Lista plików do pobrania z góry powstaje ze zbudowanego dist/, a wersja cache'u
 // z sumy kontrolnej tej listy — po każdym wdrożeniu stary cache jest sprzątany.
-import { readdir, readFile, writeFile, stat } from 'node:fs/promises';
+import { readdir, readFile, writeFile, stat, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,10 @@ const zrodla = resolve(fileURLToPath(import.meta.url), '../../src');
 // adres, pod którym aplikacja stoi naprawdę — stąd adres kanoniczny, mapa strony
 // i adresy obrazków w podglądzie linku; wersja offline i podstrona go nie dostają
 const ADRES = process.env.DKM_ADRES || 'https://dobor.dkmpower.pl/';
+// Wersja testowa (npm run build:test): Google jej nie indeksuje, nie ma mapy strony
+// ani adresu kanonicznego, a na każdym ekranie widnieje pasek ostrzegawczy. Kopia
+// aplikacji w wynikach wyszukiwania konkurowałaby z prawdziwą.
+const TEST = !!process.env.DKM_TEST;
 
 async function walk(dir) {
   const out = [];
@@ -154,7 +158,8 @@ const cennik = await readFile(join(zrodla, 'data/price-data.js'), 'utf8');
 const dm = cennik.match(/updated:\s*'stan na (\d{2})\.(\d{2})\.(\d{4})'/);
 const dataTresci = dm ? `${dm[3]}-${dm[2]}-${dm[1]}` : stamp;
 
-await writeFile(join(dist, 'sitemap.xml'),
+if (TEST) await rm(join(dist, 'sitemap.xml'), { force: true });
+else await writeFile(join(dist, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -207,7 +212,24 @@ const glowa = [
   `<script type="application/ld+json">${JSON.stringify(dane)}</script>`,
 ].join('\n');
 
+const PASEK_STYL = '<style>#dkm-test{position:fixed;left:0;right:0;top:0;z-index:99999;'
+  + 'background:#b3261e;color:#fff;font:700 11.5px/1.4 system-ui,-apple-system,sans-serif;'
+  + 'letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:6px 10px}'
+  + 'body{padding-top:27px}</style>';
+const PASEK = '<div id="dkm-test">Wersja testowa — zgłoszenia nie są wysyłane</div>';
+
 const strona = await readFile(join(dist, 'index.html'), 'utf8');
+if (TEST) {
+  // Bez mapy strony i bez adresu kanonicznego — zostaje sam zakaz indeksowania
+  // i pasek, żeby nikt nie pomylił tej wersji z produkcyjną.
+  await writeFile(join(dist, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+  await rm(join(dist, 'CNAME'), { force: true });
+  await writeFile(join(dist, 'index.html'), strona
+    .replace('</head>', '<meta name="robots" content="noindex,nofollow">\n' + PASEK_STYL + '\n</head>')
+    .replace('</body>', PASEK + '\n</body>'));
+  console.log('WERSJA TESTOWA — noindex, robots.txt z zakazem, bez mapy strony, pasek ostrzegawczy');
+} else {
 await writeFile(join(dist, 'index.html'), strona.replace('</head>', glowa + '\n</head>'));
 console.log('sitemap.xml — treść z ' + dataTresci + ' · index.html — kanoniczny, Open Graph, JSON-LD');
+}
 console.log('sw.js — ' + shell.length + ' plików od razu, ' + rest.length + ' w tle, wersja ' + version);
