@@ -367,6 +367,82 @@ więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wylicz
 datę z błędnej godziny — dlatego komunikat ma być warunkowy („jeśli zamówisz
 do 13:00"), a nie twardą gwarancją.
 
+### DRV, przystawka i UDL — kierunek ustalony, dane czekają
+
+Rozmowa z 9 września 2026. **Nic nie jest zaczęte.**
+
+**Jedna aplikacja, nie cztery.** Powód nie jest techniczny: klient nie przychodzi
+z myślą „potrzebuję DRV", tylko „mam 0,25 kW i chcę 12 obr/min na wyjściu".
+Rodzina produktu to **odpowiedź, nie pytanie**. Przy osobnych aplikacjach klient
+szukający i = 300 dostałby „brak wyników" i wyszedł, nie dowiedziawszy się,
+że DRV istnieje.
+
+**DRV i przystawka wchodzą w istniejący przepływ** — odpowiadają na to samo
+pytanie co dziś (przełożenie, obroty, moment), różnią się tylko zakresem.
+Nowych ekranów nie potrzebują, tylko wierszy w tabeli doborowej.
+
+**UDL to inne pytanie** („chcę regulować obroty") i zasługuje na własny kafelek
+na ekranie startowym — ale w tej samej aplikacji, bo klient, który nie wie,
+że wariator istnieje, dowie się tylko z listy kryteriów.
+
+#### Jak to dziś wygląda u DKM
+
+Człony leżą w magazynie **osobno**. W Magento ceny są ustawione, a stan wpisywany
+**ręcznie jako „na stanie"** — bez pewności, czy da się złożyć. Prawdę firma
+poznaje **po zamówieniu**, sprawdzając części. Montaż nie zawsze wychodzi tego
+samego dnia. **Cena natomiast jest ustalona oficjalnie i pewna.**
+
+Czyli: **cena pewna, dostępność zgadywana.**
+
+#### Propozycja (zaakceptowana kierunkowo, nie wdrożona)
+
+Znacznik **„do złożenia"** na pozycji — nie nowy status, tylko cecha zmieniająca
+komunikat:
+
+| Sytuacja | Co widzi klient |
+|---|---|
+| części są na stanie | cena · składamy na zamówienie — zwykle 1–3 dni robocze |
+| części brakuje | cena · składamy na zamówienie — termin potwierdzimy po zamówieniu |
+
+**Cena podana w obu przypadkach.** Uczciwsze niż dzisiejsze „na stanie"
+w Magento i mocniejsze sprzedażowo niż „zapytaj o cenę".
+
+Dostępność **liczy się z członów** — raport z Optimy codziennie podaje ich stany.
+Dwa ograniczenia: plik trzyma „jest / nie ma", więc dwóch sztuk tego samego członu
+nie sprawdzi; i nikt nie wie, czy jest czas na montaż. Dlatego wszędzie „zwykle",
+nigdy „na pewno".
+
+Mail z zamówieniem ma podawać **listę członów do sprawdzenia** z kodami
+magazynowymi — skoro firma i tak to robi po zamówieniu.
+
+#### Co blokuje i czego brakuje
+
+Potrzebna jest **lista członów dla każdej przekładni łączonej**. Właściciel
+uprzedził, że to nie jest prosta trójka:
+
+```
+DRV 040/090 i300  →  DKM040 71B14 I30 · 1 szt.
+                     DKM090 ... I10   · 1 szt.
+                     przyłącze między członami: 80B5 / 80B14 / 90B5 / 90B14
+                     + łącznik odpowiedni do tej pary
+```
+
+Czyli **kilka dopuszczalnych wykonań na jedną nazwę handlową** — ten sam kształt
+problemu, co kołnierz silnika (`flangeList()`, `prefFlange()`), tylko o poziom
+głębiej. Dane muszą więc opisywać **warianty**, nie jeden sztywny skład.
+
+Trzy pytania bez odpowiedzi:
+
+1. **Czy cena DRV zależy od wybranego wykonania?** Jeśli nie — aplikacja może
+   wybierać po dostępności, dokładnie jak dziś przy silnikach.
+2. **Czy przyłącze między członami ma standard**, a reszta to zamienniki na brak?
+3. **Czy łącznik ma własny kod magazynowy** i czy wynika jednoznacznie z pary?
+
+Obowiązuje zasada z pojedynczych przekładni: **do aplikacji trafia tylko to,
+co właściciel potwierdzi jako realny produkt** — pamiętając `DKM063 71B14 i20`.
+Tu kombinacji będzie wielokrotnie więcej, więc pierwsza wersja obejmie
+**same najczęściej sprzedawane układy**.
+
 ### Pozostałe otwarte wątki
 
 - **Eksport z Claude Design** — właściciel wprowadza w Design zmniejszenie
