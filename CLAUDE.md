@@ -452,9 +452,35 @@ Reguły zaproponowane, do zatwierdzenia:
   widełki, przy „zapytaj o cenę" nic.
 - **przy proformie bez konkretnej daty** — aplikacja nie wie, kiedy wpłyną pieniądze.
 
-Czego brakuje: **jak szybko dowozi Raben** (D+1 czy D+2) — to jedyna rzecz
-blokująca. Poza tym: czy godziny graniczne obowiązują też w piątek, czy DPD
+**Raben dowozi D+2** — właściciel potwierdził 10 września 2026. To była jedyna
+rzecz blokująca; DPD zostaje przy następnym dniu roboczym. Czyli przy spedycji
+termin liczy się jako **dwa dni robocze od wyjazdu palety**, a nie jeden.
+
+Zostaje do ustalenia: czy godziny graniczne obowiązują też w piątek, czy DPD
 wszędzie dowozi następnego dnia i czy firma ma własne dni wolne poza świętami.
+
+### Stawki spedycji powyżej 150 kg — dodane 10 września 2026
+
+Wcześniej `spedCost()` zwracał `null` powyżej 150 kg i klient widział „powyżej
+150 kg — wycena indywidualna", czyli **brak ceny przesyłki**. Właściciel podał
+brakujące progi, więc każda masa ma teraz cenę:
+
+| Masa | Netto |
+|---|---|
+| 40–100 kg | 130 zł |
+| 100–150 kg | 180 zł |
+| **150–200 kg** | **230 zł** |
+| **200–300 kg** | **260 zł** |
+| **powyżej 300 kg** | **340 zł** |
+
+Progi siedzą w `SPED_PROGI` w `logic.js` — tabela `[granica, cena, etykieta]`,
+z której `spedProg()` bierze też opis progu do koszyka. Wcześniej granice były
+wpisane dwa razy: w `spedCost()` i w tekście `tier`, co przy zmianie stawek
+groziło rozjechaniem się ceny z opisem.
+
+**Ostatni próg nie ma górnej granicy** — 340 zł obowiązuje i przy 300 kg,
+i przy tonie. Gałąź „wycena indywidualna" stała się przez to nieosiągalna.
+Jeśli kiedyś ma wrócić limit, trzeba go dopisać jawnie.
 
 Zastrzeżenie, o którym trzeba pamiętać przy wdrażaniu: aplikacja nie ma serwera,
 więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wyliczy

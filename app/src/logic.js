@@ -460,9 +460,12 @@ export class DkmLogic extends React.Component {
     });
     return kg;
   }
-  // Wysy\u0142ka \u2014 cennik DKM (26.08.2026), kwoty netto:
+  // Wysy\u0142ka \u2014 cennik DKM, kwoty netto:
   //   kurier: paczka do 31 kg 25 z\u0142, 31\u201340 kg 40 z\u0142
-  //   spedycja (Raben): 40\u2013100 kg 130 z\u0142, 100\u2013150 kg 180 z\u0142, powy\u017cej \u2014 wycena
+  //   spedycja (Raben): 40\u2013100 kg 130 z\u0142, 100\u2013150 kg 180 z\u0142,
+  //     150\u2013200 kg 230 z\u0142, 200\u2013300 kg 260 z\u0142, powy\u017cej 300 kg 340 z\u0142
+  //     (trzy g\u00f3rne progi dosz\u0142y 10.09.2026 \u2014 wcze\u015bniej powy\u017cej 150 kg
+  //      aplikacja nie podawa\u0142a ceny wcale, tylko \u201ewycena indywidualna\u201d)
   //   pobranie +5 z\u0142; od 3000 z\u0142 netto towaru wysy\u0142ka gratis
   // Dzielimy na paczki, gdy wychodzi taniej ni\u017c jedna przesy\u0142ka spedycj\u0105.
   SPED=['DKM110','DKM130','DKM150'];
@@ -509,7 +512,10 @@ export class DkmLogic extends React.Component {
       bins:all.map(kg=>Math.round(kg*10)/10)};
   }
   // cennik spedycji startuje od 40 kg \u2014 ni\u017cej nie jest alternatyw\u0105
-  spedCost(kg){ if(kg<=this.PACK_MAX) return null; return kg<=100?130:(kg<=150?180:null); }
+  SPED_PROGI=[[100,130,'40–100 kg'],[150,180,'100–150 kg'],[200,230,'150–200 kg'],
+              [300,260,'200–300 kg'],[Infinity,340,'powyżej 300 kg']];
+  spedProg(kg){ if(kg<=this.PACK_MAX) return null; return this.SPED_PROGI.find(p=>kg<=p[0])||null; }
+  spedCost(kg){ const p=this.spedProg(kg); return p?p[1]:null; }
   shipPlan(){
     const R=this.state.rfq;
     const items=this.shipItems();
@@ -534,8 +540,8 @@ export class DkmLogic extends React.Component {
         +((sp!=null&&cour.packs>1)?' \u2014 taniej ni\u017c spedycja':'');
     } else if(sp!=null){
       mode='spedycja'; net=sp; packs=1;
-      tier='spedycja (Raben) \u00b7 '+(kg<=100?'40\u2013100 kg':'100\u2013150 kg')+' \u2014 zam\u00f3wienie do 9:00';
-    } else { tier='powy\u017cej 150 kg \u2014 wycena indywidualna'; }
+      tier='spedycja (Raben) \u00b7 '+this.spedProg(kg)[2]+' \u2014 zam\u00f3wienie do 9:00';
+    } else { tier='mas\u0119 wyceniamy indywidualnie'; }
     const cod=this.state.pay==='pobranie'&&net!=null?this.SHIP_COD:0;
     const free=net!=null&&this.cartGoods()>=this.SHIP_FREE;
     return {kg,known,mode,packs,tier,sped:mode==='spedycja',
