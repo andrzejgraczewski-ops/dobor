@@ -8,12 +8,30 @@ window.DKM_DRV={
   zespoly:{"DRV030/040":{"czlon1":"DKM030","czlon2":"DKM040","laczniki":[{"kod":"ŁĄCZNIK 030/040","srednice":"14-14","iecCzlon2":["71"],"cena":85,"masa":0.2}]},"DRV030/050":{"czlon1":"DKM030","czlon2":"DKM050","laczniki":[{"kod":"ŁĄCZNIK 030/050","srednice":"14-14","iecCzlon2":["71"],"cena":95,"masa":0.4}]},"DRV030/063":{"czlon1":"DKM030","czlon2":"DKM063","laczniki":[{"kod":"ŁĄCZNIK 030/063","srednice":"14-19","iecCzlon2":["80"],"cena":60.2,"masa":0.3}]},"DRV040/075":{"czlon1":"DKM040","czlon2":"DKM075","laczniki":[{"kod":"ŁĄCZNIK 040/075","srednice":"18-24","iecCzlon2":["90"],"cena":81,"masa":0.5}]},"DRV040/090":{"czlon1":"DKM040","czlon2":"DKM090","laczniki":[{"kod":"ŁĄCZNIK 040/090","srednice":"18-24","iecCzlon2":["90"],"cena":110,"masa":0.5}]},"DRV050/110":{"czlon1":"DKM050","czlon2":"DKM110","laczniki":[{"kod":"ŁĄCZNIK 050/110 PRO","srednice":"25-28","iecCzlon2":["100","112"],"cena":120,"masa":0.9},{"kod":"ŁĄCZNIK 050/110 SEM","srednice":"25-24","iecCzlon2":["90"],"cena":120,"masa":0.9}]},"DRV063/130":{"czlon1":"DKM063","czlon2":"DKM130","laczniki":[{"kod":"ŁĄCZNIK 063/130","srednice":"25-24","iecCzlon2":["90"],"cena":120,"masa":1},{"kod":"ŁĄCZNIK 063/110","srednice":"25-28","iecCzlon2":["100","112"],"cena":120,"masa":1,"wyjatek":true}]},"DRV063/150":{"czlon1":"DKM063","czlon2":"DKM150","laczniki":[{"kod":"ŁĄCZNIK 063/150","srednice":"25-28","iecCzlon2":["100","112"],"cena":200,"masa":1.2},{"kod":"ŁĄCZNIK 063/150 25/38","srednice":"25-38","iecCzlon2":["132"],"cena":200,"masa":1.2}]}},
   wt:{"DRV030/040":{"czlon1":1.2,"czlon2":2.3,"lacznik":0.2,"razem":3.7},"DRV030/050":{"czlon1":1.2,"czlon2":3.8,"lacznik":0.4,"razem":5.4},"DRV030/063":{"czlon1":1.2,"czlon2":6.2,"lacznik":0.3,"razem":7.7},"DRV040/075":{"czlon1":2.3,"czlon2":9,"lacznik":0.5,"razem":11.8},"DRV040/090":{"czlon1":2.3,"czlon2":13,"lacznik":0.5,"razem":15.8},"DRV050/110":{"czlon1":3.8,"czlon2":42.5,"lacznik":0.9,"razem":47.2},"DRV063/130":{"czlon1":6.2,"czlon2":59,"lacznik":1,"razem":66.2},"DRV063/150":{"czlon1":6.2,"czlon2":87,"lacznik":1.2,"razem":94.4}},
   sped:["DRV050/110","DRV063/130","DRV063/150"],
+  karty:{},
   montazNetto:60,
   obroty:1400
 };
 // wiersze DRV dołączają do tabeli doborowej — dobór działa na nich bez zmian
 window.DKM_CATALOG=(window.DKM_CATALOG||[]).concat(W);
-// średnica wału wyjściowego DRV = średnica członu 2
-var B=window.DKM_BORE=window.DKM_BORE||{}, Z={"DRV030/040":"DKM040","DRV030/050":"DKM050","DRV030/063":"DKM063","DRV040/075":"DKM075","DRV040/090":"DKM090","DRV050/110":"DKM110","DRV063/130":"DKM130","DRV063/150":"DKM150"};
-for(var z in Z) if(B[Z[z]]) B[z]=B[Z[z]];
+
+// Mocowanie i wyposażenie DRV bierze się z członu 2 — to jest ta sama
+// przekładnia, więc wał, rozstaw otworów, śruby, kołnierze FA/FB, ramię
+// reakcyjne, osłona i tuleja są dokładnie jej. Kopiujemy pod nazwę zespołu,
+// bo cały kod kluczuje po niej (boxFitsBore, mountDim, optOf, kgOpt).
+// Ceny i stany osprzętu czytamy z dzisiejszego cennika, więc nie dublują się
+// w danych i odświeżają się razem z nim.
+var Z={"DRV030/040":"DKM040","DRV030/050":"DKM050","DRV030/063":"DKM063","DRV040/075":"DKM075","DRV040/090":"DKM090","DRV050/110":"DKM110","DRV063/130":"DKM130","DRV063/150":"DKM150"};
+var przenies=function(tab){ if(!tab) return;
+  for(var z in Z) if(tab[Z[z]]!==undefined) tab[z]=tab[Z[z]]; };
+przenies(window.DKM_BORE=window.DKM_BORE||{});
+przenies(window.DKM_FOOT=window.DKM_FOOT||{});
+przenies(window.DKM_BOLT=window.DKM_BOLT||{});
+var przeniesOsprzet=function(tab){ if(!tab) return;
+  for(var k in tab){ var p=k.split('|');
+    if(p.length!==2) continue;
+    for(var z in Z) if(p[1]===Z[z]) tab[p[0]+'|'+z]=tab[k]; } };
+var P=window.DKM_PRICE||{};
+przeniesOsprzet(P.opt);
+przeniesOsprzet(P.wt&&P.wt.opt);
 })();

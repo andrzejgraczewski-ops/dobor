@@ -462,6 +462,17 @@ export class DkmLogic extends React.Component {
   // obroty na wale liczymy sami — katalog zaokrągla je do jednego miejsca
   drvN2(x){ const o=this.DRV().obroty||1400;
     return x.i?Math.round(o/x.i*100)/100:(x.n2||0); }
+  // Termin dla DRV, gdy wszystkie części są na stanie. Dwa komunikaty, bo dwie
+  // drogi: kurier dowozi następnego dnia roboczego, a paleta (Raben) jedzie D+2
+  // i montaż do 12:00 nie zdąży na odbiór tego samego dnia — stąd widełki.
+  // Nie zwracamy konkretnej daty: aplikacja nie ma serwera i czyta zegar
+  // urządzenia klienta, więc twarda data przy źle ustawionym telefonie kłamałaby.
+  drvTermin(box){
+    if(!this.drvWt(box)) return null;
+    return (this.DRV().sped||[]).indexOf(box)>=0
+      ? 'składamy — dostawa zwykle w 1–3 dni robocze'
+      : 'składamy dziś — dostawa następnego dnia roboczego';
+  }
   // SKU: DRV050/110 + 0,12KW I3000, przy jednofazowym z dopiskiem 1F
   drvSku(x){
     if(!this.drvWt(x.box)) return '';
@@ -619,7 +630,17 @@ export class DkmLogic extends React.Component {
       L.push(this.tradeOf(x).name+' · '+x.box+' · i '+x.i
         +(x.p1!=null?(' · '+num(x.p1)+' kW'):'')
         +(x.fs?(' · fs '+x.fs):'')+' · '+x.qty+' szt.');
-      if(gq>0) L.push('SKU przekładni: '+(x.gearSku||'—')+' · '+cena(x.boxNet,gq));
+      // Przekładnia łączona: klient nie widzi składu, ale biuro musi go dostać,
+      // bo i tak sprawdza części po zamówieniu. SKU zespołu zamiast SKU przekładni.
+      const sklad=this.drvSklad(x);
+      if(sklad.length){
+        L.push('SKU: '+this.drvSku(x)+' · '+cena(x.boxNet,gq||x.qty));
+        L.push('DO ZŁOŻENIA — sprawdzić części:');
+        sklad.forEach(s=>L.push('   · '+s));
+        if((x.extras||[]).some(e=>!e.off&&e.code==='MONT'))
+          L.push('   ⚑ KLIENT DOPŁACIŁ ZA MONTAŻ — zestaw ma wyjść złożony, nie luzem');
+      }
+      else if(gq>0) L.push('SKU przekładni: '+(x.gearSku||'—')+' · '+cena(x.boxNet,gq));
       if(mq>0) L.push('SKU silnika: '+(x.motSku||'—')+' · '+cena(x.motNet,mq));
       L.push('współczynnik pracy przekładni: '+(band==='none'?'brak danych':('fs = '+x.fs))
         +' — '+this.FS_META[band].label);
@@ -1082,6 +1103,12 @@ export class DkmLogic extends React.Component {
     const S=this.state,out=[];
     const add=(code,label)=>{ const e=this.optOf(code,box);
       out.push({code,label,net:e?e.net:null,stock:e?e.q>0:false}); };
+    // Przek\u0142adnia \u0142\u0105czona jedzie luzem do samodzielnego monta\u017cu. Kto chce j\u0105
+    // dosta\u0107 z\u0142o\u017con\u0105, dop\u0142aca za sztuk\u0119 \u2014 cena z DKM_DRV.montazNetto.
+    // Idzie zwyk\u0142ym wyposa\u017ceniem, wi\u0119c pokazuje si\u0119, liczy i trafia do maila
+    // istniej\u0105c\u0105 drog\u0105, bez nowego elementu na ekranie.
+    if(this.drvWt(box)) out.push({code:'MONT',label:'Monta\u017c zestawu \u2014 z\u0142o\u017cymy przed wysy\u0142k\u0105',
+      net:this.DRV().montazNetto||0,stock:true});
     if(this.mountsHas('2a')) add('FA','Ko\u0142nierz boczny FA');
     if(this.mountsHas('2b')) add('FB','Ko\u0142nierz boczny FB');
     if(this.mountsHas('3')) add('ARM','Rami\u0119 reakcyjne');
@@ -1288,8 +1315,9 @@ export class DkmLogic extends React.Component {
     let aL='sprawdzamy',aC=V('neutral-700'),aD=V('neutral-400');
     if(bOpt){ aL='niedostępna — zapytaj'; aC=V('mid-ink'); aD=V('mid'); }
     else if(v){
-      if(v.status===0){ aL='w magazynie'; aC=V('ok-ink'); aD=V('ok'); }
-      else if(v.status===1){ aL='dostawa 1\u20133 dni'; aC=V('accent-700'); aD='var(--dkm-blue)'; }
+      if(v.status===0){ aL=this.drvTermin(r.box)||'w magazynie'; aC=V('ok-ink'); aD=V('ok'); }
+      else if(v.status===1){ aL=this.drvWt(r.box)?'sk\u0142adamy \u2014 termin potwierdzimy':'dostawa 1\u20133 dni';
+        aC=V('accent-700'); aD='var(--dkm-blue)'; }
       else { aL='zapytaj o cen\u0119'; aC=V('neutral-700'); aD=V('neutral-400'); }
     }
     return {priceLabel:net!=null?zl(net):(bOpt?'wykonanie na zapytanie':'cena na zapytanie'),
@@ -1441,7 +1469,10 @@ export class DkmLogic extends React.Component {
     // pierwszą trójkę cyfr, czyli 050 — klient dostawał rysunek małego członu
     // wejściowego i wymierzyłby zupełnie inne gniazdo. Do czasu, aż będą
     // wymiary zespołów, karta DRV zostaje pusta.
-    if(this.drvWt(box)) return null;
+    // Karta zespołu, gdy plik już jest — nazwy zbiera generator do DKM_DRV.karty,
+    // więc nigdy nie pokazujemy zepsutego obrazka.
+    if(this.drvWt(box)){ const k=(this.DRV().karty||{})[box];
+      return k?this.A(k):null; }
     // Direct path — no hidden preload element needed, so the browser only
     // fetches the one dimension card actually being viewed, not all 10.
     const m=String(box||'').match(/(\d{3})/); if(!m) return null;
@@ -1877,7 +1908,9 @@ export class DkmLogic extends React.Component {
     const sel=S.sel?this.decorate(S.sel):null;
     const selVars=S.sel?this.variants(S.sel):[];
     const selPick=S.sel?this.pickVar(S.sel):null;
-    const stTxt=st=>st===0?'w magazynie':(st===1?'dostawa 1–3 dni':'zapytaj o cenę');
+    const drvT=S.sel?this.drvTermin(S.sel.box):null;
+    const stTxt=st=>st===0?(drvT||'w magazynie')
+      :(st===1?(drvT?'składamy — termin potwierdzimy':'dostawa 1–3 dni'):'zapytaj o cenę');
     const selMot=S.sel?this.motorOf(S.sel):null;
     const selEx=sel?this.extrasFor(sel.box):[];
     const selExNet=this.extrasNet(selEx);

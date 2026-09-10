@@ -528,25 +528,52 @@ Czego jeszcze nie ma: dopłata za montaż 60 zł, skład w mailu z zamówieniem
 (`drvSklad()` jest gotowe, nie jest jeszcze wołane) i komunikat terminu
 (kurier — następny dzień roboczy, paleta — zwykle 1–3 dni robocze).
 
-**Karta produktu dla DRV jest niepełna — i jedna rzecz była wprost myląca.**
-`cardSrc()` wyciągał z nazwy pierwszą trójkę cyfr, więc `DRV050/110` dostawał
-**rysunek wymiarowy DKM050**, czyli małego członu wejściowego. Klient wymierzyłby
-zupełnie inne gniazdo. Od 10 września `cardSrc()` zwraca dla DRV `null` —
-karta zostaje pusta, dopóki nie będzie wymiarów zespołów.
+**Mocowanie i wyposażenie DRV dziedziczy po członie 2** — właściciel, 10.09.2026:
+„człon 2 to daje, a to ta sama przekładnia". Kopiowane pod nazwę zespołu
+w `drv-data.js`, bo cały kod kluczuje po nazwie korpusu: `DKM_BORE`
+(średnica wału), `DKM_FOOT` (rozstaw otworów), `DKM_BOLT` (śruby) oraz
+`DKM_PRICE.opt` i `wt.opt` (kołnierze FA/FB, ramię reakcyjne, osłona, tuleje).
+Ceny i stany osprzętu czytamy z **dzisiejszego** cennika, więc nie dublują się
+w danych i odświeżają się razem z nim — 35 wpisów na osiem zespołów.
 
-| Sekcja karty | Stan dla DRV |
-|---|---|
-| rysunek wymiarowy | **zablokowany** — pokazywał rysunek członu 1 |
-| tabela wymiarów (`DKM_DIMS`) | brak — sekcja pusta |
-| mocowanie na podstawie (`DKM_FOOT`) | brak — sekcja pusta |
-| rozstaw śrub (`DKM_BOLT`) | brak — sekcja pusta |
-| średnica wału (`DKM_BORE`) | **jest** — skopiowana z członu 2 |
-| lista mocowań (`DKM_MOUNT`) | wspólna dla wszystkiego, więc 6 opcji się oferuje, ale rysunki i wymiary pod nimi są puste |
-| osprzęt (`optOf`) | kluczuje po korpusie → dla DRV nic |
+Czego **nie** dziedziczymy: **wymiarów gabarytowych**. Długość całkowitą daje
+dopiero karta zespołu, bo to dwa korpusy plus łącznik.
 
-Potrzebne dane: **wymiary zespołów DRV z katalogu** (rysunek i tabela na każdy
-z ośmiu zespołów) plus rozstrzygnięcie, które mocowania DRV w ogóle ma. Bez tego
-karta DRV nie powinna wyglądać jak karta pojedynczej przekładni.
+**Karta wymiarowa: `cardSrc()` pokazywał rysunek członu wejściowego.** Regexp
+brał z nazwy pierwszą trójkę cyfr, więc `DRV050/110` dostawał `karta-050.jpg` —
+DKM050 zamiast DKM110. Wał ⌀25 zamiast ⌀42, inny rozstaw otworów, inne śruby;
+klient wymierzyłby złe gniazdo.
+
+Ważne, żeby nie przesadzić w drugą stronę (raz już przesadziłem): **karta członu
+2 jest dla DRV prawie w całości prawdziwa.** Sekcja „wymiary gabarytowe
+i montażowe" opisuje korpus wyjściowy, a sekcja „przyłącze PAM-IEC" podaje
+`100B5 → D 28` i `132B5 → D 38` — czyli **dokładnie te liczby, które siedzą
+w nazwie łącznika** `(25-28)` i `(25-38)`. Reguła doboru łącznika jest więc
+potwierdzona wprost w katalogu producenta. Fałszywa jest tylko długość całkowita
+i to, że na wejściu jest łącznik, nie silnik.
+
+Właściciel przygotowuje **własne karty DRV**. Generator szuka ich pod nazwą
+`karta-drv-050-110.jpg` (z nazwy zespołu: małe litery, `/` na `-`) w
+`app/public/assets/` i wpisuje do `DKM_DRV.karty` **tylko te, których plik
+naprawdę leży na dysku** — inaczej karta pokazywałaby zepsuty obrazek.
+Po wrzuceniu plików wystarczy `node narzedzia/drv/buduj.mjs`. Do tego czasu
+karta DRV jest bez rysunku.
+
+**Montaż 60 zł netto od sztuki** idzie jako zwykłe wyposażenie (`code: 'MONT'`
+w `extrasFor()`), więc pokazuje się, liczy i trafia do maila istniejącą drogą —
+bez nowego elementu na ekranie, czyli bez kolizji z Design. Domyślnie DRV jedzie
+luzem do samodzielnego montażu.
+
+**Skład trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
+przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, dopuszczalne
+łączniki z ich średnicami i — gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ
+ZA MONTAŻ". Bez tego biuro wysłałoby części luzem komuś, kto zapłacił za złożenie.
+
+**Termin przy pełnym stanie ma dwa brzmienia** (`drvTermin()`), bo dwie drogi:
+kurier — „składamy dziś — dostawa następnego dnia roboczego"; paleta —
+„składamy — dostawa zwykle w 1–3 dni robocze", bo Raben jedzie D+2 i montaż
+do 12:00 nie zdąży na odbiór tego samego dnia. Konkretnej daty nie podajemy:
+aplikacja czyta zegar urządzenia klienta.
 
 **Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
 na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają

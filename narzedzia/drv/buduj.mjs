@@ -11,7 +11,7 @@
 // Dlatego DRV nie dopisuje się do catalog-data.js ani do price-data.js.
 //
 //   node narzedzia/drv/buduj.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const KORZEN = new URL('../../', import.meta.url).pathname;
 const K = JSON.parse(readFileSync(KORZEN + 'narzedzia/drv/drv-katalog.json', 'utf8'));
@@ -39,17 +39,32 @@ const sped = Object.entries(K.zespoly)
   .filter(([, z]) => SPED_KORPUSY.includes(z.czlon2))
   .map(([zespol]) => zespol);
 
+// Karty wymiarowe zespołów DRV. Nazwa pliku wynika z nazwy zespołu:
+//   DRV050/110 → app/public/assets/karta-drv-050-110.jpg
+// Do listy trafiają tylko te, których plik naprawdę leży na dysku — inaczej
+// karta pokazywałaby zepsuty obrazek. Po wrzuceniu plików wystarczy przeliczyć
+// ten generator i karty zapalają się same.
+const nazwaKarty = z => 'karta-' + z.toLowerCase().replace('/', '-').replace('drv', 'drv-') + '.jpg';
+const karty = {};
+for (const z of Object.keys(K.zespoly)) {
+  const plik = nazwaKarty(z);
+  if (existsSync(KORZEN + 'app/public/assets/' + plik)) karty[z] = plik;
+}
+
 const wiersze = K.wiersze.map(w => ({
   p1: w.p1, box: w.zespol, flange: w.iec + 'B14/B5', motor: w.silnik, rpm: K.obroty,
   n2: w.n2, i: w.i, m2: w.m2, fr2: w.fr2, fs: w.fs,
   drv: w.zespol, i1: w.i1, i2: w.i2,
 }));
 
-// Średnica wału wyjściowego DRV to średnica członu 2 — bez tego kryterium
-// „średnica wału" gubiłoby wszystkie DRV, bo boxFitsBore() czyta DKM_BORE
-// po nazwie korpusu. Wymiarów i mocowania celowo NIE kopiujemy: tabela wymiarów
-// opisuje też wejście, a to jest człon 1, więc przepisana w całości kłamałaby.
-const boreZ = Object.fromEntries(Object.entries(K.zespoly).map(([z, o]) => [z, o.czlon2]));
+// Mocowanie DRV dziedziczy po członie 2, bo człon 2 TO JEST ta sama przekładnia
+// (właściciel, 10.09.2026). Dotyczy średnicy wału, rozstawu otworów, rozstawu
+// śrub i całego osprzętu — kołnierzy FA/FB, ramienia reakcyjnego, osłony,
+// tulei. Wszystko to siedzi na korpusie członu wyjściowego.
+//
+// Czego NIE dziedziczymy: wymiarów gabarytowych. Długość całkowitą zespołu
+// daje dopiero karta DRV, bo to dwa korpusy plus łącznik.
+const czlon2 = Object.fromEntries(Object.entries(K.zespoly).map(([z, o]) => [z, o.czlon2]));
 
 const j = o => JSON.stringify(o);
 const plik = `// Przekładnie łączone DRV — plik generowany, nie edytuj ręcznie.
@@ -62,18 +77,37 @@ window.DKM_DRV={
   zespoly:${j(K.zespoly)},
   wt:${j(wt)},
   sped:${j(sped)},
+  karty:${j(karty)},
   montazNetto:${j(K.montazNetto)},
   obroty:${j(K.obroty)}
 };
 // wiersze DRV dołączają do tabeli doborowej — dobór działa na nich bez zmian
 window.DKM_CATALOG=(window.DKM_CATALOG||[]).concat(W);
-// średnica wału wyjściowego DRV = średnica członu 2
-var B=window.DKM_BORE=window.DKM_BORE||{}, Z=${j(boreZ)};
-for(var z in Z) if(B[Z[z]]) B[z]=B[Z[z]];
+
+// Mocowanie i wyposażenie DRV bierze się z członu 2 — to jest ta sama
+// przekładnia, więc wał, rozstaw otworów, śruby, kołnierze FA/FB, ramię
+// reakcyjne, osłona i tuleja są dokładnie jej. Kopiujemy pod nazwę zespołu,
+// bo cały kod kluczuje po niej (boxFitsBore, mountDim, optOf, kgOpt).
+// Ceny i stany osprzętu czytamy z dzisiejszego cennika, więc nie dublują się
+// w danych i odświeżają się razem z nim.
+var Z=${j(czlon2)};
+var przenies=function(tab){ if(!tab) return;
+  for(var z in Z) if(tab[Z[z]]!==undefined) tab[z]=tab[Z[z]]; };
+przenies(window.DKM_BORE=window.DKM_BORE||{});
+przenies(window.DKM_FOOT=window.DKM_FOOT||{});
+przenies(window.DKM_BOLT=window.DKM_BOLT||{});
+var przeniesOsprzet=function(tab){ if(!tab) return;
+  for(var k in tab){ var p=k.split('|');
+    if(p.length!==2) continue;
+    for(var z in Z) if(p[1]===Z[z]) tab[p[0]+'|'+z]=tab[k]; } };
+var P=window.DKM_PRICE||{};
+przeniesOsprzet(P.opt);
+przeniesOsprzet(P.wt&&P.wt.opt);
 })();
 `;
 writeFileSync(KORZEN + 'app/src/data/drv-data.js', plik);
 
 console.log(`drv-data.js — wierszy ${wiersze.length} · zespołów ${Object.keys(K.zespoly).length}`
   + ` · paletą ${sped.length} (${sped.join(', ')})`
+  + ` · kart wymiarowych ${Object.keys(karty).length}/${Object.keys(K.zespoly).length}`
   + ` · masy ${Object.entries(wt).map(([z, m]) => z.replace('DRV', '') + ' ' + m.razem + 'kg').join(' · ')}`);
