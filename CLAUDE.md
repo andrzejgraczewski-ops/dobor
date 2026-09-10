@@ -210,6 +210,54 @@ ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę
 wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
+## Wersja testowa: dobor-test.pages.dev
+
+Postawiona 10 września 2026 na prośbę właściciela — żeby oglądał zmiany przed
+wypuszczeniem ich na sklep, a nie na żywym sklepie.
+
+```
+produkcja        gałąź main → GitHub Pages → dobor.dkmpower.pl
+wersja testowa   gałąź test → Cloudflare Pages → dobor-test.pages.dev
+```
+
+Ten sam kod i ten sam cennik. Buduje się przez `npm run build:test`, ustawienia
+projektu w Cloudflare: production branch `test`, root directory `app`, output
+`dist`, zmienne `NODE_VERSION=22` i `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`
+(bez tej drugiej każde budowanie ciągnęłoby 150 MB przeglądarki testowej).
+
+**Sposób pracy:** zmiana idzie najpierw na `test`, właściciel ją oglądа
+na telefonie, dopiero potem przenosimy ją na `main`.
+
+### Cztery rzeczy, które w wersji testowej są wyłączone
+
+Bez nich wersja testowa jest groźniejsza niż pożyteczna:
+
+1. **Zgłoszenia nie wychodzą na Formspree** — inaczej ktoś w biurze zacząłby
+   realizować testowe zamówienia. Zamiast wysyłki pokazuje się panel z treścią,
+   która poleciałaby na produkcji (ten sam co przy awarii wysyłki).
+2. **GA4 i Tag Manager nie startują** — testy fałszowałyby lejek, a co gorsza
+   **generowałyby fałszywe konwersje w Google Ads**.
+3. **Zakaz indeksowania** — `robots.txt` z `Disallow: /`, `meta noindex`, bez mapy
+   strony i bez adresu kanonicznego. Kopia w wynikach Google konkurowałaby
+   z prawdziwym konfiguratorem.
+4. **Czerwony pasek na każdym ekranie** — żeby nikt nie pomylił wersji, ani
+   właściciel, ani ktokolwiek, komu wyśle link.
+
+Przełącznikiem jest `VITE_DKM_TEST=1` (kod) i `DKM_TEST=1` (postbuild).
+W wersji produkcyjnej zmiennych nie ma, więc ten kod jest tam martwy.
+
+`VITE_DKM_HOSTS="pages.dev"` — `guard.js` nadal ogranicza domeny, tylko dopuszcza
+adresy Cloudflare.
+
+**Testy pilnują odwrotnego kierunku:** że `noindex`, zakaz w `robots.txt` ani pasek
+nie trafią na produkcję. To wycięłoby konfigurator z Google i **nikt by tego nie
+zauważył przez tygodnie** — data cennika by się zmieniała, strona by działała,
+tylko ruch z wyszukiwarki by wysechł.
+
+Kreator Cloudflare ma pułapkę: domyślnie prowadzi w **Workers** („Deploy command:
+npx wrangler deploy"), który wymaga `wrangler.toml` i tu nie zadziała. Właściwa
+ścieżka to link **„Przejdź do Pages"** na dole kreatora.
+
 ## Tag Manager i Google Ads
 
 Wdrożone 10 września 2026 na prośbę właściciela. Kontener **`GTM-NN2RKMW`**
