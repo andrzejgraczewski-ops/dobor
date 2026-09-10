@@ -228,6 +228,16 @@ projektu w Cloudflare: production branch `test`, root directory `app`, output
 **Sposób pracy:** zmiana idzie najpierw na `test`, właściciel ją oglądа
 na telefonie, dopiero potem przenosimy ją na `main`.
 
+### Hasło zgody na przeniesienie: „tak do DKM API"
+
+Ustalone z właścicielem 10 września 2026. Przeniesienie z `test` na `main`
+— czyli na żywy sklep — wolno zrobić **wyłącznie po odpowiedzi o dokładnym
+brzmieniu „tak do DKM API"**.
+
+„ok", „dobre", „zgadza się", „działa" i podobne **nie są zgodą.** W takim
+wypadku trzeba dopytać. Zdanie jest umowne właśnie po to, żeby nie dało się
+go pomylić ze zwykłym potwierdzeniem, że zmianę widać albo że się podoba.
+
 ### Cztery rzeczy, które w wersji testowej są wyłączone
 
 Bez nich wersja testowa jest groźniejsza niż pożyteczna:
