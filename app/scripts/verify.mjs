@@ -317,6 +317,27 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
     JSON.stringify(par));
   check('zdarzenie wysyłki niesie liczbę pozycji', par.items >= 1, String(par.items));
 
+  // Wyzwalacz konwersji Google Ads siedzi w Tag Managerze i czyta zwykłe wpisy
+  // w kolejce, a nie te wysłane przez gtag(). Bez nich tag konwersji jest martwy.
+  {
+    const wpisy = await page.evaluate(() => (window.dataLayer || [])
+      .filter((x) => x && !x.length && typeof x.event === 'string' && x.event.startsWith('dkm_'))
+      .map((x) => ({ event: x.event, value: x.value, currency: x.currency, items: x.items })));
+    const zam = wpisy.filter((x) => x.event === 'dkm_submit_order');
+    check('wpis dla Tag Managera: dkm_submit_order', zam.length === 1,
+      JSON.stringify(wpisy.map((x) => x.event)));
+    check('wpis dla Tag Managera niesie wartość i walutę',
+      !!zam[0] && zam[0].value > 0 && zam[0].currency === 'PLN' && zam[0].items >= 1,
+      JSON.stringify(zam[0] || {}));
+    // ten sam przedrostek dla koszyka — przyda się do list odbiorców w Ads
+    check('wpis dla Tag Managera: dkm_add_to_cart',
+      wpisy.some((x) => x.event === 'dkm_add_to_cart'), JSON.stringify(wpisy.map((x) => x.event)));
+    // nazwa z przedrostkiem chroni przed policzeniem konwersji dwa razy
+    check('wpisy dla Tag Managera nie dublują nazw z GA4',
+      !wpisy.some((x) => x.event === 'submit_order' || x.event === 'add_to_cart'),
+      JSON.stringify(wpisy.map((x) => x.event)));
+  }
+
   const p = posts[0] || { headers: {}, body: {} };
   check('adres: https://formspree.io/f/mgaewanz', p.url === 'https://formspree.io/f/mgaewanz', p.url);
   check('metoda POST', p.method === 'POST', p.method);

@@ -221,6 +221,25 @@ w „Informacjach prawnych", więc wyjątku tu być nie może.
 ładowany przez `loadGA()`; drugi liczyłby każdą odsłonę i każde zamówienie dwa
 razy. Test pilnuje, że na stronie jest dokładnie jeden `gtag/js`.
 
+### Wyzwalacze w GTM czytają wpisy z przedrostkiem `dkm_`
+
+`track()` wysyła każde zdarzenie **dwa razy**: przez `gtag()` do GA4 i jako zwykły
+wpis do kolejki `dataLayer` pod nazwą **`dkm_<nazwa>`** — bo wyzwalacze w Tag
+Managerze czytają zwykłe wpisy, a zdarzenia z `gtag()` trafiają do kolejki w innej
+postaci i GTM nie zawsze potrafi je złapać. Bez tego tag konwersji Google Ads
+bywa martwy, choć w GA4 wszystko widać.
+
+Przedrostek nie jest ozdobnikiem: **chroni przed policzeniem konwersji dwa razy.**
+Gdyby obie postacie miały tę samą nazwę, jeden wyzwalacz mógłby złapać obie.
+
+W GTM używa się więc `dkm_submit_order`, `dkm_submit_rfq`, `dkm_add_to_cart`,
+`dkm_view_cart`, `dkm_select_criterion`, `dkm_refine_step`. Wartość konwersji
+bierze się ze zmiennych `value` i `currency`, dołączonych do wpisu.
+
+Poza `track()` idą jeszcze `page_view`, `analytics_consent` i `link_entry` —
+te wysyłamy wprost przez `gtag()` i **nie mają odpowiednika `dkm_`**, bo nie
+służą do konwersji.
+
 ### Polityka bezpieczeństwa została świadomie rozluźniona
 
 Do `script-src`, `img-src` i `connect-src` doszły `googleadservices.com`,

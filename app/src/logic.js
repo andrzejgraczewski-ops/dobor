@@ -173,6 +173,14 @@ export class DkmLogic extends React.Component {
   track(name,params){
     if(this.state.anaConsent!=='yes') return;
     try{ window.gtag&&window.gtag('event',name,params||{}); }catch(e){}
+    // Drugi wpis, tym razem zwykły — na nim opierają się wyzwalacze w Tag Managerze.
+    // Zdarzenia wysłane przez gtag() trafiają do kolejki w innej postaci i GTM nie
+    // zawsze potrafi je złapać; bez tego tag konwersji Google Ads bywa martwy.
+    //
+    // Przedrostek „dkm_" jest po to, żeby wyzwalacz nie mógł złapać tego samego
+    // zdarzenia dwa razy — raz z wpisu gtag(), raz stąd — i policzyć podwójnej
+    // konwersji. W GTM używa się nazw dkm_submit_order, dkm_submit_rfq i tak dalej.
+    try{ (window.dataLayer=window.dataLayer||[]).push({event:'dkm_'+name,...(params||{})}); }catch(e){}
   }
   anaSet=v=>{
     try{ localStorage.setItem(this.ANA_KEY,v); }catch(e){}
