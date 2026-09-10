@@ -210,6 +210,46 @@ ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę
 wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
+## Tag Manager i Google Ads
+
+Wdrożone 10 września 2026 na prośbę właściciela. Kontener **`GTM-NN2RKMW`**
+ładuje `loadGTM()` w `logic.js`, **z tej samej bramki zgody co GA4** — bez
+„Akceptuję analitykę" nie leci ani jedno, ani drugie. Aplikacja obiecuje to
+w „Informacjach prawnych", więc wyjątku tu być nie może.
+
+**Konfiguracji GA4 w GTM dodawać nie wolno.** Znacznik `G-79013G7BXL` jest już
+ładowany przez `loadGA()`; drugi liczyłby każdą odsłonę i każde zamówienie dwa
+razy. Test pilnuje, że na stronie jest dokładnie jeden `gtag/js`.
+
+### Polityka bezpieczeństwa została świadomie rozluźniona
+
+Do `script-src`, `img-src` i `connect-src` doszły `googleadservices.com`,
+`*.doubleclick.net` i `www.google.com`, plus nowa reguła `frame-src`. Bez nich
+GTM ładuje się poprawnie, ale **tagi Google Ads, które przez niego przechodzą,
+są po cichu blokowane** — w GTM widać „tag uruchomiony", a konwersja nie dociera.
+
+Czego **nie** dopuszczono: `'unsafe-inline'` w `script-src`. Wystarcza to dla
+gotowych szablonów Ads. Jeśli właściciel doda w GTM własny tag typu Custom HTML,
+przestanie działać i trzeba będzie tę decyzję podjąć osobno — świadomie, bo to
+otwiera stronę na dowolny kod osadzony w treści.
+
+Polityka żyje w **dwóch plikach**: `app/index.html` (działa na GitHub Pages)
+i `app/deploy/nginx.conf` (na własnym serwerze). Test porównuje je regułа po
+regule — rozjechanie się tych dwóch dawałoby inne zachowanie w każdym miejscu.
+
+### Wartość zamówienia w GA4
+
+`submit_order` i `submit_rfq` niosą `value`, `currency` i `items` od 5 września.
+GA4 **nie pokazuje kwot zdarzeń własnych w raportach standardowych** — trafiają
+do metryki „Wartość zdarzenia", widocznej dopiero w eksploracji. To nie jest
+usterka aplikacji.
+
+Gdyby właściciel chciał widzieć przychód w raportach i przekazywać wartość
+konwersji do Ads, trzeba wysyłać standardowe `purchase` (zamówienia)
+i `generate_lead` (zapytania). **Zaproponowane, nie wdrożone** — bo pokazywałoby
+jako przychód coś, co nie jest jeszcze opłacone, a przy przekładniach składanych
+bywa niewykonalne.
+
 ## Ścieżki ekranów w GA4 mają przedrostek `/dobor`
 
 Sklep `dkmpower.pl` i konfigurator raportują do **tej samej usługi GA4**, a raport

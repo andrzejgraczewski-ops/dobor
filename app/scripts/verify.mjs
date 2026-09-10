@@ -144,6 +144,13 @@ console.log('\n— Analityka GA4 (G-79013G7BXL) —');
   await page.waitForTimeout(700);
   check('zgoda: pobranie gtag.js z identyfikatorem G-79013G7BXL',
     google.some((u) => u.includes('gtag/js') && u.includes('G-79013G7BXL')), google.join(', '));
+  // Tag Manager wchodzi tą samą bramką zgody co GA4 — przez niego idą tagi Google Ads
+  check('zgoda: pobranie Tag Managera GTM-NN2RKMW',
+    google.some((u) => u.includes('gtm.js') && u.includes('GTM-NN2RKMW')), google.join(', '));
+  // dwa znaczniki GA4 na jednej stronie liczyłyby każde zamówienie dwa razy
+  check('tylko jeden znacznik GA4 na stronie',
+    google.filter((u) => u.includes('gtag/js')).length === 1,
+    google.filter((u) => u.includes('gtag/js')).join(', '));
   let layer = await dl(page);
   const has = (name, pred) => layer.some((a) => a[0] === 'event' && a[1] === name && (!pred || pred(a[2] || {})));
   check('zgoda: config z anonimizacją IP',
@@ -444,6 +451,27 @@ console.log('\n— Nagłówki bezpieczeństwa (polityka z deploy/nginx.conf) —
   const m = /add_header Content-Security-Policy "([^"]+)"/.exec(conf);
   const csp = m ? m[1] : '';
   check('polityka CSP wczytana z deploy/nginx.conf', !!csp, csp.slice(0, 60) + '…');
+
+  // Na GitHub Pages działa polityka ze znacznika meta, na własnym serwerze ta z nginx.
+  // Gdy się rozjadą, aplikacja zachowa się inaczej w obu miejscach — a testy sprawdzają
+  // tylko jedną z nich. Stąd porównanie reguła po regule.
+  {
+    const html = await readFile(join(root, 'index.html'), 'utf8');
+    const meta = (/content="(default-src[^"]+)"/.exec(html) || [, ''])[1];
+    const nginxOnly = ['frame-ancestors', 'upgrade-insecure-requests'];
+    const rozbij = (s) => s.split(';').map((x) => x.trim()).filter(Boolean)
+      .filter((x) => !nginxOnly.some((k) => x.startsWith(k)));
+    const a = rozbij(meta).sort(), b = rozbij(csp).sort();
+    const roznice = a.filter((x) => !b.includes(x)).concat(b.filter((x) => !a.includes(x)));
+    check('polityka w index.html zgodna z tą w nginx.conf', roznice.length === 0,
+      roznice.join(' | ').slice(0, 200));
+    // bez tych adresów tagi Google Ads wstawione przez Tag Managera byłyby blokowane
+    for (const host of ['https://www.googleadservices.com', 'https://*.doubleclick.net']) {
+      check('CSP dopuszcza ' + host, meta.includes(host));
+    }
+    check('CSP nie otwiera skryptów osadzonych w treści', !/script-src[^;]*'unsafe-inline'/.test(meta),
+      (/script-src[^;]*/.exec(meta) || [''])[0].slice(0, 120));
+  }
 
   const cspServer = createServer(async (req, res) => {
     const url = decodeURIComponent((req.url || '/').split('?')[0]);

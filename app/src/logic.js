@@ -69,6 +69,11 @@ export class DkmLogic extends React.Component {
     ...stanZLinku()};
 
   GA_ID='G-79013G7BXL';
+  // Kontener Tag Managera — przez niego właściciel wpina tagi Google Ads.
+  // Ładuje się z tej samej bramki zgody co GA4: bez „Akceptuję analitykę"
+  // nie leci ani jedno, ani drugie. Inaczej aplikacja łamałaby to, co sama
+  // obiecuje w „Informacjach prawnych".
+  GTM_ID='GTM-NN2RKMW';
   // przedrostek ścieżek w GA4 — oddziela ekrany konfiguratora od stron sklepu
   SCIEZKA_BAZA='/dobor';
   ANA_KEY='dkm-analytics-consent';
@@ -140,7 +145,26 @@ export class DkmLogic extends React.Component {
       try{ window.gtag&&window.gtag('event','link_entry',{criterion:this._zLinku}); }catch(e){}
     }
     const src='https://www.googletagmanager.com/gtag/js?id='+this.GA_ID;
-    if(document.querySelector('script[src="'+src+'"]')) return;
+    if(!document.querySelector('script[src="'+src+'"]')){
+      const s=document.createElement('script');
+      s.async=true; s.src=src;
+      document.head.appendChild(s);
+    }
+    this.loadGTM();
+  }
+  // Tag Manager dzieli z GA4 tę samą kolejkę window.dataLayer, więc zdarzenia
+  // wysyłane przez gtag() — submit_order, submit_rfq, add_to_cart — są w GTM
+  // widoczne od razu i można na nich oprzeć wyzwalacze Google Ads.
+  //
+  // Konfiguracji GA4 w GTM dodawać NIE WOLNO: znacznik jest już załadowany tutaj,
+  // drugi liczyłby każdą odsłonę i każde zamówienie dwa razy.
+  loadGTM(){
+    if(this._gtm||typeof document==='undefined'||!this.GTM_ID) return;
+    const src='https://www.googletagmanager.com/gtm.js?id='+this.GTM_ID;
+    if(document.querySelector('script[src="'+src+'"]')){ this._gtm=true; return; }
+    this._gtm=true;
+    window.dataLayer=window.dataLayer||[];
+    window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
     const s=document.createElement('script');
     s.async=true; s.src=src;
     document.head.appendChild(s);
