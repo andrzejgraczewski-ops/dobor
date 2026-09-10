@@ -1436,6 +1436,12 @@ export class DkmLogic extends React.Component {
   };
 
   cardSrc(box){
+    // Przekładnia łączona NIE MA własnej karty wymiarowej i nie wolno pokazać
+    // karty któregokolwiek członu. Regexp poniżej wyłapywał z „DRV050/110"
+    // pierwszą trójkę cyfr, czyli 050 — klient dostawał rysunek małego członu
+    // wejściowego i wymierzyłby zupełnie inne gniazdo. Do czasu, aż będą
+    // wymiary zespołów, karta DRV zostaje pusta.
+    if(this.drvWt(box)) return null;
     // Direct path — no hidden preload element needed, so the browser only
     // fetches the one dimension card actually being viewed, not all 10.
     const m=String(box||'').match(/(\d{3})/); if(!m) return null;

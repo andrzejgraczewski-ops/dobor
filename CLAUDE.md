@@ -528,6 +528,26 @@ Czego jeszcze nie ma: dopłata za montaż 60 zł, skład w mailu z zamówieniem
 (`drvSklad()` jest gotowe, nie jest jeszcze wołane) i komunikat terminu
 (kurier — następny dzień roboczy, paleta — zwykle 1–3 dni robocze).
 
+**Karta produktu dla DRV jest niepełna — i jedna rzecz była wprost myląca.**
+`cardSrc()` wyciągał z nazwy pierwszą trójkę cyfr, więc `DRV050/110` dostawał
+**rysunek wymiarowy DKM050**, czyli małego członu wejściowego. Klient wymierzyłby
+zupełnie inne gniazdo. Od 10 września `cardSrc()` zwraca dla DRV `null` —
+karta zostaje pusta, dopóki nie będzie wymiarów zespołów.
+
+| Sekcja karty | Stan dla DRV |
+|---|---|
+| rysunek wymiarowy | **zablokowany** — pokazywał rysunek członu 1 |
+| tabela wymiarów (`DKM_DIMS`) | brak — sekcja pusta |
+| mocowanie na podstawie (`DKM_FOOT`) | brak — sekcja pusta |
+| rozstaw śrub (`DKM_BOLT`) | brak — sekcja pusta |
+| średnica wału (`DKM_BORE`) | **jest** — skopiowana z członu 2 |
+| lista mocowań (`DKM_MOUNT`) | wspólna dla wszystkiego, więc 6 opcji się oferuje, ale rysunki i wymiary pod nimi są puste |
+| osprzęt (`optOf`) | kluczuje po korpusie → dla DRV nic |
+
+Potrzebne dane: **wymiary zespołów DRV z katalogu** (rysunek i tabela na każdy
+z ośmiu zespołów) plus rozstrzygnięcie, które mocowania DRV w ogóle ma. Bez tego
+karta DRV nie powinna wyglądać jak karta pojedynczej przekładni.
+
 **Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
 na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają
 `fs < 1`, a aplikacja domyślnie takie ukrywa (`hideLow: true`), więc kafelek
