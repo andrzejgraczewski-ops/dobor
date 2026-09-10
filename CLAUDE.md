@@ -439,9 +439,15 @@ Reguły zaproponowane, do zatwierdzenia:
 - **dwie godziny graniczne, bo dwóch przewoźników** — kurier DPD do 13:00,
   spedycja Raben do 9:00. Godzina 9:00 jest już w kodzie, w treści maila
   z zamówieniem; klient dowiaduje się o niej dopiero po złożeniu zamówienia.
-- **przewoźnika wyznacza masa koszyka**, którą `shipPlan()` i tak już liczy:
-  do 40 kg kurier, powyżej — spedycja; DKM110, DKM130 i DKM150 zawsze spedycją,
-  bo sam korpus DKM110 waży 42,5 kg.
+- **przewoźnika wyznacza `shipPlan()`** — i robi to inaczej, niż opisywałem
+  tu wcześniej. **Nie ma progu na masie koszyka.** Działa tak:
+  `SPED=['DKM110','DKM130','DKM150']` — jeśli w koszyku jest którykolwiek z tych
+  korpusów, spedycja jest wymuszona **bez patrzenia na masę**. Poza tym liczy się
+  masa **pojedynczej paczki**, nie koszyka: `PACK_CHEAP=31` kg (25 zł),
+  a `PACK_MAX=40` kg (40 zł) tylko dla sztuki, której nie da się rozbić.
+  Koszyk 3 × 20 kg jedzie więc **kurierem w trzech paczkach**, choć waży 60 kg.
+  Na koniec `courierPlan()` porównuje się kosztem ze `spedCost()` (130 zł
+  do 100 kg, 180 zł do 150 kg, wyżej wycena indywidualna) i wygrywa tańsze.
 - **termin tylko wtedy, gdy cały koszyk jest od ręki**; przy „dostawa 1–3 dni"
   widełki, przy „zapytaj o cenę" nic.
 - **przy proformie bez konkretnej daty** — aplikacja nie wie, kiedy wpłyną pieniądze.
