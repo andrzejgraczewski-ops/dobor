@@ -10,6 +10,10 @@ import './styles/global.css';
 import './data/catalog-data.js';
 import './data/dims-data.js';
 import './data/price-data.js';
+// Przekładnie łączone DRV — dopisują wiersze do DKM_CATALOG i ustawiają DKM_DRV.
+// Muszą iść po dims-data.js, bo kopiują średnicę wału z członu 2 z DKM_BORE.
+// Gdyby tego pliku nie było, aplikacja działa dokładnie jak przed DRV.
+import './data/drv-data.js';
 
 import App from './App.jsx';
 import { domainGuard } from './lib/guard.js';

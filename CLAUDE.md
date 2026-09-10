@@ -487,6 +487,55 @@ więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wylicz
 datę z błędnej godziny — dlatego komunikat ma być warunkowy („jeśli zamówisz
 do 13:00"), a nie twardą gwarancją.
 
+### Przekładnie łączone DRV — dane i wysyłka wdrożone na `test`
+
+Stan na 10 września 2026, gałąź `test`. **107 wierszy, 8 zespołów, silnik
+1400 obr/min.** Wszystkie ustalenia z właścicielem są w komentarzach
+`narzedzia/drv/drv-katalog.json`.
+
+```
+narzedzia/drv/drv-katalog.json   źródło do czytania i poprawiania przez człowieka
+narzedzia/drv/buduj.mjs          → app/src/data/drv-data.js
+```
+
+**Dlaczego osobne pliki, a nie dopisanie do `catalog-data.js` i cennika:**
+gdyby `drv-data.js` zniknął albo się zepsuł, aplikacja zachowuje się dokładnie
+jak przed DRV. To gwarancja „nie popsuć pozostałych rzeczy" zrobiona
+konstrukcją, nie nadzieją. Wszystkie funkcje DRV w `logic.js` (`DRV()`,
+`drvWt()`, `drvCzesci()`, `drvN2()`, `drvSku()`, `drvSklad()`) zwracają
+`null`/`[]` bez tego pliku.
+
+**Wiersz DRV ma ten sam kształt co wiersz tabeli doborowej** (`p1 · i · n2 · m2
+· fr2 · fs`), więc `matches()` filtruje go bez żadnej zmiany — dobór działa sam.
+Wiersze dołączają do `DKM_CATALOG` w `drv-data.js`, po `dims-data.js`, bo
+kopiują średnicę wału z członu 2 z `DKM_BORE`.
+
+Cztery miejsca, które kluczują po nazwie korpusu i trzeba było obsłużyć:
+
+| Miejsce | Co zrobiono |
+|---|---|
+| `kgGear(box)` | zwraca masę zestawu z `DKM_DRV.wt` — bez tego koszyk pokazywał „masa do potwierdzenia" |
+| `SPED` | `drvCzesci()` stawia flagę palety na **członie 2** — sam DKM110 waży 42,5 kg, czyli więcej niż `PACK_MAX` |
+| `shipItems()` | rozbija DRV na cztery sztuki: dwie przekładnie, łącznik i silnik — bo DRV jedzie luzem |
+| `varOf()` | **nie ruszone.** Brak klucza → „zapytaj o cenę". Tak wygląda DRV do pierwszego przebiegu automatu |
+
+**Cena DRV to suma składników** (człon 1 + łącznik + człon 2 + silnik), a ceny
+i stany składników przychodzą z rannego raportu. `price-data.js` jest generowany
+i nie wolno go pisać ręcznie, więc **do najbliższego przebiegu automatu wiersze
+DRV pokazują „zapytaj o cenę"** — i to jest właściwa kolejność, nie usterka.
+
+Czego jeszcze nie ma: dopłata za montaż 60 zł, skład w mailu z zamówieniem
+(`drvSklad()` jest gotowe, nie jest jeszcze wołane) i komunikat terminu
+(kurier — następny dzień roboczy, paleta — zwykle 1–3 dni robocze).
+
+**Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
+na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają
+`fs < 1`, a aplikacja domyślnie takie ukrywa (`hideLow: true`), więc kafelek
+pokazuje „3 poz." i prowadzi do zera. Powód jest starszy niż DRV: lista
+prędkości powstaje z `N2POOL = CAT()`, czyli z całego katalogu, a nie z
+`matches()`. Przed DRV żaden kafelek tego nie ujawniał. Do decyzji z Design,
+bo lista kryteriów to ich działka.
+
 ### DRV, przystawka i UDL — kierunek ustalony, dane czekają
 
 Rozmowa z 9 września 2026. **Nic nie jest zaczęte.**

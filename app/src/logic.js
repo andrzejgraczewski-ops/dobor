@@ -371,6 +371,9 @@ export class DkmLogic extends React.Component {
       const ph=this.phOfKey(x.k)||(x.ph===1?1:3);
       const one=ph===1?this.mot1f(row):null;
       return {...x,...this.priceForItem(row,x.iecPick),
+        // przekładnia łączona: przełożenia członów niosą się z wiersza, bo skład
+        // wchodzi do maila z zamówieniem, a w koszyku go nie pokazujemy
+        ...(row.drv?{drv:row.drv,i1:row.i1,i2:row.i2}:{}),
         ...(x.boreOpt==null?this.boreMigrate(row.box):{}),
         ...(x.boreOpt?{boxNet:null}:{}),
         ph,
@@ -441,7 +444,40 @@ export class DkmLogic extends React.Component {
   toggleMotor(k){ this.setState(s=>{const rfq=s.rfq.map(x=>x.k===k?{...x,withMotor:!x.withMotor}:x);return {rfq};}); }
   // masy z cennika (wt): silnik po SKU, korpus po wielko\u015bci, wyposa\u017cenie po KOD|KORPUS
   WT(){ return ((window.DKM_PRICE||{}).wt)||{}; }
-  kgGear(box){ const t=this.WT().gear||{}; return t[box]||0; }
+  kgGear(box){ const t=this.WT().gear||{}; if(t[box]) return t[box];
+    // przekładnia łączona: masa zestawu to oba człony plus łącznik
+    const d=this.drvWt(box); return d?d.razem:0; }
+  // wszystko o DRV siedzi w window.DKM_DRV (plik drv-data.js). Gdy go nie ma,
+  // te trzy funkcje zwracają null/[] i aplikacja działa dokładnie jak przed DRV.
+  DRV(){ return window.DKM_DRV||{}; }
+  drvWt(box){ return (this.DRV().wt||{})[box]||null; }
+  // DRV jedzie luzem — oba człony, łącznik i silnik jako osobne sztuki do pakowania.
+  // Paletę wymusza człon 2: sam DKM110 waży 42,5 kg, czyli więcej niż PACK_MAX,
+  // więc kurier go nie weźmie niezależnie od tego, jak podzielimy paczki.
+  drvCzesci(box){
+    const m=this.drvWt(box); if(!m) return null;
+    const sped=(this.DRV().sped||[]).indexOf(box)>=0;
+    return [{kg:m.czlon1,sped:false},{kg:m.czlon2,sped:sped},{kg:m.lacznik,sped:false}];
+  }
+  // obroty na wale liczymy sami — katalog zaokrągla je do jednego miejsca
+  drvN2(x){ const o=this.DRV().obroty||1400;
+    return x.i?Math.round(o/x.i*100)/100:(x.n2||0); }
+  // SKU: DRV050/110 + 0,12KW I3000, przy jednofazowym z dopiskiem 1F
+  drvSku(x){
+    if(!this.drvWt(x.box)) return '';
+    const oneF=/1\s*fazow/i.test(x.motName||'');
+    return x.box+' + '+String(num(x.p1)).replace('.',',')+'KW I'+num(x.i)+(oneF?' 1F':'');
+  }
+  // skład do maila z zamówieniem — z kodami magazynowymi, bo biuro i tak
+  // sprawdza części po zamówieniu
+  drvSklad(x){
+    const z=(this.DRV().zespoly||{})[x.box]; if(!z) return [];
+    const L=[z.czlon1+' I'+num(x.i1)+' · człon wejściowy, kołnierz jak silnika',
+             z.czlon2+' I'+num(x.i2)+' · człon wyjściowy'];
+    const lac=z.laczniki.map(l=>l.kod+' ('+l.srednice+') — gdy człon 2 w IEC '+l.iecCzlon2.join('/'));
+    L.push('łącznik: '+(lac.length===1?lac[0]:'\n     '+lac.join('\n     ')));
+    return L;
+  }
   kgMot(sku){ const t=this.WT().mot||{}; return t[sku]||0; }
   kgOpt(code,box){ const t=this.WT().opt||{}; return t[code+'|'+box]||0; }
   kgInv(sku){ const t=this.WT().inv||{}; return t[sku]||0; }
@@ -476,7 +512,11 @@ export class DkmLogic extends React.Component {
     this.state.rfq.forEach(x=>{
       const g=this.gQty(x), m=this.mQty(x);
       const kgG=this.kgGear(x.box), kgM=this.kgMot(x.motSku);
-      for(let i=0;i<g;i++) out.push({kg:kgG,sped:this.SPED.indexOf(x.box)>=0});
+      const czesci=this.drvCzesci(x.box);
+      for(let i=0;i<g;i++){
+        if(czesci) czesci.forEach(c=>out.push({kg:c.kg,sped:c.sped}));
+        else out.push({kg:kgG,sped:this.SPED.indexOf(x.box)>=0});
+      }
       for(let i=0;i<m;i++) out.push({kg:kgM,sped:false});
       if(g>0) (x.extras||[]).filter(e=>!e.off).forEach(e=>{
         const kg=this.kgExtra(e,x.box), q=e.qty==null?1:e.qty;
@@ -1196,6 +1236,12 @@ export class DkmLogic extends React.Component {
   tradeOf(x){
     const g=this.gQty(x), m=this.mQty(x);
     const oneF=/1\s*fazow/i.test(x.motName||'');
+    // Przekładnia łączona: klient widzi jedną pozycję, bez składu. Skład idzie
+    // do maila z zamówieniem — tam jest potrzebny osobie, która to składa.
+    // n2 podajemy policzone, nie zaokrąglone z katalogu (i 3000 → 0,47, nie 0,5).
+    if(this.drvWt(x.box)) return {tag:'Motoreduktor łączony',
+      name:'Motoreduktor łączony '+x.box+' z silnikiem '+(oneF?'jednofazowym':'trójfazowym')
+        +', '+num(x.p1)+' kW, i = '+num(x.i)+', '+num(this.drvN2(x))+' obr/min'};
     if(g>0&&m>0) return {tag:'Motoreduktor '+(oneF?'1F':'3F'),
       name:'Silnik '+(x.p1||'')+' kW '+(x.rpm||'')+' obr/min + Przek\u0142adnia '+x.box+' i'+x.i};
     if(m>0&&!g) return {tag:'Silnik',name:'Silnik '+(x.p1||'')+' kW '+(x.rpm||'')+' obr/min'};
