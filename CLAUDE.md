@@ -575,6 +575,24 @@ kurier — „składamy dziś — dostawa następnego dnia roboczego"; paleta �
 do 12:00 nie zdąży na odbiór tego samego dnia. Konkretnej daty nie podajemy:
 aplikacja czyta zegar urządzenia klienta.
 
+**Silnik trójfazowy przy DRV — asymetria naprawiona 10.09.2026.** Właściciel:
+„brakuje mi silnika 0,25 kW… a dlaczego przy 3-fazowym nie?". Powód: cennik
+kluczuje warianty po **korpusie**, a korpusu `DRV050/110` tam nie ma, więc
+`varOf()` nie znajdował nic. Jednofazowy wychodził normalnie, bo jego tabela
+`m1f` kluczuje po **mocy, obrotach i kołnierzu** — nie po korpusie. Na jednej
+karcie jeden silnik miał cenę, a drugi „na zapytanie", co wyglądało jak usterka.
+
+**Silnik nie zależy od przekładni** — ten sam `0,25 4 71B14 DKM` pasuje
+do DKM040 i do DRV040/075. `drvMot()` bierze więc jego cenę, stan i SKU
+z dowolnego wariantu o tej samej mocy, obrotach i kołnierzu, czyli **z realnej
+pozycji cennika, nie z domysłu**. Rozwiązuje się dla **wszystkich 107 wierszy**.
+Tabela składana raz i trzymana przy dacie cennika — inaczej 1800 kluczy
+przelatywałoby się przy każdym rysowaniu. Podłączone w `priceOf()`,
+`motorOf()` i `priceForItem()`, więc karta i koszyk mówią to samo.
+
+Cena samej przekładni nadal czeka na automat — to dwie różne rzeczy: silnik
+da się rozwiązać z dzisiejszego cennika, suma składników nie.
+
 **Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
 na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają
 `fs < 1`, a aplikacja domyślnie takie ukrywa (`hideLow: true`), więc kafelek

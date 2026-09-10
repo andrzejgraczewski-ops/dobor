@@ -335,7 +335,14 @@ export class DkmLogic extends React.Component {
   componentWillUnmount(){ try{ this.mq&&(this.mq.removeEventListener?this.mq.removeEventListener('change',this.onMq):this.mq.removeListener(this.onMq)); }catch(e){} clearTimeout(this._doneT); }
   priceForItem(row,iecPick){
     const list=this.variants(row);
-    if(!list.length) return {boxNet:null,motNet:null,motName:'',iec:String(row.flange||''),iecPick:null};
+    if(!list.length){
+      // Przekładnia łączona nie ma jeszcze klucza w cenniku, ale silnik ma —
+      // to ta sama część niezależnie od przekładni. Bez tego koszyk pokazywałby
+      // „silnik na zapytanie" przy silniku leżącym na półce.
+      const m=this.drvMot(row);
+      return {boxNet:null,motNet:m?m.net:null,motName:m?m.name:'',
+        motSku:m?m.sku:'',iec:String(row.flange||''),iecPick:m?m.fl:null};
+    }
     const sorted=list.slice().sort((a,b)=>
       (a.v.status-b.v.status)||((a.v.setNet||a.v.gearNet||1e9)-(b.v.setNet||b.v.gearNet||1e9)));
     const pref=this.prefFlange(row);
@@ -462,6 +469,35 @@ export class DkmLogic extends React.Component {
   // obroty na wale liczymy sami — katalog zaokrągla je do jednego miejsca
   drvN2(x){ const o=this.DRV().obroty||1400;
     return x.i?Math.round(o/x.i*100)/100:(x.n2||0); }
+  // Silnik trójfazowy do przekładni łączonej.
+  //
+  // Cennik kluczuje warianty po KORPUSIE, a korpusu „DRV050/110" tam nie ma —
+  // więc varOf() nie znajdował nic i karta DRV pokazywała „silnik na zapytanie",
+  // choć jednofazowy wychodził normalnie (jego tabela m1f kluczuje po mocy
+  // i kołnierzu, nie po korpusie). Ta asymetria wyglądała jak usterka.
+  //
+  // Silnik nie zależy od przekładni: ten sam 0,25 kW 71B14 pasuje do DKM040
+  // i do DRV040/075. Bierzemy więc jego cenę, stan i SKU z dowolnego wariantu
+  // o tej samej mocy, obrotach i kołnierzu — czyli z realnej pozycji cennika,
+  // nie z domysłu. Tabelę składamy raz i trzymamy przy dacie cennika, bo
+  // przelatywanie 1800 kluczy przy każdym rysowaniu byłoby marnotrawstwem.
+  drvMot(r){
+    if(!r||!this.drvWt(r.box)) return null;
+    const P=window.DKM_PRICE||{}, stamp=P.updated||'';
+    if(this._motStamp!==stamp){
+      this._motStamp=stamp; this._motT={};
+      for(const k in (P.var||{})){
+        const v=P.var[k]; if(v[2]==null||!v[7]) continue;
+        const p=k.split('|'); const key=p[3]+'|'+p[4]+'|'+p[1];
+        if(!this._motT[key]) this._motT[key]={net:v[2],q:v[3],sku:v[7]};
+      }
+    }
+    for(const f of this.flangeList(r)){
+      const m=this._motT[r.p1+'|'+r.rpm+'|'+f.fl];
+      if(m) return {...m,name:((P.nam||{})[m.sku])||m.sku,fl:f.fl};
+    }
+    return null;
+  }
   // Termin dla DRV, gdy wszystkie części są na stanie. Dwa komunikaty, bo dwie
   // drogi: kurier dowozi następnego dnia roboczego, a paleta (Raben) jedzie D+2
   // i montaż do 12:00 nie zdąży na odbiór tego samego dnia — stąd widełki.
@@ -1290,7 +1326,8 @@ export class DkmLogic extends React.Component {
   motorOf(r){
     if(this.wants1F(r)){ const o=this.mot1f(r); if(o) return o; }
     const p=this.pickVar(r);
-    return (p&&p.v.motNet!=null)?{net:p.v.motNet,q:p.v.motQ,name:p.v.motName,sku:p.v.motSku}:null;
+    if(p&&p.v.motNet!=null) return {net:p.v.motNet,q:p.v.motQ,name:p.v.motName,sku:p.v.motSku};
+    return this.drvMot(r);
   }
   boxNetOf(r){
     if(this.boreIsOpt(r.box)) return null;
@@ -1310,8 +1347,10 @@ export class DkmLogic extends React.Component {
     const bOpt=this.boreIsOpt(r.box);
     const net=(!bOpt&&v&&v.gearNet!=null)?v.gearNet:null;
     const one=this.wants1F(r)?this.mot1f(r):null;
+    const drvM=one?null:this.drvMot(r);
     const mot=one?{net:one.net,q:one.q,name:one.name}
-      :((v&&v.motNet!=null)?{net:v.motNet,q:v.motQ,name:v.motName}:null);
+      :((v&&v.motNet!=null)?{net:v.motNet,q:v.motQ,name:v.motName}
+        :(drvM?{net:drvM.net,q:drvM.q,name:drvM.name}:null));
     let aL='sprawdzamy',aC=V('neutral-700'),aD=V('neutral-400');
     if(bOpt){ aL='niedostępna — zapytaj'; aC=V('mid-ink'); aD=V('mid'); }
     else if(v){
