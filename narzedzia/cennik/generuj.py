@@ -193,9 +193,33 @@ def main():
         w = z_raportu(kod)
         m1f[klucz] = [kod, nazwa, w['cena'] if w else cena_zapas, 1 if w and w['ilosc'] else 0]
 
+    # Łączniki przekładni łączonych DRV. Cena zespołu to suma składników —
+    # człon 1 + łącznik + człon 2 + silnik — a trzy z nich odświeżają się tu
+    # codziennie. Bez łącznika aplikacja musiałaby brać jego cenę ze zrzutu
+    # w drv-katalog.json i nigdy nie znałaby stanu.
+    #
+    # Kody czytamy z drv-katalog.json, bo tam człowiek je poprawia; ceny z tego
+    # pliku zostają jako zapas. W raporcie te pozycje wyglądają na „ACZNIK
+    # 030/040": norm() rozkłada znaki i wyrzuca to, czego nie ma w ASCII, a „Ł"
+    # odpowiednika bez ogonka nie ma. Obie strony normalizujemy tak samo, więc
+    # kod z „Ł" trafia we wpis bez „Ł" — ale wyszukiwanie po nazwie nie zadziała.
+    #
+    # Bez pliku DRV sekcja wychodzi pusta, a cennik jest dokładnie taki jak przedtem.
+    lac = {}
+    plik_drv = KORZEN / 'narzedzia/drv/drv-katalog.json'
+    if plik_drv.exists():
+        for zespol in json.loads(plik_drv.read_text('utf-8'))['zespoly'].values():
+            for l in zespol['laczniki']:
+                w = z_raportu(l['kod'])
+                lac[l['kod']] = [w['cena'] if w and w['cena'] is not None else l.get('cena'),
+                                 1 if w and w['ilosc'] else 0]
+
     na_stanie = sum(1 for w in var.values() if w[5])
     print(f'raport {dzien:%d.%m.%Y} · pozycji {len(poz)} · wariantów {len(var)} '
           f'· zestawów na stanie {na_stanie} · silników {len(nam)}')
+    if lac:
+        print(f'  łączników DRV: {len(lac)} · z ceną {sum(1 for v in lac.values() if v[0] is not None)}'
+              f' · na stanie {sum(1 for v in lac.values() if v[1])}')
     brak_ceny = sum(1 for w in var.values() if w[0] is None)
     if brak_ceny:
         print(f'  wariantów wciąż bez ceny przekładni: {brak_ceny}')
@@ -241,6 +265,8 @@ window.DKM_PRICE = {{
     L.append(',\n'.join('  [' + ','.join(js(x) for x in w) + ']' for w in inv))
     L.append('  ],\n  m1f: {')
     L.append(',\n'.join(f"  {js(k)}: [" + ','.join(js(x) for x in v) + ']' for k, v in m1f.items()))
+    L.append('  },\n  lac: {')
+    L.append(',\n'.join(f"  {js(k)}: [{js(v[0])},{js(v[1])}]" for k, v in sorted(lac.items())))
     L.append('  },\n  wt: {')
     grupy = []
     for nazwa_g, tresc in K['wt'].items():

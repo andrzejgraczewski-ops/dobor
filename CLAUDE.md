@@ -170,7 +170,7 @@ musi mieć swój wiersz, choćby ze statusem „zapytaj o cenę".
 ## Format danych
 
 ```js
-window.DKM_PRICE = { updated, var, nam, opt, inv, m1f, wt }
+window.DKM_PRICE = { updated, var, nam, opt, inv, m1f, lac, wt }
 ```
 
 - **var** — klucz `KORPUS|IEC+KOŁNIERZ|PRZEŁOŻENIE|kW|obr/min`, wartość
@@ -182,6 +182,9 @@ window.DKM_PRICE = { updated, var, nam, opt, inv, m1f, wt }
   Plik nie może wynosić stanu magazynowego na zewnątrz.
 - **status** — `0` = „w magazynie", `1` = „dostawa 1–3 dni",
   `2` = „zapytaj o cenę". Liczony z danych, nie podawany ręcznie.
+- **lac** — łączniki przekładni łączonych DRV: `kod → [cena, stan]`. Kody bierze
+  generator z `narzedzia/drv/drv-katalog.json`; bez tego pliku sekcja jest pusta
+  i cennik zachowuje się jak przedtem.
 - **updated** — `"stan na DD.MM.RRRR"`, data raportu magazynowego.
   Pokazywana klientowi, więc musi odpowiadać prawdzie.
 
@@ -237,7 +240,8 @@ a potem zaraportować właścicielowi, co doszło i co pominięto.
 
 **Siatka bezpieczeństwa to testy.** `verify.mjs` sprawdza między innymi odsłony
 ekranów w GA4, wartość zamówienia w zdarzeniu wysyłki, zgodę na analitykę,
-wysyłkę na Formspree i znaczniki dla wyszukiwarek. Jeśli eksport skasuje coś
+wysyłkę na Formspree, znaczniki dla wyszukiwarek oraz cenę zespołów DRV
+liczoną ze składników. Jeśli eksport skasuje coś
 z prawej kolumny, testy powinny to złapać, zanim zmiana trafi na stronę.
 
 ## Wersja testowa: dobor-test.pages.dev
@@ -502,8 +506,8 @@ narzedzia/drv/buduj.mjs          → app/src/data/drv-data.js
 gdyby `drv-data.js` zniknął albo się zepsuł, aplikacja zachowuje się dokładnie
 jak przed DRV. To gwarancja „nie popsuć pozostałych rzeczy" zrobiona
 konstrukcją, nie nadzieją. Wszystkie funkcje DRV w `logic.js` (`DRV()`,
-`drvWt()`, `drvCzesci()`, `drvN2()`, `drvSku()`, `drvSklad()`) zwracają
-`null`/`[]` bez tego pliku.
+`drvWt()`, `drvCzesci()`, `drvN2()`, `drvSku()`, `drvSklad()`, `drvVar()`,
+`drvLac()`) zwracają `null`/`[]` bez tego pliku.
 
 **Wiersz DRV ma ten sam kształt co wiersz tabeli doborowej** (`p1 · i · n2 · m2
 · fr2 · fs`), więc `matches()` filtruje go bez żadnej zmiany — dobór działa sam.
@@ -517,16 +521,71 @@ Cztery miejsca, które kluczują po nazwie korpusu i trzeba było obsłużyć:
 | `kgGear(box)` | zwraca masę zestawu z `DKM_DRV.wt` — bez tego koszyk pokazywał „masa do potwierdzenia" |
 | `SPED` | `drvCzesci()` stawia flagę palety na **członie 2** — sam DKM110 waży 42,5 kg, czyli więcej niż `PACK_MAX` |
 | `shipItems()` | rozbija DRV na cztery sztuki: dwie przekładnie, łącznik i silnik — bo DRV jedzie luzem |
-| `varOf()` | **nie ruszone.** Brak klucza → „zapytaj o cenę". Tak wygląda DRV do pierwszego przebiegu automatu |
+| `varOf()` | gdy klucza nie ma, a korpus jest zespołem DRV, cenę liczy `drvVar()` ze składników — patrz niżej |
 
-**Cena DRV to suma składników** (człon 1 + łącznik + człon 2 + silnik), a ceny
-i stany składników przychodzą z rannego raportu. `price-data.js` jest generowany
-i nie wolno go pisać ręcznie, więc **do najbliższego przebiegu automatu wiersze
-DRV pokazują „zapytaj o cenę"** — i to jest właściwa kolejność, nie usterka.
+### Cena DRV liczy się w locie ze składników
 
-Czego jeszcze nie ma: dopłata za montaż 60 zł, skład w mailu z zamówieniem
-(`drvSklad()` jest gotowe, nie jest jeszcze wołane) i komunikat terminu
-(kurier — następny dzień roboczy, paleta — zwykle 1–3 dni robocze).
+Wdrożone 10 września 2026, na gałęzi `test`. Właściciel: „tak naprawdę masz
+wszystko, przecież wyliczałeś cenę".
+
+**Cena zespołu = człon 1 + łącznik + człon 2 + silnik.** Wszystkie cztery są
+zwykłymi pozycjami magazynowymi i wszystkie cztery przychodzą z rannego raportu,
+więc `drvVar()` sumuje je przy każdym rysowaniu. Własnego klucza w cenniku DRV
+nie dostanie i dostać nie może: cennik kluczuje po **korpusie**, a `DRV050/110`
+korpusem nie jest.
+
+Wynik ma **dokładnie kształt wpisu z `DKM_PRICE.var`**, więc `variants()`,
+`pickVar()`, karta, wyniki, koszyk i mail czytają go istniejącą drogą — i status
+wychodzi tą samą regułą co wszędzie: brak którejkolwiek ceny to „zapytaj
+o cenę", pełny stan wszystkich składników to 0, inaczej 1.
+
+Dwie reguły doboru składników, obie od właściciela:
+
+- **silnik i człon 1 muszą być w tym samym kołnierzu** — silnik przykręca się
+  wprost do członu wejściowego, więc kołnierza nie da się dobrać osobno.
+  Dlatego `drvMot()` bierze silnik z kołnierza **wybranego wariantu**, a nie
+  z pierwszego, jaki znajdzie: inaczej ekran pokazywał przekładnię w `56B5`
+  z silnikiem w `56B14`, czyli dwie części, których nie da się złożyć;
+- **kołnierz członu 2 wynika z łącznika** (druga liczba w jego nazwie to
+  średnica przyłącza PAM-IEC), więc łącznik i człon 2 dobierane są parą.
+
+Gdy pasuje więcej niż jedno wykonanie, wygrywa to leżące na stanie — tak samo
+jak przy kołnierzu silnika w pojedynczych przekładniach.
+
+Stan na 10 września: **101 wierszy ze 107 z pełną ceną, 75 w całości na stanie.**
+Sześć bez ceny i to nie jest luka w kodzie:
+
+- pięć wierszy **0,09 kW** — `DKM040` w tym przełożeniu jest tylko w `56B5`,
+  a silnik 0,09 kW ma cenę tylko w `56B14`. Pojedyncze przekładnie zachowują
+  się tu identycznie (`DKM040 56B5 i50` też mówi „zapytaj o cenę"), więc DRV
+  nie jest gorsze od reszty aplikacji, tylko tak samo ostrożne;
+- `DRV040/075 0,25 kW i500` — `DKM075 I50` jest na stanie wyłącznie w IEC 80,
+  a łącznik 040/075 wymaga IEC 90.
+
+**Łącznik jest czwartym składnikiem i ma teraz swoją sekcję w cenniku.**
+`generuj.py` dopisuje `lac: {kod: [cena, stan]}` — kody czyta
+z `narzedzia/drv/drv-katalog.json` (bez tego pliku sekcja wychodzi pusta,
+a cennik jest taki jak przedtem), a cenę i stan z raportu. W raporcie łączniki
+wyglądają na **`ACZNIK 030/040`**: `norm()` rozkłada znaki i wyrzuca to, czego
+nie ma w ASCII, a `Ł` odpowiednika bez ogonka nie ma. Obie strony normalizujemy
+tak samo, więc szukanie po kodzie działa — ale szukanie po nazwie z `Ł` nie.
+
+Do pierwszego przebiegu automatu z tą sekcją obowiązuje **cena łącznika ze
+zrzutu w `drv-katalog.json`**, a jego stan zostaje nieznany. Nieznanego nie
+liczymy jako braku (`drvLac()` zwraca wtedy `q = 1`): łączniki leżą na półce
+w kilkunastu sztukach, a przeciwna decyzja odebrałaby wszystkim zespołom termin
+dostawy na jeden dzień bez żadnego powodu w danych.
+
+**Montaż nie może gubić masy przesyłki.** Dopłata `MONT` jest usługą i waży 0,
+a `shipPlan()` wymagał masy od każdego wyposażenia — więc zaznaczenie montażu
+kasowało cenę wysyłki i koszyk pisał „masa do potwierdzenia". Kody bez masy
+siedzą teraz w jednej liście `BEZ_MASY = ['PCV','MONT']`, czytanej i przez
+`kgExtra()`, i przez sprawdzenie „czy znamy masy".
+
+Otwarte: przy dopłacie za montaż zestaw jedzie **jako bryła**, a `shipItems()`
+nadal rozbija go na cztery sztuki. Przy palecie nie zmienia to nic, przy kurierze
+może zmienić liczbę paczek. Do ustalenia z właścicielem, bo to zmiana ceny
+wysyłki.
 
 **Mocowanie i wyposażenie DRV dziedziczy po członie 2** — właściciel, 10.09.2026:
 „człon 2 to daje, a to ta sama przekładnia". Kopiowane pod nazwę zespołu
@@ -590,8 +649,8 @@ Tabela składana raz i trzymana przy dacie cennika — inaczej 1800 kluczy
 przelatywałoby się przy każdym rysowaniu. Podłączone w `priceOf()`,
 `motorOf()` i `priceForItem()`, więc karta i koszyk mówią to samo.
 
-Cena samej przekładni nadal czeka na automat — to dwie różne rzeczy: silnik
-da się rozwiązać z dzisiejszego cennika, suma składników nie.
+Tą samą tabelą (`drvTab()`, składaną raz na datę cennika) liczy się dziś cena
+całego zespołu — patrz „Cena DRV liczy się w locie ze składników" wyżej.
 
 **Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
 na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają

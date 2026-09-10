@@ -479,24 +479,101 @@ export class DkmLogic extends React.Component {
   // Silnik nie zależy od przekładni: ten sam 0,25 kW 71B14 pasuje do DKM040
   // i do DRV040/075. Bierzemy więc jego cenę, stan i SKU z dowolnego wariantu
   // o tej samej mocy, obrotach i kołnierzu — czyli z realnej pozycji cennika,
-  // nie z domysłu. Tabelę składamy raz i trzymamy przy dacie cennika, bo
-  // przelatywanie 1800 kluczy przy każdym rysowaniu byłoby marnotrawstwem.
+  // nie z domysłu.
   drvMot(r){
     if(!r||!this.drvWt(r.box)) return null;
-    const P=window.DKM_PRICE||{}, stamp=P.updated||'';
-    if(this._motStamp!==stamp){
-      this._motStamp=stamp; this._motT={};
-      for(const k in (P.var||{})){
-        const v=P.var[k]; if(v[2]==null||!v[7]) continue;
-        const p=k.split('|'); const key=p[3]+'|'+p[4]+'|'+p[1];
-        if(!this._motT[key]) this._motT[key]={net:v[2],q:v[3],sku:v[7]};
-      }
-    }
-    for(const f of this.flangeList(r)){
-      const m=this._motT[r.p1+'|'+r.rpm+'|'+f.fl];
+    const P=window.DKM_PRICE||{}, T=this.drvTab();
+    // Silnik musi być w tym samym kołnierzu co człon wejściowy — B5 i B14 to
+    // różne kołnierze, taki silnik po prostu się nie przykręci. Gdy wariant jest
+    // już wybrany, obowiązuje jego kołnierz; bez wariantu (zespół, dla którego
+    // nie znaleźliśmy żadnego składnika) przeglądamy dopuszczalne po kolei.
+    const p=this.pickVar(r);
+    for(const f of (p?[p]:this.flangeList(r))){
+      const m=T.mot[r.p1+'|'+r.rpm+'|'+f.fl];
       if(m) return {...m,name:((P.nam||{})[m.sku])||m.sku,fl:f.fl};
     }
     return null;
+  }
+  // Cennik kluczuje wariant razem z mocą silnika (KORPUS|KOŁNIERZ|i|kW|obr),
+  // a do zespołu potrzebujemy składników osobno: człon 1 ma swoje przełożenie,
+  // człon 2 swoje, silnik nie zależy od żadnego z nich. Składamy więc dwie
+  // tabele pomocnicze — raz na datę cennika, bo przelatywanie 1800 kluczy przy
+  // każdym rysowaniu byłoby marnotrawstwem:
+  //   gear  KORPUS|KOŁNIERZ|PRZEŁOŻENIE → cena i stan przekładni
+  //   mot   kW|obr/min|KOŁNIERZ         → cena, stan i SKU silnika
+  // Ta sama przekładnia wraca w cenniku przy każdej mocy silnika, więc gdy
+  // trafi się kilka wpisów, wybieramy ten leżący na stanie.
+  drvTab(){
+    const P=window.DKM_PRICE||{}, stamp=P.updated||'';
+    if(this._drvStamp!==stamp){
+      this._drvStamp=stamp;
+      const gear={}, mot={};
+      for(const k in (P.var||{})){
+        const v=P.var[k], p=k.split('|');
+        const gk=p[0]+'|'+p[1]+'|'+p[2];
+        if(v[0]!=null&&(!gear[gk]||(!gear[gk].q&&v[1]))) gear[gk]={net:v[0],q:v[1]};
+        const mk=p[3]+'|'+p[4]+'|'+p[1];
+        if(v[2]!=null&&v[7]&&(!mot[mk]||(!mot[mk].q&&v[3]))) mot[mk]={net:v[2],q:v[3],sku:v[7]};
+      }
+      this._drvGearT=gear; this._drvMotT=mot;
+    }
+    return {gear:this._drvGearT,mot:this._drvMotT};
+  }
+  // Łącznik — czwarty składnik ceny. Cena i stan przychodzą z rannego raportu
+  // (DKM_PRICE.lac, sekcja dopisana w generuj.py), bo łącznik jest zwykłą
+  // pozycją magazynową. Dopóki automat nie przeliczy cennika, obowiązuje cena
+  // z drv-katalog.json, a stan zostaje nieznany — i nieznanego nie liczymy jako
+  // braku, bo łączniki leżą na półce; inaczej wszystkie zespoły straciłyby
+  // termin dostawy na jeden dzień bez żadnego powodu w danych.
+  drvLac(l){
+    const e=((window.DKM_PRICE||{}).lac||{})[l.kod];
+    return {kod:l.kod,net:(e&&e[0]!=null)?e[0]:(l.cena==null?null:l.cena),q:e?e[1]:1};
+  }
+  // Cena przekładni łączonej = człon 1 + łącznik + człon 2 + silnik.
+  //
+  // Wszystkie cztery składniki są zwykłymi pozycjami magazynowymi i wszystkie
+  // cztery przychodzą z rannego raportu, więc liczymy je w locie. Własnego
+  // klucza w cenniku DRV nie dostanie: cennik kluczuje po korpusie, a zespół
+  // „DRV050/110" korpusem nie jest.
+  //
+  // Wynik ma dokładnie ten kształt co wpis z DKM_PRICE.var, więc variants(),
+  // pickVar(), karta, wyniki, koszyk i mail czytają go istniejącą drogą —
+  // i status wychodzi tą samą regułą co wszędzie: brak którejkolwiek ceny to
+  // „zapytaj o cenę", pełny stan to 0, inaczej 1.
+  //
+  // Dwie reguły doboru składników, obie od właściciela:
+  //   • silnik i człon 1 muszą być w TYM SAMYM kołnierzu — silnik przykręca się
+  //     wprost do członu wejściowego, więc kołnierza nie da się dobrać osobno;
+  //   • kołnierz członu 2 wynika z łącznika (druga liczba w jego nazwie to
+  //     średnica przyłącza PAM-IEC), więc łącznik i człon 2 idą parą.
+  // Gdy pasuje więcej niż jedno wykonanie, wygrywa to leżące na stanie.
+  drvVar(r,fl){
+    const z=(this.DRV().zespoly||{})[r.box]; if(!z) return null;
+    const T=this.drvTab(), P=window.DKM_PRICE||{};
+    const c1=T.gear[z.czlon1+'|'+fl+'|'+r.i1];
+    const mot=T.mot[r.p1+'|'+r.rpm+'|'+fl];
+    let best=null;
+    (z.laczniki||[]).forEach(l=>{
+      const lac=this.drvLac(l);
+      if(lac.net==null) return;
+      (l.iecCzlon2||[]).forEach(iec=>['B14','B5'].forEach(t=>{
+        const c2=T.gear[z.czlon2+'|'+iec+t+'|'+r.i2];
+        if(!c2) return;
+        const q=(c2.q&&lac.q)?1:0;
+        if(!best||(!best.q&&q)) best={c2,lac,q};
+      }));
+    });
+    const gearNet=(c1&&best)?Math.round((c1.net+best.lac.net+best.c2.net)*100)/100:null;
+    if(gearNet==null&&!mot) return null;
+    const gearQ=(c1&&best&&c1.q&&best.q)?1:0;
+    const brak=gearNet==null||!mot;
+    return {gearNet,gearQ,
+      motNet:mot?mot.net:null,motQ:mot?mot.q:0,
+      setNet:brak?null:Math.round((gearNet+mot.net)*100)/100,
+      setQ:(!brak&&gearQ&&mot.q)?1:0,
+      status:brak?2:((gearQ&&mot.q)?0:1),
+      motSku:mot?mot.sku:'',
+      motName:mot?(((P.nam||{})[mot.sku])||mot.sku):''};
   }
   // Termin dla DRV, gdy wszystkie części są na stanie. Dwa komunikaty, bo dwie
   // drogi: kurier dowozi następnego dnia roboczego, a paleta (Raben) jedzie D+2
@@ -528,10 +605,14 @@ export class DkmLogic extends React.Component {
   kgMot(sku){ const t=this.WT().mot||{}; return t[sku]||0; }
   kgOpt(code,box){ const t=this.WT().opt||{}; return t[code+'|'+box]||0; }
   kgInv(sku){ const t=this.WT().inv||{}; return t[sku]||0; }
-  // PCV pomijamy w masie \u2014 os\u0142ona wa\u017cy tyle, \u017ce nie zmienia podzia\u0142u paczek
+  // Pozycje bez masy: os\u0142ona PCV wa\u017cy tyle, \u017ce nie zmienia podzia\u0142u paczek,
+  // a monta\u017c zestawu to us\u0142uga \u2014 nic do paczki nie dok\u0142ada. Obie musz\u0105 by\u0107
+  // wy\u0142\u0105czone ze sprawdzenia \u201eczy znamy masy", inaczej dop\u0142ata za monta\u017c
+  // kasowa\u0142aby cen\u0119 wysy\u0142ki i koszyk pisa\u0142 \u201emas\u0119 potwierdzimy" bez powodu.
+  BEZ_MASY=['PCV','MONT'];
   kgExtra(e,box){
     const code=String(e.code||'');
-    if(code==='PCV') return 0;
+    if(this.BEZ_MASY.indexOf(code)>=0) return 0;
     if(/^INV/.test(code)) return this.kgInv(e.sku);
     return this.kgOpt(code,box);
   }
@@ -612,7 +693,7 @@ export class DkmLogic extends React.Component {
       if(this.gQty(x)>0&&!(this.kgGear(x.box)>0)) return false;
       if(this.mQty(x)>0&&!(this.kgMot(x.motSku)>0)) return false;
       if(this.gQty(x)===0) return true;
-      return (x.extras||[]).filter(e=>!e.off&&e.code!=='PCV')
+      return (x.extras||[]).filter(e=>!e.off&&this.BEZ_MASY.indexOf(e.code)<0)
         .every(e=>this.kgExtra(e,x.box)>0);
     });
     const mustSped=items.some(x=>x.sped);
@@ -1078,7 +1159,9 @@ export class DkmLogic extends React.Component {
   varOf(r,fl){
     const Vv=(window.DKM_PRICE||{}).var||{};
     const e=Vv[[r.box,fl,r.i,r.p1,r.rpm].join('|')];
-    if(!e) return null;
+    // Przekładnia łączona nie ma w cenniku własnego klucza i mieć nie będzie —
+    // jej cenę składamy ze składników. Reszta aplikacji nie widzi różnicy.
+    if(!e) return this.drvWt(r.box)?this.drvVar(r,fl):null;
     return {gearNet:e[0],gearQ:e[1],motNet:e[2],motQ:e[3],setNet:e[4],setQ:e[5],status:e[6],
       motSku:e[7],motName:(((window.DKM_PRICE||{}).nam)||{})[e[7]]||''};
   }

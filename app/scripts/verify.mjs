@@ -725,6 +725,86 @@ console.log('\n— Wejście z linku (?start=…) —');
   }
 }
 
+console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
+
+// 11. Cena zespołu DRV nie stoi w cenniku — składa ją logic.js z czterech
+//     pozycji magazynowych (człon 1 + łącznik + człon 2 + silnik). Gdyby to
+//     przestało działać, DRV wróciłoby po cichu do „zapytaj o cenę": aplikacja
+//     działałaby dalej, tylko przestałaby sprzedawać przekładnie łączone.
+{
+  const ctx = await browser.newContext({ viewport: { width: 520, height: 1200 } });
+  await ctx.route(/googletagmanager\.com|google-analytics\.com/, (r) =>
+    r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+  // decyzja o analityce podjęta z góry — inaczej baner zasłania przyciski
+  await ctx.addInitScript(() => {
+    try { localStorage.setItem('dkm-analytics-consent', 'no'); } catch (e) {}
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(base + '?start=i', { waitUntil: 'networkidle' });
+
+  // i = 1500 mają wyłącznie zespoły łączone — pojedyncza przekładnia kończy się na i100
+  const kafelek = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')]
+      .find((x) => /^\s*1500\b/.test(x.innerText.replace(/\n/g, ' ')));
+    if (b) { b.click(); return true; } return false;
+  });
+  check('kryterium przełożenia ma kafelek i = 1500 (tylko DRV)', kafelek);
+  await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+  await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
+  await page.waitForTimeout(400);
+
+  // kwoty na ekranie mają spację jako separator tysięcy („1 480 zł") — i to nie
+  // zwykłą, więc grupę cyfr czytamy razem ze wszystkimi odmianami odstępu
+  const zl = (t) => {
+    const m = /(\d[\d\s]*)zł/.exec(t || '');
+    return m ? parseInt(m[1].replace(/\D/g, ''), 10) : null;
+  };
+  const wiersze = await page.evaluate(() => [...document.querySelectorAll('button')]
+    .filter((x) => /^DRV\d/.test(x.innerText)).map((x) => x.innerText.replace(/\n/g, ' ')));
+  check('wyniki dla i = 1500 to zespoły DRV', wiersze.length > 0, wiersze.length + ' pozycji');
+  const zCena = wiersze.filter((t) => zl(t) > 0);
+  check('zespoły DRV mają policzoną cenę przekładni, nie „na zapytanie"',
+    zCena.length > 0, zCena.length + '/' + wiersze.length + ' z ceną');
+  // termin dostawy wolno obiecać tylko wtedy, gdy cena jest policzona do końca
+  check('DRV bez pełnej ceny nie obiecuje terminu',
+    !wiersze.some((t) => /zapytaj o cenę/.test(t) && /składamy/.test(t)),
+    wiersze.join(' || ').slice(0, 200));
+
+  // karta: cena zestawu to suma przekładni i silnika — bierzemy pozycję
+  // wycenioną do końca, bo tylko taka ma obie liczby
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')]
+      .find((x) => /^DRV\d/.test(x.innerText) && !/zapytaj o cenę/.test(x.innerText));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(500);
+  const karta = await page.evaluate(() => document.body.innerText);
+  const sekcja = (n) => { const i = karta.indexOf(n); return i < 0 ? '' : karta.slice(i, i + 90); };
+  const przekl = zl(sekcja('PRZEKŁADNIA — CENA NETTO'));
+  const silnik = zl(sekcja('SILNIK — CENA NETTO'));
+  const zestaw = zl(sekcja('ZESTAW NETTO'));
+  const mont = zl(sekcja('Montaż zestawu'));
+  check('karta DRV podaje cenę przekładni i silnika osobno',
+    przekl > 0 && silnik > 0, przekl + ' + ' + silnik);
+  check('cena zestawu DRV = przekładnia + silnik + wyposażenie',
+    zestaw === przekl + silnik + (mont || 0),
+    zestaw + ' vs ' + (przekl + silnik + (mont || 0)));
+
+  // koszyk: dopłata za montaż to usługa bez masy — nie może kasować ceny wysyłki
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /Dodaj do koszyka/i.test(x.innerText));
+    if (b) b.click();
+  });
+  await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+  const koszyk = await page.evaluate(() => document.body.innerText);
+  check('koszyk z DRV wycenia wysyłkę (montaż nie gubi masy)',
+    !/masa do potwierdzenia/.test(koszyk), koszyk.slice(koszyk.indexOf('Wysyłka'), koszyk.indexOf('Wysyłka') + 120).replace(/\n/g, ' '));
+  check('droga DRV bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 
