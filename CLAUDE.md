@@ -102,6 +102,36 @@ ręcznie w sekcji „Przyłącze silnika".
 Właściciel to potwierdził — **to nie jest usterka**. Jeśli kiedyś zobaczysz,
 że DKM110 proponuje B14, sprawdź najpierw stany: najpewniej właśnie dlatego.
 
+#### DKM050 z silnikiem IEC 63 — dopuszczone oba kołnierze
+
+Zmienione 10 września 2026 na prośbę właściciela, przy okazji zbierania danych
+do DRV. Tabela doborowa producenta podawała dla DKM050 + IEC 63 **tylko `63B5`**
+przy 0,12 i 0,18 kW. W ofercie DKM jest inaczej:
+
+- silnika **0,12 kW w 63B5 nie ma w ogóle** — jest tylko `0,12 4 63B14 DKM`;
+- przy 0,18 kW są oba, ale właściciel trzyma na stanie B14.
+
+Skutek był taki, że wszystkie pięć wariantów DKM050 przy 0,12 kW pokazywało
+**„zapytaj o cenę"** — przekładnia miała cenę i leżała na stanie, ale pole
+silnika było puste, bo silnika w tym kołnierzu nie ma. Zestaw dawał się złożyć
+(`DKM050 63B14` to realna część, jest w cenniku przy 0,25 kW), tylko aplikacja
+nie miała jak go zaproponować.
+
+Kołnierz w `catalog-data.js` zmieniony więc na `63B5/B14` w dwóch wierszach
+(0,12 i 0,18 kW, 1400 obr/min) i `warianty.json` przeliczone — **12 nowych
+wariantów**. Właściciel: „to w takim razie tu zróbmy 63B14 / 63B5, tak jest
+bezpieczniej" — czyli oba dopuszczone, wybiera dostępność.
+
+**Wiersza 0,18 kW / 2800 obr/min celowo nie ruszono**: silnika `0,18|2800|63B14`
+nie ma w `katalog.json`, więc dopisanie kołnierza dałoby pięć wariantów bez
+ceny — na zawsze „zapytaj o cenę" i śmieci na liście DO SPRAWDZENIA.
+Do ustalenia z właścicielem, czy taki silnik istnieje.
+
+Dlaczego to bezpieczne: dopisanie kołnierza tylko **dodaje** opcję. `variants()`
+odfiltrowuje kołnierze bez klucza w cenniku, a `pickVar()` sięga po B14
+wyłącznie wtedy, gdy `status` nie jest gorszy i cena istnieje. Żaden wariant nie
+może przez to stracić ceny ani zamienić obietnicy terminu na prośbę o kontakt.
+
 ### Ceny przekładni nie uzupełniamy ceną korpusu
 
 Cena przekładni jest w obrębie korpusu stała (DKM025 = 125 zł, DKM110 = 1100 zł),
@@ -542,6 +572,16 @@ brakuje ruchu — stąd linki `?start=…` i linkowanie ze sklepu.
   w `narzedzia/cennik/generuj.py` i powiedzieć właścicielowi.** Po cichej
   zmianie automat będzie codziennie nadpisywał plik, którego nikt już nie
   czyta, a strona zamrozi się na ostatnich danych bez żadnego błędu.
+- **`wyodrebnij-katalog.mjs` nie jest bezpieczny do uruchamiania hurtem.**
+  Odtwarza `katalog.json` z **dzisiejszego** `price-data.js`, a ten zmienia się
+  codziennie — więc przebieg po miesiącu daje inny plik, choć tabela doborowa
+  stoi w miejscu. 10 września jedno uruchomienie **usunęło dwie ceny przekładni**
+  (`DKM075|90B14|100` i `DKM110|100B5|7.5`), bo tego dnia nie miały ceny
+  w cenniku. Usunięcie ceny to zamiana terminu dostawy na „zapytaj o cenę"
+  u klienta — cicho, bez błędu. **Po uruchomieniu porównaj `katalog.json`
+  znaczeniowo (klucz po kluczu, nie `diff` — kolejność też się zmienia)
+  i cofnij plik, jeśli zmiany nie dotyczą tego, co zmieniałeś.** `warianty.json`
+  jest bezpieczny: powstaje wyłącznie z `catalog-data.js`.
 - Harmonogram w publicznym repozytorium GitHub wyłącza po 60 dniach bez
   aktywności i wysyła o tym maila do właściciela. Wtedy wystarczy włączyć
   workflow z powrotem jednym kliknięciem.
