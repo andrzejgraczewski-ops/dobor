@@ -666,6 +666,29 @@ w `extrasFor()`), więc pokazuje się, liczy i trafia do maila istniejącą drog
 bez nowego elementu na ekranie, czyli bez kolizji z Design. Domyślnie DRV jedzie
 luzem do samodzielnego montażu.
 
+### Nazwa i oznaczenie zespołu — dosłownie z ustaleń
+
+Właściciel, 10 września 2026: „dla klienta nie podajemy z czego się składa tylko
+zapis **Motoreduktor łączony DRV050/110 z silnikiem jednofazowym lub trójfazowym,
+0,12 kW, i = 3000, 0,47 obr/min** … a **SKU w aplikacji będzie DRV050/110 +
+0,12KW I3000** dla silników 3-fazowych, a dla jednofazowych **… 1F**".
+
+Nazwę składa `tradeOf()`, oznaczenie `drvSku()`. **Oznaczenie obowiązuje w całej
+aplikacji** — `gearSkuOf()` zwraca je dla każdego zespołu DRV, więc ten sam kod
+widać w koszyku, w wydruku i w każdym miejscu maila.
+
+11 września wyszło, że przez dobę było inaczej: `drvSku()` wchodziło **tylko
+do skrótu pozycji w mailu**, a pozostałe siedem miejsc pokazywało
+`DRV063/130 71B14 I1500` — kod w formacie pojedynczej przekładni, którego
+w magazynie nie ma, a wygląda jak prawdziwy. Właściciel wyłapał to pytaniem
+„o jaką nazwę i SKU kazałem ci zrobić w DRV?". Poprawione, z testem na to,
+że taki kod nie pokazuje się ani klientowi, ani w zamówieniu.
+
+Czego ekran nie pokazuje: **szablon koszyka nie używa `tradeName`** — Design
+wyświetla tam `box` („DRV063/130") i wiersz parametrów. Nazwa w brzmieniu
+ustalonym z właścicielem idzie do zamówienia i do wydruku. Gdyby miała być
+też na ekranie, to zmiana po stronie Design.
+
 **Skład trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
 przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, dopuszczalne
 łączniki z ich średnicami i — gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ

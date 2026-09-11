@@ -386,7 +386,9 @@ export class DkmLogic extends React.Component {
         ph,
         ...(one?{motNet:one.net,motName:one.name,motSku:one.sku}:{}),
         fs:fs1(row.fs),fsRaw:row.fs,fsBand:band,noWty:band==='low',
-        gearSku:x.gearSku||this.gearSkuOf(row),
+        // przekładnia łączona: oznaczenie liczymy zawsze, bo niesie zasilanie
+        // (dopisek 1F) — a klient przełącza je w koszyku
+        gearSku:row.drv?this.drvSku(row,ph===1):(x.gearSku||this.gearSkuOf(row)),
         motSku:one?one.sku:(ph===1?'':(x.motSku||((this.pickVar(row)||{v:{}}).v.motSku||''))),
         scope:this.scopeOf(x),withMotor:this.scopeOf(x)!=='gear',
         extras:this.refreshExtras(x.extras,row.box),stamp};
@@ -591,11 +593,15 @@ export class DkmLogic extends React.Component {
       ? 'składamy — dostawa zwykle w 1–3 dni robocze'
       : 'składamy dziś — dostawa następnego dnia roboczego';
   }
-  // SKU: DRV050/110 + 0,12KW I3000, przy jednofazowym z dopiskiem 1F
-  drvSku(x){
+  // Oznaczenie zespołu, dosłownie jak ustalił właściciel 10.09.2026:
+  // „SKU DRV050/110 + 0,12KW I3000 dla silników 3fazowych a dla jednofazowych
+  //  1F SKU DRV050/110 + 0,12KW I3000 1F".
+  // Zasilanie można podać wprost (oneF), a gdy go nie ma — poznajemy je
+  // z nazwy silnika, bo pozycja w koszyku nosi ją zawsze.
+  drvSku(x,oneF){
     if(!this.drvWt(x.box)) return '';
-    const oneF=/1\s*fazow/i.test(x.motName||'');
-    return x.box+' + '+String(num(x.p1)).replace('.',',')+'KW I'+num(x.i)+(oneF?' 1F':'');
+    const jeden=oneF==null?/1\s*fazow/i.test(x.motName||''):!!oneF;
+    return x.box+' + '+String(num(x.p1)).replace('.',',')+'KW I'+num(x.i)+(jeden?' 1F':'');
   }
   // skład do maila z zamówieniem — z kodami magazynowymi, bo biuro i tak
   // sprawdza części po zamówieniu
@@ -1422,7 +1428,13 @@ export class DkmLogic extends React.Component {
     const p=this.pickVar(r);
     return p&&p.v.gearNet!=null?p.v.gearNet:null;
   }
-  gearSkuOf(r){ const p=this.pickVar(r); if(!p) return '';
+  gearSkuOf(r){
+    // Przekładnia łączona ma własne oznaczenie i to ono obowiązuje w CAŁEJ
+    // aplikacji — w koszyku, na karcie, w wydruku i w mailu. Kod w formacie
+    // pojedynczej przekładni („DRV050/110 63B14 I3000") nie istnieje w magazynie
+    // i nikt nie miałby po czym tego zamówić, a wyglądałby jak prawdziwy.
+    if(this.drvWt(r.box)) return this.drvSku(r,this.wants1F(r));
+    const p=this.pickVar(r); if(!p) return '';
     const b=this.boreFor(r.box);
     return r.box+' '+p.fl+' I'+num(r.i)+((b&&b.opt)?(' /D'+b.d):''); }
   // świadoma zgoda klienta — treść oświadczeń zapisywana razem z pozycją

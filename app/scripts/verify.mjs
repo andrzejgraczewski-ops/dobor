@@ -865,6 +865,59 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
   const bezStanu = await kartaDrv({ 'ŁĄCZNIK 063/110': [150, 0] });
   check('stan łącznika z cennika zabiera zespołowi termin dostawy',
     /termin potwierdzimy/.test(bezStanu.dost), bezStanu.dost.replace(/\n/g, ' ').slice(0, 90));
+
+  // 13. Nazwa i oznaczenie zespołu — ustalone z właścicielem 10.09.2026:
+  //     „dla klienta nie podajemy z czego się składa tylko zapis Motoreduktor
+  //      łączony DRV050/110 z silnikiem jednofazowym lub trójfazowym, 0,12 kW,
+  //      i = 3000, 0,47 obr/min … a SKU w aplikacji będzie DRV050/110 +
+  //      0,12KW I3000, a dla jednofazowych 1F".
+  //     Kod w formacie pojedynczej przekładni („DRV063/130 71B14 I1500")
+  //     nie istnieje w magazynie, a wygląda jak prawdziwy — nie wolno mu się
+  //     pokazać ani klientowi, ani w zamówieniu.
+  {
+    const { ctx: c2, page: p2, posts: wyslane } = await open({ consent: 'no' });
+    await p2.getByRole('button', { name: /Przełożenie/ }).first().click();
+    await p2.evaluate(() => {
+      const b = [...document.querySelectorAll('button')]
+        .find((x) => /^\s*1500\b/.test(x.innerText.replace(/\n/g, ' ')));
+      if (b) b.click();
+    });
+    await p2.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await p2.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await p2.waitForTimeout(300);
+    await p2.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^DRV063\/130/.test(x.innerText));
+      if (b) b.click();
+    });
+    await p2.waitForTimeout(400);
+    await p2.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /Dodaj do koszyka/i.test(x.innerText));
+      if (b) b.click();
+    });
+    await p2.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+    const koszyk2 = (await p2.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    check('koszyk nie pokazuje kodu pojedynczej przekładni przy DRV',
+      !/DRV063\/130 71B\d+ I1500/.test(koszyk2),
+      (koszyk2.match(/DRV063\/130 71B\d+ I1500/g) || ['brak takiego kodu']).join(' | '));
+
+    // zamówienie: biuro musi dostać oznaczenie zespołu i skład do sprawdzenia
+    await fillContact(p2);
+    await p2.getByRole('button', { name: /Zapoznałem się z/ }).click();
+    await p2.locator('[data-order-btn]').click();
+    await p2.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+    const tresc = JSON.stringify((wyslane[0] || {}).body || {});
+    check('zamówienie nosi nazwę „Motoreduktor łączony … z silnikiem …, i = …"',
+      tresc.includes('Motoreduktor łączony DRV063/130 z silnikiem trójfazowym, 0,37 kW, i = 1500, 0,93 obr/min'),
+      (tresc.match(/Motoreduktor łączony[^"\\]*/) || ['brak'])[0].slice(0, 130));
+    check('zamówienie niesie SKU zespołu DRV, nie kod pojedynczej przekładni',
+      tresc.includes('DRV063/130 + 0,37KW I1500') && !/DRV063\/130 71B\d+ I1500/.test(tresc),
+      (tresc.match(/DRV063\/130[^"\\]*I1500[^"\\]*/g) || ['brak']).join(' | ').slice(0, 140));
+    check('zamówienie niesie skład zespołu do sprawdzenia przez biuro',
+      /DO ZŁOŻENIA/.test(tresc) && /ŁĄCZNIK 063\/110/.test(tresc),
+      (tresc.match(/ŁĄCZNIK[^"\\]*/g) || ['brak']).join(' | ').slice(0, 140));
+    await c2.close();
+  }
+
 }
 
 await browser.close();
