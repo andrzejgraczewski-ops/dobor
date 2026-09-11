@@ -552,6 +552,11 @@ export class DkmLogic extends React.Component {
     const T=this.drvTab(), P=window.DKM_PRICE||{};
     const c1=T.gear[z.czlon1+'|'+fl+'|'+r.i1];
     const mot=T.mot[r.p1+'|'+r.rpm+'|'+fl];
+    // Para „łącznik + człon 2": najpierw dostępność, potem cena. Kolejność ma
+    // znaczenie od 11.09.2026 — do tego dnia oba łączniki DRV063/130 kosztowały
+    // 120 zł i wybór nic nie zmieniał, a teraz 063/110 kosztuje 150 zł. Bez
+    // porównania ceny zestaw dostawałby droższe wykonanie zależnie od kolejności
+    // wpisów w pliku, czyli przez przypadek.
     let best=null;
     (z.laczniki||[]).forEach(l=>{
       const lac=this.drvLac(l);
@@ -559,11 +564,11 @@ export class DkmLogic extends React.Component {
       (l.iecCzlon2||[]).forEach(iec=>['B14','B5'].forEach(t=>{
         const c2=T.gear[z.czlon2+'|'+iec+t+'|'+r.i2];
         if(!c2) return;
-        const q=(c2.q&&lac.q)?1:0;
-        if(!best||(!best.q&&q)) best={c2,lac,q};
+        const k={c2,lac,q:(c2.q&&lac.q)?1:0,net:c2.net+lac.net};
+        if(!best||k.q>best.q||(k.q===best.q&&k.net<best.net)) best=k;
       }));
     });
-    const gearNet=(c1&&best)?Math.round((c1.net+best.lac.net+best.c2.net)*100)/100:null;
+    const gearNet=(c1&&best)?Math.round((c1.net+best.net)*100)/100:null;
     if(gearNet==null&&!mot) return null;
     const gearQ=(c1&&best&&c1.q&&best.q)?1:0;
     const brak=gearNet==null||!mot;

@@ -2,6 +2,7 @@
  "opis": "Przekładnie łączone DRV — źródło do czytania i poprawiania przez człowieka.",
  "zrodlo": "Katalog DKM, strony 45–46 (możliwe połączenia) i 47–51 (parametr wydajności).",
  "ustalenia": "Właściciel, 10.09.2026. Tylko silniki 1400 obr/min. Bez zespołów 025 (nie składane), bez 0,06 kW (brak silnika w ofercie), bez DRV030/040 i3000 i DRV030/050 i2400/i3000.",
+ "cenyLacznikow": "Ceny łączników to zrzut z Optimy, stan na 11.09.2026 — obowiązują tylko wtedy, gdy raport magazynowy milczy. Pierwszeństwo ma DKM_PRICE.lac z dzisiejszego cennika. Gdy generuj.py zobaczy w raporcie inną cenę, wypisuje DO SPRAWDZENIA — wtedy popraw ten plik. 11.09.2026: ŁĄCZNIK 063/110 podrożał 120 → 150 zł.",
  "obroty": 1400,
  "montazNetto": 60,
  "zespoly": {
@@ -125,7 +126,7 @@
       "100",
       "112"
      ],
-     "cena": 120,
+     "cena": 150,
      "masa": 1,
      "wyjatek": true
     }

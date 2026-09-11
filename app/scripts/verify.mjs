@@ -803,6 +803,68 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     !/masa do potwierdzenia/.test(koszyk), koszyk.slice(koszyk.indexOf('Wysyłka'), koszyk.indexOf('Wysyłka') + 120).replace(/\n/g, ' '));
   check('droga DRV bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
   await ctx.close();
+
+  // 12. Cena i stan łącznika MUSZĄ pochodzić z cennika, nie ze zrzutu
+  //     w drv-katalog.json. Zrzut nikogo nie pilnuje — 11.09.2026 ŁĄCZNIK
+  //     063/110 podrożał w Optimie ze 120 na 150 zł i wszystkie 17 zespołów
+  //     DRV063/130 pokazywało cenę o 30 zł za niską. Cicho, bez błędu.
+  //     Dlatego podstawiamy tu sekcję lac i sprawdzamy, że aplikacja liczy
+  //     z niej, a nie ze zrzutu — po kodzie łącznika, dokładnie tak jak
+  //     silnik bierze się po SKU.
+  async function kartaDrv(lac) {
+    const c = await browser.newContext({ viewport: { width: 520, height: 1200 } });
+    await c.route(/googletagmanager\.com|google-analytics\.com/, (r) =>
+      r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+    await c.addInitScript((stub) => {
+      try { localStorage.setItem('dkm-analytics-consent', 'no'); } catch (e) {}
+      if (!stub) return;
+      // cennik ustawia window.DKM_PRICE raz, przy wczytaniu price-data.js —
+      // podstawiamy sekcję w momencie tego przypisania, przed startem aplikacji
+      let v;
+      Object.defineProperty(window, 'DKM_PRICE', {
+        configurable: true,
+        get: () => v,
+        set: (x) => { v = x; if (x) x.lac = stub; },
+      });
+    }, lac);
+    const p = await c.newPage();
+    await p.goto(base + '?start=i', { waitUntil: 'networkidle' });
+    await p.evaluate(() => {
+      const b = [...document.querySelectorAll('button')]
+        .find((x) => /^\s*1500\b/.test(x.innerText.replace(/\n/g, ' ')));
+      if (b) b.click();
+    });
+    await p.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await p.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await p.waitForTimeout(300);
+    await p.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^DRV063\/130/.test(x.innerText));
+      if (b) b.click();
+    });
+    await p.waitForTimeout(400);
+    const t = await p.evaluate(() => document.body.innerText);
+    const wytnij = (n) => { const i = t.indexOf(n); return i < 0 ? '' : t.slice(i, i + 120); };
+    await c.close();
+    return { gear: zl(wytnij('PRZEKŁADNIA — CENA NETTO')), dost: wytnij('PRZEKŁADNIA — CENA NETTO') };
+  }
+
+  const bez = await kartaDrv(null);
+  // DRV063/130 i1500 składa się na łączniku 063/110 — DKM130 z przełożeniem 30
+  // ma cenę wyłącznie w IEC 100/112, więc „wyjątek" jest tu jedynym wykonaniem
+  const drozej = await kartaDrv({ 'ŁĄCZNIK 063/110': [1150, 1] });
+  check('cena łącznika z cennika (lac) wygrywa ze zrzutem w drv-katalog.json',
+    bez.gear > 0 && drozej.gear === bez.gear + 1000,
+    bez.gear + ' → ' + drozej.gear + ' (oczekiwane ' + (bez.gear + 1000) + ')');
+
+  // inny kod nie może ruszyć ceny — dowód, że kluczujemy po właściwym łączniku
+  const obcy = await kartaDrv({ 'ŁĄCZNIK 030/040': [9999, 1] });
+  check('podmiana ceny innego łącznika nie rusza tego zespołu',
+    obcy.gear === bez.gear, bez.gear + ' → ' + obcy.gear);
+
+  // brak łącznika na stanie to brak terminu dostawy — zestawu nie ma z czego złożyć
+  const bezStanu = await kartaDrv({ 'ŁĄCZNIK 063/110': [150, 0] });
+  check('stan łącznika z cennika zabiera zespołowi termin dostawy',
+    /termin potwierdzimy/.test(bezStanu.dost), bezStanu.dost.replace(/\n/g, ' ').slice(0, 90));
 }
 
 await browser.close();

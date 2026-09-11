@@ -576,6 +576,49 @@ liczymy jako braku (`drvLac()` zwraca wtedy `q = 1`): łączniki leżą na pół
 w kilkunastu sztukach, a przeciwna decyzja odebrałaby wszystkim zespołom termin
 dostawy na jeden dzień bez żadnego powodu w danych.
 
+#### Cena łącznika ze zrzutu zdążyła się zepsuć następnego dnia
+
+11 września 2026, jeden dzień po wdrożeniu. **`ŁĄCZNIK 063/110` podrożał
+w Optimie ze 120 na 150 zł** i wszystkie **17 zespołów DRV063/130** pokazywało
+cenę o 30 zł za niską. Cicho, bez błędu — dokładnie ten rodzaj szkody, przed
+którym broni się reszta tego pliku.
+
+Właściciel znalazł to sam, po tym jak zameldowałem „DRV zgadza się co do
+grosza". **Mój błąd był podwójny:**
+
+- porównywałem `price-data.js` dzień do dnia, a **łączników w tym pliku nie
+  ma** — sekcja `lac` była wtedy tylko na `test`, a automat uruchamia generator
+  z `main`. Metoda z definicji nie mogła tego zobaczyć, a ja wyciągnąłem z niej
+  wniosek. Trzeba było napisać „tego nie sprawdzam";
+- podstawiłem zrzut jako źródło ceny, żeby cena pojawiła się od razu — zamiast
+  zostawić „zapytaj o cenę" do przebiegu automatu, jak było tu wcześniej
+  zapisane. Zrzut nikogo nie pilnuje i nic go nie odświeża.
+
+Wnioski, wszystkie już wdrożone:
+
+- **generator porównuje cenę z raportu z ceną ze zrzutu** i rozjazd wypisuje
+  jako `DO SPRAWDZENIA — cena łącznika rozjechała się ze zrzutem`. Osobno mówi
+  o łączniku, którego w raporcie nie ma wcale, bo wtedy zrzut jest jedynym
+  źródłem i nikt by o tym nie wiedział;
+- **trzy testy w `verify.mjs`** podstawiają sekcję `lac` i sprawdzają, że
+  aplikacja liczy z cennika, a nie ze zrzutu: cena z `lac` wygrywa, podmiana
+  innego kodu nie rusza zespołu, a stan `0` zabiera zespołowi termin dostawy.
+  To jest odpowiedź na pytanie „skąd mam mieć pewność, że później będzie
+  dobrze" — z testu, nie z obietnicy;
+- **zrzut w `drv-katalog.json` ma datę** (pole `cenyLacznikow`) i jest opisany
+  jako zapas, nie źródło.
+
+Zostaje jedno, czego testem nie da się zastąpić: **dopóki sekcja `lac` nie jest
+na `main`, automat jej nie liczy**, więc cena łącznika nie odświeża się sama.
+To jedyna realna naprawa u źródła.
+
+**Para „łącznik + człon 2" dobiera się po dostępności, potem po cenie.**
+Do 11 września oba łączniki DRV063/130 kosztowały 120 zł i wybór nie zmieniał
+kwoty; teraz zmienia. Bez porównania ceny zespół dostawałby droższe wykonanie
+zależnie od kolejności wpisów w pliku, czyli przez przypadek. Dziś nie zmienia
+to niczego — `DKM130` z przełożeniem 30 ma cenę wyłącznie w IEC 100/112, więc
+„wyjątek" jest tam jedynym wykonaniem, jakie da się złożyć.
+
 **Montaż nie może gubić masy przesyłki.** Dopłata `MONT` jest usługą i waży 0,
 a `shipPlan()` wymagał masy od każdego wyposażenia — więc zaznaczenie montażu
 kasowało cenę wysyłki i koszyk pisał „masa do potwierdzenia". Kody bez masy
@@ -790,5 +833,15 @@ brakuje ruchu — stąd linki `?start=…` i linkowanie ze sklepu.
 - Harmonogram w publicznym repozytorium GitHub wyłącza po 60 dniach bez
   aktywności i wysyła o tym maila do właściciela. Wtedy wystarczy włączyć
   workflow z powrotem jednym kliknięciem.
+- **Cena wpisana na sztywno w pliku danych psuje się bez ostrzeżenia.** Ceny
+  łączników w `drv-katalog.json` to zapas na czas, gdy raport milczy — nie
+  źródło. Pierwszeństwo ma zawsze `DKM_PRICE.lac` z dzisiejszego cennika,
+  a rozjazd generator wypisuje jako `DO SPRAWDZENIA`. Ta sama uwaga dotyczy
+  `katalog.json`: `przekladnie`, `silnikiCeny`, `osprzet`, `falowniki`, `m1f`
+  też trzymają ceny zapasowe i też nikt ich nie odświeża.
+- **Porównanie „dzień do dnia" widzi tylko to, co jest w porównywanym pliku.**
+  11 września wyszło mi, że zmieniła się jedna cena silnika — bo łączników
+  w `price-data.js` na `main` nie ma wcale. Zanim ogłosisz, że wszystko się
+  zgadza, sprawdź najpierw, czy badany plik w ogóle zawiera to, o co pytasz.
 - Cennik jest danymi produkcyjnymi: ceny netto i dostępność, na podstawie
   których klienci wysyłają zapytania ofertowe.
