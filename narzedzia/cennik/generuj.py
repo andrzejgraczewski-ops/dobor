@@ -205,14 +205,25 @@ def main():
     # kod z „Ł" trafia we wpis bez „Ł" — ale wyszukiwanie po nazwie nie zadziała.
     #
     # Bez pliku DRV sekcja wychodzi pusta, a cennik jest dokładnie taki jak przedtem.
-    lac = {}
+    lac, lac_rozjazd = {}, []
     plik_drv = KORZEN / 'narzedzia/drv/drv-katalog.json'
     if plik_drv.exists():
         for zespol in json.loads(plik_drv.read_text('utf-8'))['zespoly'].values():
             for l in zespol['laczniki']:
                 w = z_raportu(l['kod'])
-                lac[l['kod']] = [w['cena'] if w and w['cena'] is not None else l.get('cena'),
+                cena_r = w['cena'] if w and w['cena'] is not None else None
+                lac[l['kod']] = [cena_r if cena_r is not None else l.get('cena'),
                                  1 if w and w['ilosc'] else 0]
+                # Zrzut w drv-katalog.json obowiązuje tylko wtedy, gdy raport
+                # milczy — a wtedy nikt by się nie dowiedział, że cena się
+                # rozjechała. Dlatego mówimy o tym głośno: cena łącznika wchodzi
+                # do sumy DRV, więc jej rozjazd to zła cena u klienta, po cichu.
+                if cena_r is None:
+                    lac_rozjazd.append(f'{l["kod"]} — nie ma w raporcie, obowiązuje zrzut '
+                                       f'{l.get("cena")} zł')
+                elif l.get('cena') is not None and abs(cena_r - l['cena']) > 0.005:
+                    lac_rozjazd.append(f'{l["kod"]} — raport {cena_r} zł, zrzut {l["cena"]} zł '
+                                       f'→ popraw drv-katalog.json')
 
     na_stanie = sum(1 for w in var.values() if w[5])
     print(f'raport {dzien:%d.%m.%Y} · pozycji {len(poz)} · wariantów {len(var)} '
@@ -220,6 +231,10 @@ def main():
     if lac:
         print(f'  łączników DRV: {len(lac)} · z ceną {sum(1 for v in lac.values() if v[0] is not None)}'
               f' · na stanie {sum(1 for v in lac.values() if v[1])}')
+    if lac_rozjazd:
+        print(f'  DO SPRAWDZENIA — cena łącznika rozjechała się ze zrzutem: {len(lac_rozjazd)}')
+        for x in lac_rozjazd:
+            print('    ', x)
     brak_ceny = sum(1 for w in var.values() if w[0] is None)
     if brak_ceny:
         print(f'  wariantów wciąż bez ceny przekładni: {brak_ceny}')
