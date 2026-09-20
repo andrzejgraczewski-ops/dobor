@@ -177,10 +177,13 @@ def main():
         w = z_raportu(sku)
         nam[sku] = nazwa_handlowa(w['nazwa']) if w else K['nazwyZapas'].get(sku, sku)
 
+    # Trzeci element to kod magazynowy — biuro szuka osprzętu po kodach z Optimy,
+    # a nie po nazwie handlowej, więc musi trafić do maila z zamówieniem.
+    # Wcześniej generator go gubił: zostawała sama cena i stan.
     opt = {}
     for klucz, (kod, cena_zapas) in sorted(K['osprzet'].items()):
         w = z_raportu(kod)
-        opt[klucz] = [w['cena'] if w else cena_zapas, 1 if w and w['ilosc'] else 0]
+        opt[klucz] = [w['cena'] if w else cena_zapas, 1 if w and w['ilosc'] else 0, kod]
 
     inv = []
     for nazwa, seria, moc, fazy, cena_zapas in K['falowniki']:
@@ -236,7 +239,7 @@ window.DKM_PRICE = {{
     L.append('  },\n  nam: {')
     L.append(',\n'.join(f'  {js(k)}: {js(v)}' for k, v in nam.items()))
     L.append('  },\n  opt: {')
-    L.append(',\n'.join(f"  {js(k)}: [{js(v[0])},{js(v[1])}]" for k, v in opt.items()))
+    L.append(',\n'.join(f"  {js(k)}: [{js(v[0])},{js(v[1])},{js(v[2])}]" for k, v in opt.items()))
     L.append('  },\n  inv: [')
     L.append(',\n'.join('  [' + ','.join(js(x) for x in w) + ']' for w in inv))
     L.append('  ],\n  m1f: {')

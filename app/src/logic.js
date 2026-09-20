@@ -357,7 +357,7 @@ export class DkmLogic extends React.Component {
       if(e.code==='PCV') return e;
       const o=this.optOf(e.code,box);
       // brak kodu w cenniku → zostaw dotychczasową cenę, nie kasuj jej po cichu
-      return o?{...e,net:o.net,stock:o.q>0}:e;
+      return o?{...e,net:o.net,stock:o.q>0,sku:o.sku||e.sku||''}:e;
     });
   }
   hydrate(rfq){
@@ -583,7 +583,10 @@ export class DkmLogic extends React.Component {
       if(wyp.length){
         L.push('wyposażenie:');
         wyp.forEach(e=>{ const q=this.exQty(e);
-          L.push('   · '+e.label+' — '+q+' szt. × '
+          // kod magazynowy w nawiasie, o ile nie siedzi już w nazwie (falowniki
+          // mają go w etykiecie) — biuro kompletuje towar po kodach z Optimy
+          const kod=(e.sku&&String(e.label||'').indexOf(e.sku)<0)?(' ['+e.sku+']'):'';
+          L.push('   · '+e.label+kod+' — '+q+' szt. × '
             +(e.net===0?'gratis':(e.net!=null?(zl(e.net)+' / szt.'):'cena na zapytanie'))
             +(e.net?(' = '+zl(e.net*q)):'')); });
       }
@@ -1017,9 +1020,12 @@ export class DkmLogic extends React.Component {
     if(prefHit&&prefHit.v.status<=sorted[0].v.status&&prefHit.v.gearNet!=null) return prefHit;
     return sorted[0];
   }
+  // Trzeci element to kod magazynowy, dopisany 20.09.2026 — biuro szuka osprzętu
+  // po kodach z Optimy, nie po nazwie handlowej. Starszy cennik go nie ma, więc
+  // zwracamy pusty i mail po prostu kodu nie pokaże.
   optOf(code,box){
     const e=(((window.DKM_PRICE||{}).opt)||{})[code+'|'+box];
-    return e?{net:e[0],q:e[1]}:null;
+    return e?{net:e[0],q:e[1],sku:e[2]||''}:null;
   }
   // --- falowniki: kandydaci to moc równa mocy silnika i jeden stopień wyżej
   motorPhases(r){
@@ -1048,7 +1054,7 @@ export class DkmLogic extends React.Component {
   extrasFor(box){
     const S=this.state,out=[];
     const add=(code,label)=>{ const e=this.optOf(code,box);
-      out.push({code,label,net:e?e.net:null,stock:e?e.q>0:false}); };
+      out.push({code,label,net:e?e.net:null,stock:e?e.q>0:false,sku:e?e.sku:''}); };
     if(this.mountsHas('2a')) add('FA','Ko\u0142nierz boczny FA');
     if(this.mountsHas('2b')) add('FB','Ko\u0142nierz boczny FB');
     if(this.mountsHas('3')) add('ARM','Rami\u0119 reakcyjne');
@@ -1082,7 +1088,8 @@ export class DkmLogic extends React.Component {
       const free=code==='PCV'&&this.pcvFree(x.box);
       const op=this.optOf(code,x.box);
       cur.push({code,label:this.OPT_LABELS[code]+(free?' — w standardzie':''),
-        net:free?0:(op?op.net:null),stock:free?true:(op?op.q>0:false),qty:1});
+        net:free?0:(op?op.net:null),stock:free?true:(op?op.q>0:false),
+        sku:op?op.sku:'',qty:1});
       return {...x,extras:cur};
     });
     return {rfq};}); }
