@@ -443,6 +443,55 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await ctx.close();
 }
 
+// 7c. Biuro kompletuje towar po kodach z Optimy, nie po nazwie handlowej.
+//     Kod osprzętu trzeci rok nie istniał w cenniku — generator go gubił,
+//     zostawała cena i stan. Podstawiamy tu sekcję opt z kodem i sprawdzamy,
+//     że mail go pokazuje; starszy cennik bez kodu ma po prostu go pominąć.
+{
+  const ctx = await browser.newContext({ viewport: { width: 520, height: 900 } });
+  const posts = [];
+  await ctx.route(/googletagmanager\.com|google-analytics\.com/, (r) =>
+    r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+  await ctx.route(/formspree\.io/, async (r) => {
+    posts.push({ body: JSON.parse(r.request().postData() || '{}') });
+    await r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+  });
+  await ctx.addInitScript(() => {
+    try { localStorage.setItem('dkm-analytics-consent', 'no'); } catch (e) {}
+    let v;
+    Object.defineProperty(window, 'DKM_PRICE', {
+      configurable: true,
+      get: () => v,
+      set: (x) => { v = x; if (x && x.opt) for (const k in x.opt) {
+        // cennik sprzed 20.09.2026 nosi tylko [cena, stan] — dokładamy kod,
+        // żeby test sprawdzał mechanizm, a nie datę pliku z cenami
+        if (x.opt[k].length < 3) x.opt[k][2] = 'KOD ' + k.replace('|', ' ');
+      } },
+    });
+  });
+  const page = await ctx.newPage();
+  await page.goto(base, { waitUntil: 'networkidle' });
+  await page.waitForSelector('text=Znajdźmy napęd idealny', { timeout: 20000 });
+  await addToCart(page);
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /\+ Ramię reakcyjne/.test(x.innerText));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(300);
+  await fillContact(page);
+  await page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+  await page.locator('[data-order-btn]').click();
+  await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+  const poz = String(((posts[0] || {}).body || {}).Pozycje || '');
+  check('skrót podaje kod magazynowy osprzętu',
+    /Ramię reakcyjne \[KOD ARM DKM\d+\]/.test(poz),
+    (poz.match(/· Ramię reakcyjne[^\n]*/) || ['brak'])[0]);
+  // falownik ma kod w samej nazwie — nie powielamy go w nawiasie
+  check('kod nie dubluje się tam, gdzie jest już w nazwie',
+    !/E500-[^\s]+[^\n]*\[/.test(poz), (poz.match(/· Falownik[^\n]*/) || ['brak falownika w tym koszyku'])[0]);
+  await ctx.close();
+}
+
 // 8. awaria wysyłki — panel ratunkowy
 {
   const { ctx, page, posts } = await open({ consent: 'no', formStatus: 500 });
