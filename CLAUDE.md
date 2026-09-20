@@ -866,8 +866,9 @@ je podmienia. Pokazuje je `cardSrc()` na karcie produktu i `printCard()`
 w wydruku, a service worker trzyma je w pamięci przeglądarki — wersja cache'u
 liczy się z zawartości plików, więc podmiana sama ją unieważnia.
 
-**20 września 2026 weszła ujednolicona piątka: 025, 030, 040, 050, 063.**
-Reszta (075, 090, 110, 130, 150) czeka na przesłanie.
+**20 września 2026 weszła ujednolicona dziesiątka** — wszystkie karty
+pochodzą z jednego eksportu i mają ten sam układ: nagłówek z logo na białym,
+rysunek z literami, tabela wymiarów, sekcja przyłącza PAM-IEC i pole z masą.
 
 Przed wgraniem warto sprawdzić liczby z kart z danymi aplikacji — te same
 wielkości stoją w `dims-data.js` i w `DKM_PRICE.wt.gear`, więc rozjazd oznacza,
@@ -881,20 +882,23 @@ wielkości stoją w `dims-data.js` i w `DKM_PRICE.wt.gear`, więc rozjazd oznacz
 | tabele PAM-IEC (`N M P S b₁ t₁ s₁ D`) | `DKM_PAM` |
 | masa przekładni | `DKM_PRICE.wt.gear` |
 
-Przy piątce z 20 września wszystko się zgadzało, z niuansami włącznie: DKM075
-nie ma `71B14`, DKM110 i DKM130 są wyłącznie w B5, a DKM150 ma sklejony wpis
-`100/112B5`.
+Przy dziesiątce z 20 września wszystko się zgadzało, z niuansami włącznie:
+DKM075 nie ma `71B14`, DKM110 i DKM130 są wyłącznie w B5, a DKM150 ma sklejony
+wpis `100/112B5`.
 
 **Karta DKM025 ma być inna niż pozostałe — potwierdzone przez właściciela,
 nie poprawiać.** Wymiary są wprost na rysunku, bez tabeli z literami, i nie ma
 sekcji przyłącza PAM-IEC. To nie jest niedoróbka: tej wielkości aplikacja też
 nie ma w `DKM_PAM`, bo DKM025 tego przyłącza nie ma.
 
-Znane, zgłoszone i świadomie zostawione: **DKM063 ma w tabeli dwa wiersze `Q`
-i żadnego `O`**, choć na rysunku strzałka `O` jest — ten sam błąd miały karty
-075 i 150 w wersji z 20 września. **DKM110** czeka na poprawkę właściciela
-(brak pola z masą, tytuł łamie się na dwie linie). **DKM150** z podpisem
-„Gearbox weight" zamiast „Gearbox Mass" — tak ma być.
+Znane, zgłoszone właścicielowi i wgrane na jego polecenie:
+
+- **DKM063, DKM075 i DKM150 mają w tabeli dwa wiersze `Q` i żadnego `O`**,
+  choć na rysunku strzałka `O` jest. Pozostałe siedem kart ma to dobrze
+  (`O 30 | P 75`, `O 40 | P 87` i tak dalej);
+- **DKM110** czeka na poprawkę właściciela: brak pola z masą (w aplikacji
+  42,5 kg) i tytuł łamany na dwie linie;
+- **DKM150** z podpisem „Gearbox weight" zamiast „Gearbox Mass" — tak ma być.
 
 ## Rzeczy, które łatwo zepsuć
 
