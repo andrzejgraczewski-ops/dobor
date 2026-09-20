@@ -717,6 +717,19 @@ i ceną oraz **wartość pozycji netto**, żeby suma się zgadzała i żeby maga
 nie musiał składać towaru z dwóch miejsc w mailu. Test pilnuje obu rzeczy:
 że wyposażenie jest wymienione i że suma równa się składnikom.
 
+**Kod magazynowy osprzętu dopisany 20.09.2026.** Biuro kompletuje towar
+po kodach z Optimy, nie po nazwie handlowej, a sekcja `opt` w cenniku **od
+pierwszej wersji generatora** nosiła tylko `[cena, stan]` — kod nigdy tam nie
+trafiał. Teraz `opt` to `[cena, stan, kod]`, a skrót wypisuje go w nawiasie:
+`Ramię reakcyjne [RAMIE REAKCYJNE DO 040]`, `Wał zdawczy jednostronny
+[WAŁ JEDNOSTRONNY DO 40]`, `Kołnierz boczny FA [40 FA]`. Falowniki mają kod
+już w nazwie, więc tam się nie dubluje. Osłona PCV kodu nie ma — nie ma jej
+w `osprzet`.
+
+**Kody pojawią się dopiero po przebiegu automatu** z nowym generatorem:
+`price-data.js` jest generowany, a starszy plik ma wpisy dwuelementowe.
+`optOf()` czyta wtedy pusty kod i mail po prostu go nie pokazuje, bez błędu.
+
 **Skład DRV trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
 przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, łącznik i —
 gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ ZA MONTAŻ". Bez tego biuro
