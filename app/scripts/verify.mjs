@@ -799,8 +799,25 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
   });
   await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
   const koszyk = await page.evaluate(() => document.body.innerText);
+  // DRV jedzie luzem do samodzielnego montażu — złożenie jest wyborem klienta,
+  // więc dopłaty nie wolno doliczyć domyślnie, tylko zaproponować do dobrania
+  check('montaż nie jest doliczany domyślnie, tylko do dobrania',
+    !/Montaż zestawu[\s\S]{0,40}\d+\s*zł/.test(koszyk.split('CZY TWÓJ NAPĘD')[0])
+    && /\+ Montaż zestawu/.test(koszyk),
+    (koszyk.match(/\+ Montaż zestawu[^\n]*/) || ['brak propozycji'])[0]);
+  const przedMont = zl(koszyk.slice(koszyk.indexOf('WARTOŚĆ POZYCJI')));
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /\+ Montaż zestawu/.test(x.innerText));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(400);
+  const zMont = await page.evaluate(() => document.body.innerText);
+  check('dobrany montaż dokłada 60 zł do pozycji',
+    zl(zMont.slice(zMont.indexOf('WARTOŚĆ POZYCJI'))) === przedMont + 60,
+    przedMont + ' → ' + zl(zMont.slice(zMont.indexOf('WARTOŚĆ POZYCJI'))));
+  // montaż to usługa bez masy — nie może skasować ceny wysyłki
   check('koszyk z DRV wycenia wysyłkę (montaż nie gubi masy)',
-    !/masa do potwierdzenia/.test(koszyk), koszyk.slice(koszyk.indexOf('Wysyłka'), koszyk.indexOf('Wysyłka') + 120).replace(/\n/g, ' '));
+    !/masa do potwierdzenia/.test(zMont), zMont.slice(zMont.indexOf('Wysyłka'), zMont.indexOf('Wysyłka') + 120).replace(/\n/g, ' '));
   check('droga DRV bez błędu w konsoli', errors.length === 0, errors.join(' | ').slice(0, 160));
   await ctx.close();
 

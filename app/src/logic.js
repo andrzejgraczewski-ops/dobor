@@ -352,7 +352,9 @@ export class DkmLogic extends React.Component {
     const p=hit||sorted[0];
     return {boxNet:p.v.gearNet!=null?p.v.gearNet:null,
       motNet:p.v.motNet!=null?p.v.motNet:null,
-      motName:p.v.motName||'',iec:p.fl,iecPick:p.fl};
+      motName:p.v.motName||'',iec:p.fl,iecPick:p.fl,
+      // przy DRV niesiemy też wybrany łącznik i kołnierz członu 2 — do maila
+      ...(p.v.lacKod?{lacKod:p.v.lacKod,fl2:p.v.fl2}:{})};
   }
   refreshExtras(list,box){
     return (list||[]).map(e=>{
@@ -566,7 +568,7 @@ export class DkmLogic extends React.Component {
       (l.iecCzlon2||[]).forEach(iec=>['B14','B5'].forEach(t=>{
         const c2=T.gear[z.czlon2+'|'+iec+t+'|'+r.i2];
         if(!c2) return;
-        const k={c2,lac,q:(c2.q&&lac.q)?1:0,net:c2.net+lac.net};
+        const k={c2,lac,fl2:iec+t,q:(c2.q&&lac.q)?1:0,net:c2.net+lac.net};
         if(!best||k.q>best.q||(k.q===best.q&&k.net<best.net)) best=k;
       }));
     });
@@ -580,7 +582,10 @@ export class DkmLogic extends React.Component {
       setQ:(!brak&&gearQ&&mot.q)?1:0,
       status:brak?2:((gearQ&&mot.q)?0:1),
       motSku:mot?mot.sku:'',
-      motName:mot?(((P.nam||{})[mot.sku])||mot.sku):''};
+      motName:mot?(((P.nam||{})[mot.sku])||mot.sku):'',
+      // z czego policzyliśmy cenę — biuro dostaje to w mailu jako konkretny
+      // kod łącznika i kołnierz członu 2, zamiast listy dopuszczalnych par
+      lacKod:best?best.lac.kod:'',fl2:best?best.fl2:''};
   }
   // Termin dla DRV, gdy wszystkie części są na stanie. Dwa komunikaty, bo dwie
   // drogi: kurier dowozi następnego dnia roboczego, a paleta (Raben) jedzie D+2
@@ -603,14 +608,30 @@ export class DkmLogic extends React.Component {
     const jeden=oneF==null?/1\s*fazow/i.test(x.motName||''):!!oneF;
     return x.box+' + '+String(num(x.p1)).replace('.',',')+'KW I'+num(x.i)+(jeden?' 1F':'');
   }
-  // skład do maila z zamówieniem — z kodami magazynowymi, bo biuro i tak
-  // sprawdza części po zamówieniu
+  // Skład do maila z zamówieniem — z kodami magazynowymi, bo biuro i tak
+  // sprawdza części po zamówieniu.
+  //
+  // Wskazujemy WYBRANE wykonanie, nie listę dopuszczalnych: cena zestawu jest
+  // policzona z konkretnego łącznika i konkretnego kołnierza członu 2, więc to
+  // te części mają zejść z półki. Pozostałe dopuszczalne pary zostają niżej
+  // jako zamienniki — gdyby wybranego zabrakło między ranną inwentaryzacją
+  // a kompletowaniem, biuro wie, czym je zastąpić bez dzwonienia do klienta.
   drvSklad(x){
     const z=(this.DRV().zespoly||{})[x.box]; if(!z) return [];
+    const wybrany=(z.laczniki||[]).find(l=>l.kod===x.lacKod);
     const L=[z.czlon1+' I'+num(x.i1)+' · człon wejściowy, kołnierz jak silnika',
-             z.czlon2+' I'+num(x.i2)+' · człon wyjściowy'];
-    const lac=z.laczniki.map(l=>l.kod+' ('+l.srednice+') — gdy człon 2 w IEC '+l.iecCzlon2.join('/'));
-    L.push('łącznik: '+(lac.length===1?lac[0]:'\n     '+lac.join('\n     ')));
+             z.czlon2+' I'+num(x.i2)+' · człon wyjściowy'
+               +(x.fl2?(', kołnierz '+x.fl2):'')];
+    if(wybrany){
+      L.push('łącznik: '+wybrany.kod+' ('+wybrany.srednice+')');
+      const inne=z.laczniki.filter(l=>l.kod!==wybrany.kod);
+      if(inne.length) L.push('zamiennie: '
+        +inne.map(l=>l.kod+' ('+l.srednice+') — gdy człon 2 w IEC '+l.iecCzlon2.join('/')).join('; '));
+    } else {
+      // pozycja bez policzonej ceny — nie wiemy, które wykonanie wejdzie
+      const lac=z.laczniki.map(l=>l.kod+' ('+l.srednice+') — gdy człon 2 w IEC '+l.iecCzlon2.join('/'));
+      L.push('łącznik: '+(lac.length===1?lac[0]:'\n     '+lac.join('\n     ')));
+    }
     return L;
   }
   kgMot(sku){ const t=this.WT().mot||{}; return t[sku]||0; }
@@ -652,11 +673,23 @@ export class DkmLogic extends React.Component {
       const g=this.gQty(x), m=this.mQty(x);
       const kgG=this.kgGear(x.box), kgM=this.kgMot(x.motSku);
       const czesci=this.drvCzesci(x.box);
+      // Domyślnie DRV jedzie luzem, więc pakuje się jak cztery osobne sztuki.
+      // Gdy klient dopłacił za montaż, zestaw wychodzi złożony — to jedna
+      // bryła, której nie da się rozłożyć do paczek, a silnik jest w niej
+      // wkręcony. Bez tego aplikacja liczyłaby wysyłkę za przesyłkę, która
+      // nigdy tak nie pojedzie.
+      const zlozony=!!czesci&&(x.extras||[]).some(e=>!e.off&&e.code==='MONT');
+      const spedZ=(czesci||[]).some(c=>c.sped)||this.SPED.indexOf(x.box)>=0;
+      let mLuzem=m;
       for(let i=0;i<g;i++){
-        if(czesci) czesci.forEach(c=>out.push({kg:c.kg,sped:c.sped}));
+        if(czesci&&!zlozony){ czesci.forEach(c=>out.push({kg:c.kg,sped:c.sped})); }
+        else if(zlozony){
+          const zSilnikiem=mLuzem>0; if(zSilnikiem) mLuzem--;
+          out.push({kg:kgG+(zSilnikiem?kgM:0),sped:spedZ});
+        }
         else out.push({kg:kgG,sped:this.SPED.indexOf(x.box)>=0});
       }
-      for(let i=0;i<m;i++) out.push({kg:kgM,sped:false});
+      for(let i=0;i<mLuzem;i++) out.push({kg:kgM,sped:false});
       if(g>0) (x.extras||[]).filter(e=>!e.off).forEach(e=>{
         const kg=this.kgExtra(e,x.box), q=e.qty==null?1:e.qty;
         for(let i=0;i<q;i++) if(kg>0) out.push({kg,sped:false});
@@ -1233,12 +1266,11 @@ export class DkmLogic extends React.Component {
     const S=this.state,out=[];
     const add=(code,label)=>{ const e=this.optOf(code,box);
       out.push({code,label,net:e?e.net:null,stock:e?e.q>0:false}); };
-    // Przek\u0142adnia \u0142\u0105czona jedzie luzem do samodzielnego monta\u017cu. Kto chce j\u0105
-    // dosta\u0107 z\u0142o\u017con\u0105, dop\u0142aca za sztuk\u0119 \u2014 cena z DKM_DRV.montazNetto.
-    // Idzie zwyk\u0142ym wyposa\u017ceniem, wi\u0119c pokazuje si\u0119, liczy i trafia do maila
-    // istniej\u0105c\u0105 drog\u0105, bez nowego elementu na ekranie.
-    if(this.drvWt(box)) out.push({code:'MONT',label:'Monta\u017c zestawu \u2014 z\u0142o\u017cymy przed wysy\u0142k\u0105',
-      net:this.DRV().montazNetto||0,stock:true});
+    // Monta\u017cu tu nie dok\u0142adamy. W\u0142a\u015bciciel: \u201eWysy\u0142amy luzem do samodzielnego
+    // monta\u017cu, je\u015bli klient chce aby mu z\u0142o\u017cy\u0107 robimy dop\u0142at\u0119 60 z\u0142 netto\u2026 to mo\u017cna
+    // doda\u0107 jako pytanie do klienta i jego decyzji". Dopisany tutaj by\u0142by dop\u0142at\u0105
+    // domy\u015bln\u0105, kt\u00f3r\u0105 klient musia\u0142by zdejmowa\u0107 \u2014 czyli odwrotnie ni\u017c ustalone.
+    // Dok\u0142ada si\u0119 go w koszyku: addableFor() proponuje, addExtra() dodaje.
     if(this.mountsHas('2a')) add('FA','Ko\u0142nierz boczny FA');
     if(this.mountsHas('2b')) add('FB','Ko\u0142nierz boczny FB');
     if(this.mountsHas('3')) add('ARM','Rami\u0119 reakcyjne');
@@ -1256,7 +1288,8 @@ export class DkmLogic extends React.Component {
     return out;
   }
   OPT_LABELS={FA:'Kołnierz boczny FA',FB:'Kołnierz boczny FB',ARM:'Ramię reakcyjne',
-    SS:'Wał zdawczy jednostronny',DS:'Wał zdawczy dwustronny',PCV:'Osłona PCV'};
+    SS:'Wał zdawczy jednostronny',DS:'Wał zdawczy dwustronny',PCV:'Osłona PCV',
+    MONT:'Montaż zestawu — złożymy przed wysyłką'};
   // dobieranie wyposażenia wprost w zamówieniu — bez powrotu na kartę
   addExtra(k,code){ this.setState(s=>{
     const rfq=s.rfq.map(x=>{ if(x.k!==k) return x;
@@ -1267,6 +1300,11 @@ export class DkmLogic extends React.Component {
         const f=this.invForItem(code==='INV1'?1:3,x.p1);
         if(!f) return x;
         cur.push({code,label:this.invLabel(f),sku:f[0],net:f[4],stock:f[5]>0,qty:1});
+        return {...x,extras:cur};
+      }
+      // montaż nie jest częścią z magazynu — cena stoi w DKM_DRV.montazNetto
+      if(code==='MONT'){
+        cur.push({code,label:this.OPT_LABELS.MONT,net:this.DRV().montazNetto||0,stock:true,qty:1});
         return {...x,extras:cur};
       }
       const free=code==='PCV'&&this.pcvFree(x.box);
@@ -1291,6 +1329,9 @@ export class DkmLogic extends React.Component {
       .map(c=>{ const free=c==='PCV'&&this.pcvFree(x.box); const op=this.optOf(c,x.box);
         return {code:c,label:this.OPT_LABELS[c],
           price:free?'gratis':(op?(zl(op.net)+' netto'):'cena na zapytanie')}; });
+    // przekładnia łączona jedzie luzem — złożenie jest wyborem klienta, nie domyślną dopłatą
+    if(this.drvWt(x.box)&&have.indexOf('MONT')<0)
+      out.unshift({code:'MONT',label:this.OPT_LABELS.MONT,price:zl(this.DRV().montazNetto||0)+' netto'});
     // falowniki — osobno na 3 × 400 V i 1 × 230 V, można dobrać oba
     // fazę starego wpisu 'INV' ustalamy z jego SKU — nie zakładamy 400 V
     const legacy=(x.extras||[]).filter(e=>!e.off&&e.code==='INV')
