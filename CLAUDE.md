@@ -858,6 +858,44 @@ Uwaga na przyszłość: wyszukiwarka zamienników leży pod `/zamiennik`, a nie 
 Stan na 5 września: 5 użytkowników w 28 dni. Narzędzie pomiarowe działa,
 brakuje ruchu — stąd linki `?start=…` i linkowanie ze sklepu.
 
+## Karty wymiarowe pojedynczych przekładni
+
+Dziesięć plików `app/public/assets/karta-<wielkość>.jpg`, 1240 × 1752 px (A4
+przy 150 dpi). Właściciel robi je w Claude Design i przysyła gotowe; kod tylko
+je podmienia. Pokazuje je `cardSrc()` na karcie produktu i `printCard()`
+w wydruku, a service worker trzyma je w pamięci przeglądarki — wersja cache'u
+liczy się z zawartości plików, więc podmiana sama ją unieważnia.
+
+**20 września 2026 weszła ujednolicona piątka: 025, 030, 040, 050, 063.**
+Reszta (075, 090, 110, 130, 150) czeka na przesłanie.
+
+Przed wgraniem warto sprawdzić liczby z kart z danymi aplikacji — te same
+wielkości stoją w `dims-data.js` i w `DKM_PRICE.wt.gear`, więc rozjazd oznacza,
+że któreś z dwóch źródeł kłamie:
+
+| Na karcie | W aplikacji |
+|---|---|
+| rozstaw otworów `C × C1` | `DKM_FOOT` |
+| ⌀ tulei `D (H7)` | `DKM_BORE.std` |
+| `E (h7)`, otwory `PE`, kąt `α` | `DKM_FACE` |
+| tabele PAM-IEC (`N M P S b₁ t₁ s₁ D`) | `DKM_PAM` |
+| masa przekładni | `DKM_PRICE.wt.gear` |
+
+Przy piątce z 20 września wszystko się zgadzało, z niuansami włącznie: DKM075
+nie ma `71B14`, DKM110 i DKM130 są wyłącznie w B5, a DKM150 ma sklejony wpis
+`100/112B5`.
+
+**Karta DKM025 ma być inna niż pozostałe — potwierdzone przez właściciela,
+nie poprawiać.** Wymiary są wprost na rysunku, bez tabeli z literami, i nie ma
+sekcji przyłącza PAM-IEC. To nie jest niedoróbka: tej wielkości aplikacja też
+nie ma w `DKM_PAM`, bo DKM025 tego przyłącza nie ma.
+
+Znane, zgłoszone i świadomie zostawione: **DKM063 ma w tabeli dwa wiersze `Q`
+i żadnego `O`**, choć na rysunku strzałka `O` jest — ten sam błąd miały karty
+075 i 150 w wersji z 20 września. **DKM110** czeka na poprawkę właściciela
+(brak pola z masą, tytuł łamie się na dwie linie). **DKM150** z podpisem
+„Gearbox weight" zamiast „Gearbox Mass" — tak ma być.
+
 ## Rzeczy, które łatwo zepsuć
 
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji
