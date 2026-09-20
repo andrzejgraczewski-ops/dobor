@@ -706,7 +706,18 @@ wyświetla tam `box` („DRV063/130") i wiersz parametrów. Nazwa w brzmieniu
 ustalonym z właścicielem idzie do zamówienia i do wydruku. Gdyby miała być
 też na ekranie, to zmiana po stronie Design.
 
-**Skład trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
+**Skrót „Pozycje" to lista do skompletowania towaru, więc musi mieć
+wyposażenie.** Przez pierwsze tygodnie `pozycjeSkrot()` wypisywał tylko SKU
+przekładni i silnika, a falownik, ramię reakcyjne, wały zdawcze i osłona
+zostawały wyłącznie w „Szczegółach" na końcu maila. Właściciel wyłapał to
+20.09.2026 na prawdziwym zamówieniu: skrót pokazywał **830 zł** przy pozycji
+wartej **1 580 zł** — bo brakowało falownika za 657 zł, ramienia za 48 zł
+i wału zdawczego za 45 zł. Skrót wymienia teraz całe wyposażenie z ilością
+i ceną oraz **wartość pozycji netto**, żeby suma się zgadzała i żeby magazyn
+nie musiał składać towaru z dwóch miejsc w mailu. Test pilnuje obu rzeczy:
+że wyposażenie jest wymienione i że suma równa się składnikom.
+
+**Skład DRV trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
 przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, łącznik i —
 gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ ZA MONTAŻ". Bez tego biuro
 wysłałoby części luzem komuś, kto zapłacił za złożenie.

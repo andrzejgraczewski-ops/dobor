@@ -803,6 +803,19 @@ export class DkmLogic extends React.Component {
       }
       else if(gq>0) L.push('SKU przekładni: '+(x.gearSku||'—')+' · '+cena(x.boxNet,gq));
       if(mq>0) L.push('SKU silnika: '+(x.motSku||'—')+' · '+cena(x.motNet,mq));
+      // Wyposażenie musi być w skrócie, nie tylko w „Szczegółach": to jest lista
+      // do skompletowania towaru, a falownik, ramię czy wał zdawczy trzeba zdjąć
+      // z półki tak samo jak przekładnię. Bez nich skrót pokazywał 830 zł tam,
+      // gdzie pozycja kosztowała 1 580 zł — właściciel wyłapał to 20.09.2026.
+      const wyp=(x.extras||[]).filter(e=>!e.off);
+      if(wyp.length){
+        L.push('wyposażenie:');
+        wyp.forEach(e=>{ const q=this.exQty(e);
+          L.push('   · '+e.label+' — '+q+' szt. × '
+            +(e.net===0?'gratis':(e.net!=null?(zl(e.net)+' / szt.'):'cena na zapytanie'))
+            +(e.net?(' = '+zl(e.net*q)):'')); });
+      }
+      L.push('wartość pozycji netto: '+zl(this.lineTotal(x)));
       L.push('współczynnik pracy przekładni: '+(band==='none'?'brak danych':('fs = '+x.fs))
         +' — '+this.FS_META[band].label);
       return L.join('\n');

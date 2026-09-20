@@ -403,6 +403,46 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await ctx.close();
 }
 
+// 7b. Skrót „Pozycje" to lista do skompletowania towaru — musi zawierać
+//     wyposażenie. Bez niego magazyn widział samą przekładnię i silnik,
+//     a falownik, ramię i wał zdawczy zostawały tylko w „Szczegółach"
+//     na końcu maila. Właściciel wyłapał to 20.09.2026: skrót pokazywał
+//     830 zł przy pozycji wartej 1 580 zł.
+{
+  const { ctx, page, posts } = await open({ consent: 'no' });
+  await addToCart(page);
+  // dobieramy w koszyku to, co magazyn musi zdjąć z półki razem z przekładnią
+  const dobrane = [];
+  for (const wzor of ['\\+ Ramię reakcyjne', '\\+ Wał zdawczy jednostronny', '\\+ Falownik 400 V']) {
+    const ok = await page.evaluate((rx) => {
+      const re = new RegExp(rx);
+      const b = [...document.querySelectorAll('button')].find((x) => re.test(x.innerText));
+      if (b) { b.click(); return true; } return false;
+    }, wzor);
+    if (ok) dobrane.push(wzor.replace('\\+ ', ''));
+    await page.waitForTimeout(250);
+  }
+  check('w koszyku da się dobrać wyposażenie', dobrane.length === 3, dobrane.join(' · '));
+  await fillContact(page);
+  await page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+  await page.locator('[data-order-btn]').click();
+  await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+  const poz = String(((posts[0] || {}).body || {}).Pozycje || '');
+  check('skrót pozycji wymienia dobrane wyposażenie',
+    /wyposażenie:/.test(poz) && /Ramię reakcyjne/.test(poz)
+    && /Wał zdawczy jednostronny/.test(poz) && /Falownik/.test(poz),
+    poz.replace(/\n/g, ' | ').slice(0, 200));
+  // suma w skrócie musi zgadzać się z tym, co klient widział w koszyku
+  const zlicz = (t) => { const m = /(\d[\d\s]*)zł/.exec(t || ''); return m ? parseInt(m[1].replace(/\D/g, ''), 10) : null; };
+  const suma = zlicz(poz.slice(poz.indexOf('wartość pozycji netto')));
+  const skladniki = (poz.match(/=\s*(\d[\d\s]*)zł/g) || []).map((x) => zlicz(x));
+  const sku = (poz.match(/·\s*\d+ szt\. × (\d[\d\s]*)zł netto/g) || []).map((x) => zlicz(x));
+  check('wartość pozycji w skrócie = przekładnia + silnik + wyposażenie',
+    suma === [...skladniki, ...sku].reduce((a, b) => a + b, 0),
+    suma + ' vs ' + [...skladniki, ...sku].join(' + '));
+  await ctx.close();
+}
+
 // 8. awaria wysyłki — panel ratunkowy
 {
   const { ctx, page, posts } = await open({ consent: 'no', formStatus: 500 });
