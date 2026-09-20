@@ -661,10 +661,27 @@ naprawdę leży na dysku** — inaczej karta pokazywałaby zepsuty obrazek.
 Po wrzuceniu plików wystarczy `node narzedzia/drv/buduj.mjs`. Do tego czasu
 karta DRV jest bez rysunku.
 
-**Montaż 60 zł netto od sztuki** idzie jako zwykłe wyposażenie (`code: 'MONT'`
-w `extrasFor()`), więc pokazuje się, liczy i trafia do maila istniejącą drogą —
-bez nowego elementu na ekranie, czyli bez kolizji z Design. Domyślnie DRV jedzie
-luzem do samodzielnego montażu.
+**Montaż 60 zł netto od sztuki** idzie jako zwykłe wyposażenie (`code: 'MONT'`),
+więc pokazuje się, liczy i trafia do maila istniejącą drogą — bez nowego
+elementu na ekranie, czyli bez kolizji z Design.
+
+**Dopłaty nie doliczamy domyślnie.** Przez pierwsze dziesięć dni `extrasFor()`
+dokładało `MONT` do każdej pozycji DRV, więc klient musiał ją *zdejmować* —
+odwrotnie niż ustalone (właściciel: „wysyłamy luzem do samodzielnego montażu,
+jeśli klient chce aby mu złożyć robimy dopłatę… to można dodać jako pytanie
+do klienta i jego decyzji"). Poprawione 20.09.2026: montaż proponuje
+`addableFor()` w koszyku, a dokłada `addExtra()` — jedno kliknięcie, wciąż bez
+nowego elementu na ekranie. Test pilnuje obu stron: że nie jest domyślny
+i że dobrany dokłada 60 zł.
+
+**Złożony zestaw jedzie jako jedna bryła.** `shipItems()` rozbijało DRV na
+człony, łącznik i silnik także wtedy, gdy klient dopłacił za montaż — a wtedy
+nie ma czego rozbijać. Przy dzisiejszych masach nie zmienia to żadnej ceny:
+lekkie zespoły i tak mieszczą się w jednej paczce (najcięższy kurierski to
+DRV040/090 z silnikiem, 23,5 kg), a `DKM110`, `DKM130` i `DKM150` i tak
+wymuszają paletę. Znaczenie pojawi się dopiero wtedy, gdy pojedyncza bryła
+przekroczy `PACK_CHEAP` (31 kg) — wtedy luzem byłyby dwie paczki, a złożona
+jedna droższa albo paleta.
 
 ### Nazwa i oznaczenie zespołu — dosłownie z ustaleń
 
@@ -690,9 +707,16 @@ ustalonym z właścicielem idzie do zamówienia i do wydruku. Gdyby miała być
 też na ekranie, to zmiana po stronie Design.
 
 **Skład trafia do maila z zamówieniem**, nie na ekran klienta: `pozycjeSkrot()`
-przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, dopuszczalne
-łączniki z ich średnicami i — gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ
-ZA MONTAŻ". Bez tego biuro wysłałoby części luzem komuś, kto zapłacił za złożenie.
+przy pozycji DRV podaje SKU zespołu, oba człony z przełożeniami, łącznik i —
+gdy klient dopłacił — wyraźne „⚑ KLIENT DOPŁACIŁ ZA MONTAŻ". Bez tego biuro
+wysłałoby części luzem komuś, kto zapłacił za złożenie.
+
+**Łącznik wskazujemy ten wybrany, nie listę dopuszczalnych** (od 20.09.2026).
+`drvVar()` zwraca `lacKod` i `fl2` — kod łącznika i kołnierz członu 2, z których
+policzył cenę — a `priceForItem()` i `hydrate()` niosą je do pozycji w koszyku.
+Powód: cena zestawu jest policzona z konkretnej pary, więc to te części mają
+zejść z półki. Pozostałe dopuszczalne pary zostają w linii „zamiennie", żeby
+biuro wiedziało, czym zastąpić brakujący egzemplarz bez dzwonienia do klienta.
 
 **Termin przy pełnym stanie ma dwa brzmienia** (`drvTermin()`), bo dwie drogi:
 kurier — „składamy dziś — dostawa następnego dnia roboczego"; paleta —
