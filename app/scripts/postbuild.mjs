@@ -172,9 +172,20 @@ else await writeFile(join(dist, 'sitemap.xml'),
 `);
 
 const TYTUL = 'DKM · Dobór przekładni ślimakowych';
+// Opis dla Facebooka, WhatsAppa i danych strukturalnych. Od 21.09.2026 wymienia
+// też przekładnie łączone DRV — właściciel: „teraz mam przekładnie DKM oraz DRV,
+// czyli łączone". Liczby są policzone z katalogu aplikacji, nie wpisane z pamięci:
+// pojedyncze DKM025–DKM150 (i 5–100, 0,06–15 kW), osiem zespołów DRV030/040–
+// DRV063/150 (i 150–5000, 0,09–1,5 kW), razem przełożenia 5–5000.
 const OPIS = 'Dobierz przekładnię ślimakową, silnik i falownik na podstawie warunków '
-  + 'pracy maszyny — z cenami netto i dostępnością magazynową. Korpusy DKM025–DKM150, '
-  + 'moce 0,06–15 kW.';
+  + 'pracy maszyny — z cenami netto i dostępnością magazynową. Korpusy DKM025–DKM150 '
+  + 'i przekładnie łączone DRV, przełożenia 5–5000, moce 0,06–15 kW.';
+// Krótszy wariant do <meta name="description">, bo Google ucina snippet
+// koło 160 znaków. Oba teksty stoją TUTAJ, w jednym pliku — wcześniej opis dla
+// wyszukiwarki siedział osobno w index.html i rozjechałby się przy każdej
+// zmianie oferty, a nikt by tego nie zauważył.
+const OPIS_META = 'Dobór przekładni ślimakowych DKM i przekładni łączonych DRV — moc, '
+  + 'przełożenie, prędkość wyjściowa, moment i zamiennik. Ceny netto, dostępność, zamówienie.';
 
 const dane = {
   '@context': 'https://schema.org',
@@ -229,7 +240,10 @@ if (TEST) {
     .replace('</body>', PASEK + '\n</body>'));
   console.log('WERSJA TESTOWA — noindex, robots.txt z zakazem, bez mapy strony, pasek ostrzegawczy');
 } else {
-await writeFile(join(dist, 'index.html'), strona.replace('</head>', glowa + '\n</head>'));
+await writeFile(join(dist, 'index.html'), strona
+  .replace(/<meta name="description" content="[^"]*">/,
+    '<meta name="description" content="' + OPIS_META + '">')
+  .replace('</head>', glowa + '\n</head>'));
 console.log('sitemap.xml — treść z ' + dataTresci + ' · index.html — kanoniczny, Open Graph, JSON-LD');
 }
 console.log('sw.js — ' + shell.length + ' plików od razu, ' + rest.length + ' w tle, wersja ' + version);

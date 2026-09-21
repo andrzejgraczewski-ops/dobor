@@ -653,6 +653,26 @@ console.log('\n— Nagłówki bezpieczeństwa (polityka z deploy/nginx.conf) —
     ma('<link rel="canonical" href="https://dobor.dkmpower.pl/">'));
   for (const t of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:width'])
     check('podgląd linku: ' + t, ma('property="' + t + '"'));
+  // Opis pisze człowiek i nikt go nie pilnuje — a przy dojściu DRV rozjechał się
+  // po cichu: Facebook pokazywał link do aplikacji, która „dobiera przekładnie
+  // ślimakowe DKM025–DKM150", choć od dawna dobierała też zespoły łączone.
+  // Sprawdzamy więc REGUŁĄ: opis musi wymieniać każdą rodzinę, którą aplikacja
+  // naprawdę ma w katalogu. Gdyby DRV kiedyś wypadło, warunek wygasa sam.
+  {
+    // Czytamy ŹRÓDŁO, nie zbudowany plik: bundler zmienia nazwy pól, więc
+    // szukanie w paczce dawało „nie ma DRV" i warunek wygasał sam z siebie.
+    const zrodlo = resolve(fileURLToPath(import.meta.url), '../../src/data/drv-data.js');
+    const maDRV = await readFile(zrodlo, 'utf8').then((t) => /"drv":"DRV\d/.test(t), () => false);
+    const opisy = [...html.matchAll(/(?:og:description|name="description")[^>]*content="([^"]*)"/g)]
+      .map((m) => m[1]);
+    const ld = (html.match(/"description":"([^"]*)"/) || [])[1] || '';
+    const wszystkie = opisy.concat([ld]);
+    check('opis w znacznikach wymienia rodziny obecne w katalogu',
+      wszystkie.length >= 3 && (!maDRV || wszystkie.every((o) => /DRV/.test(o)))
+        && wszystkie.every((o) => /DKM/.test(o)),
+      maDRV ? (wszystkie.filter((o) => !/DRV/.test(o)).length + ' z ' + wszystkie.length
+        + ' opisów bez DRV') : 'katalog nie ma DRV — warunek nie obowiązuje');
+  }
   check('podgląd linku: duży kafelek na Twitterze/X',
     ma('name="twitter:card" content="summary_large_image"'));
 

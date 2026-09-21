@@ -220,6 +220,44 @@ Obrazek pokazywany przy linku (`public/obrazek-linku.png`, 1200 × 630 px) skła
 `scripts/obrazek-linku.mjs` — renderuje stronę w przeglądarce i robi zrzut.
 Uruchamia się go ręcznie, tylko gdy zmienia się logo albo hasło.
 
+**Opis przy linku wymienia obie rodziny — poprawione 21.09.2026.** Właściciel:
+„teraz mam przekładnie DKM oraz DRV, czyli łączone". Do tego dnia opis mówił
+tylko o korpusach `DKM025–DKM150`, choć aplikacja od dawna dobierała też zespoły
+łączone — czyli Facebook, WhatsApp i Google pokazywały link do węższej oferty,
+niż jest naprawdę.
+
+Teksty stoją **w jednym pliku**, w `scripts/postbuild.mjs`:
+
+- **`OPIS`** — dla `og:description` i danych strukturalnych, dłuższy;
+- **`OPIS_META`** — dla `<meta name="description">`, krótszy, bo Google ucina
+  snippet koło 160 znaków.
+
+Przedtem opis dla wyszukiwarki siedział **osobno w `app/index.html`** i nikt by
+go nie poprawił razem z tym dla Facebooka. `postbuild.mjs` podmienia go teraz
+z `OPIS_META`, a wpis w `index.html` zostaje jako zapas na wypadek, gdyby
+postbuild nie przebiegł (np. na serwerze deweloperskim). Ten sam wzór co
+`SHIP_FREE` i `SPED_PROGI`.
+
+Liczby w opisie są **policzone z katalogu**, nie wpisane z pamięci: pojedyncze
+`DKM025–DKM150` (`i` 5–100, 0,06–15 kW), osiem zespołów `DRV030/040–DRV063/150`
+(`i` 150–5000, 0,09–1,5 kW), razem przełożenia **5–5000**.
+
+**Test pilnuje reguły, nie tekstu:** każdy z trzech opisów (`og:description`,
+`meta`, JSON-LD) musi wymieniać `DRV`, **dopóki katalog naprawdę ma wiersze
+DRV** — warunek czyta `app/src/data/drv-data.js`, więc gdyby DRV kiedyś wypadło,
+wygasa sam. Sprawdzone przez skrócenie opisu do starej wersji: test pada
+i wypisuje, ile opisów jest bez DRV.
+
+Uwaga metodyczna, bo pierwsza wersja tego testu była bezwartościowa: szukałem
+DRV w **zbudowanej paczce**, a bundler zmienia nazwy pól — więc test pisał
+„katalog nie ma DRV, warunek nie obowiązuje" i przechodził zawsze. Trzeba było
+czytać plik źródłowy.
+
+**Tytuł został bez zmian** (`DKM · Dobór przekładni ślimakowych`) — zespoły DRV
+to też przekładnie ślimakowe, tylko dwustopniowe, a tytuł jest zarazem podpisem
+na obrazku podglądu. Obrazka nie przegenerowywałem: pokazuje ekran startowy,
+a ten się nie zmienił.
+
 Aplikacja to **jeden adres**, bez osobnych URL-i dla wyników. To celowe: katalog
 produktowy dla wyszukiwarki jest w sklepie `dkmpower.pl`, a 1802 wygenerowane
 strony różniące się liczbami konkurowałyby z nim o te same zapytania i wyglądały
