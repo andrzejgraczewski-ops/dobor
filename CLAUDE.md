@@ -609,10 +609,21 @@ jest identyczny z tabelą pojedynczą dla członu 1 w tej samej wielkości, i ż
 żaden kołnierz nie jest zmyślony. Sprawdzone przez przywrócenie starego wzoru —
 test pada i wypisuje wszystkie pięć wierszy.
 
-Zostało otwarte: `katalog.json` mapuje `0.09|1400|56B5` na silnik
-**`0,09 4 56B5 DKM`, którego nie ma w ofercie** — aplikacja szuka wyrobu,
-który nie istnieje. Usunięcie nic dziś nie zmieni (ceny i tak nie ma), ale
-zdejmie z danych nieprawdę. Czeka na decyzję właściciela.
+**Mapowanie `0.09|1400|56B5 → 0,09 4 56B5 DKM` zostaje — nie usuwać.**
+`katalog.json` wskazuje tu silnik, którego w magazynie nie ma i nigdy nie było,
+więc wyglądało to na martwy wpis do sprzątnięcia. Właściciel rozstrzygnął
+inaczej (21.09.2026): „zostaw `0,09 4 56B5` jako komplet na zapytanie, bo
+możemy kupić taki silnik, jeśli klient będzie potrzebował takiego DRV".
+
+Czyli to **nie jest** ten sam przypadek co `DKM040 56B14`, którego dla
+przekładni nie ma w ofercie wcale. Silnik da się domówić u dostawcy — brakuje
+tylko ceny i stanu, a `status = 2` („zapytaj o cenę") jest wtedy dokładnie
+prawdą: klient dostaje prośbę o kontakt, a firma może to złożyć.
+
+Dotyczy pięciu wierszy DRV przy 0,09 kW (`DRV040/075` i `DRV040/090`)
+i siedmiu wariantów pojedynczego `DKM040` w `56B5`. Wszystkie zostają przy
+„zapytaj o cenę" i **tak ma być** — usunięcie mapowania nic by nie zmieniło
+klientowi, ale skasowałoby informację, że taki komplet jest w ogóle możliwy.
 
 #### DKM030 przy 0,12 kW dopuszcza też IEC 56 — 21.09.2026
 
