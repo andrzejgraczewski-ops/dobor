@@ -1168,15 +1168,21 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
       (linia.match(/Wysyłka[^|]{0,120}/) || ['brak'])[0]);
     // Nie przypinamy konkretnych kilogramów — aplikacja dobiera silnik po
     // dostępności i cenie, więc masa zależy od cennika. Pilnujemy reguły:
-    // pokazane masy są z kartonami, sumują się do masy przesyłki i ŻADNA
-    // nie przekracza taniego progu 31 kg — inaczej 25 zł za paczkę kłamie.
-    const paczki = (linia.match(/\(([^)]*?) z kartonami\)/) || [null, ''])[1]
+    // pokazane masy są brutto, sumują się do masy przesyłki i ŻADNA nie
+    // przekracza taniego progu 31 kg — inaczej 25 zł za paczkę kłamie.
+    //
+    // W treści nie piszemy „z kartonami" ani „z paletą" — właściciel,
+    // 21.09.2026: „nie pisz z kartonami czy z paletą, bo to logiczne".
+    const paczki = (linia.match(/paczk\w*\s*\(([^)]*)\)/) || [null, ''])[1]
       .split('+').map((s) => parseFloat(s.replace(',', '.'))).filter((n) => n > 0);
     const razem = parseFloat(((linia.match(/Wysyłka\D*([\d,]+) kg/) || [])[1] || '0').replace(',', '.'));
-    check('masy paczek są z kartonami, sumują się i mieszczą w progu 31 kg',
+    check('masy paczek są brutto, sumują się i mieszczą w progu 31 kg',
       paczki.length === 2 && paczki.every((k) => k <= 31)
         && Math.abs(paczki.reduce((a, k) => a + k, 0) - razem) < 0.05,
       paczki.join(' + ') + ' = ' + razem + ' kg');
+    check('opis przesyłki nie dopisuje „z kartonami" ani „z paletą"',
+      !/z kartonami|z palet/.test(linia),
+      (linia.match(/kurier[^—]{0,60}/) || ['brak'])[0]);
     await ctx.close();
   }
 

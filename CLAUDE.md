@@ -544,15 +544,17 @@ paczek po 25 zł — i **właściciel to odrzucił**: „paczka będzie skasowan
 rozbić") — przeczytałem ją jako ograniczenie, a nie jako decyzję. Nie ruszać.
 
 Pokazana masa to od tej pory **brutto**, bo tylko taka zgadza się z ceną
-i z opisem progu. W treści doszło **„z kartonami"** i **„z paletą"**, żeby nikt
-nie pomyślał, że przekładnia przybrała na wadze:
+i z opisem progu. Dopisałem był do treści „z kartonami" i „z paletą", żeby nikt
+nie pomyślał, że przekładnia przybrała na wadze — **właściciel to odrzucił**:
+„nie pisz z kartonami czy z paletą, bo to logiczne". Treść wróciła do krótszej
+i pilnuje tego osobny test:
 
 ```
 Wysyłka · 33,5 kg  ·  50 zł netto
-kurier · 2 paczki (22,5 kg + 11 kg z kartonami) — taniej niż spedycja
+kurier · 2 paczki (22,5 kg + 11 kg) — taniej niż spedycja
 
 Wysyłka · 79,6 kg  ·  130 zł netto
-spedycja (Raben) · 40–100 kg z paletą — zamówienie do 9:00
+spedycja (Raben) · 40–100 kg — zamówienie do 9:00
 ```
 
 **Dwa testy, oba na uruchomionej aplikacji.** Pierwszy przechodzi ścieżkę

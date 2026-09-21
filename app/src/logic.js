@@ -765,12 +765,11 @@ export class DkmLogic extends React.Component {
     else if(cour&&(sp==null||cour.net<=sp)){
       mode='kurier'; net=cour.net; packs=cour.packs; kg=cour.kg;
       tier='kurier \u00b7 '+cour.packs+' '+plural(cour.packs,'paczka','paczki','paczek')
-        +' ('+cour.bins.map(b=>num(b)+' kg').join(' + ')+' z kartonami)'
+        +' ('+cour.bins.map(b=>num(b)+' kg').join(' + ')+')'
         +((sp!=null&&cour.packs>1)?' \u2014 taniej ni\u017c spedycja':'');
     } else if(sp!=null){
       mode='spedycja'; net=sp; packs=1; kg=kgPal;
-      tier='spedycja (Raben) \u00b7 '+this.spedProg(kgPal)[2]+' z palet\u0105'
-        +' \u2014 zam\u00f3wienie do 9:00';
+      tier='spedycja (Raben) \u00b7 '+this.spedProg(kgPal)[2]+' \u2014 zam\u00f3wienie do 9:00';
     } else { tier='mas\u0119 wyceniamy indywidualnie'; }
     const cod=this.state.pay==='pobranie'&&net!=null?this.SHIP_COD:0;
     const free=net!=null&&this.cartGoods()>=this.SHIP_FREE;
