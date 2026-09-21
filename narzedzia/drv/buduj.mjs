@@ -118,12 +118,34 @@ window.DKM_CATALOG=(window.DKM_CATALOG||[]).concat(W);
 // bo cały kod kluczuje po niej (boxFitsBore, mountDim, optOf, kgOpt).
 // Ceny i stany osprzętu czytamy z dzisiejszego cennika, więc nie dublują się
 // w danych i odświeżają się razem z nim.
+//
+// 21.09.2026: kopiowane były tylko trzy tabele z dziesięciu, więc ekran
+// „Sposób mocowania" pisał przy DRV „brak dla tej wielkości" przy mocowaniu
+// bocznym, czołowym i ramieniu reakcyjnym — a to są mocowania członu 2, czyli
+// zwykłej przekładni, która je ma. Właściciel: „w DRV to wszystkie wymiary
+// wyposażenie powinny być z 2 członu DRV". Lista jest teraz zupełna i musi
+// obejmować KAŻDĄ tabelę z dims-data.js kluczowaną po korpusie.
+//
+// Jedyny wyjątek to DKM_PAM: ta tabela opisuje przyłącze WEJŚCIOWE, a w zespole
+// wejście należy do członu 1, nie 2 — kopiowanie jej z członu 2 byłoby
+// nieprawdą. Aplikacja jej nie czyta (jest tylko na kartach wymiarowych),
+// więc zostaje nietknięta.
 var Z=${j(czlon2)};
 var przenies=function(tab){ if(!tab) return;
   for(var z in Z) if(tab[Z[z]]!==undefined) tab[z]=tab[Z[z]]; };
-przenies(window.DKM_BORE=window.DKM_BORE||{});
-przenies(window.DKM_FOOT=window.DKM_FOOT||{});
-przenies(window.DKM_BOLT=window.DKM_BOLT||{});
+przenies(window.DKM_BORE=window.DKM_BORE||{});          // średnica tulei
+przenies(window.DKM_FOOT=window.DKM_FOOT||{});          // mocowanie na podstawie
+przenies(window.DKM_SIDE=window.DKM_SIDE||{});          // mocowanie boczne
+przenies(window.DKM_FACE=window.DKM_FACE||{});          // mocowanie czołowe
+przenies(window.DKM_ARM=window.DKM_ARM||{});            // ramię reakcyjne
+przenies(window.DKM_PCV=window.DKM_PCV||{});            // osłona PCV
+przenies(window.DKM_SHAFT=window.DKM_SHAFT||{});        // wał zdawczy
+przenies(window.DKM_SHAFT_DS_L1=window.DKM_SHAFT_DS_L1||{}); // wał dwustronny
+przenies(window.DKM_BOLT=window.DKM_BOLT||{});          // śruby montażowe
+// DKM_FLANGE ma o jeden poziom więcej: typ kołnierza → korpus
+var przeniesKolnierze=function(tab){ if(!tab) return;
+  for(var t in tab) for(var z in Z) if(tab[t][Z[z]]!==undefined) tab[t][z]=tab[t][Z[z]]; };
+przeniesKolnierze(window.DKM_FLANGE=window.DKM_FLANGE||{});
 var przeniesOsprzet=function(tab){ if(!tab) return;
   for(var k in tab){ var p=k.split('|');
     if(p.length!==2) continue;

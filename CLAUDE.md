@@ -683,14 +683,41 @@ wysyłki.
 
 **Mocowanie i wyposażenie DRV dziedziczy po członie 2** — właściciel, 10.09.2026:
 „człon 2 to daje, a to ta sama przekładnia". Kopiowane pod nazwę zespołu
-w `drv-data.js`, bo cały kod kluczuje po nazwie korpusu: `DKM_BORE`
-(średnica wału), `DKM_FOOT` (rozstaw otworów), `DKM_BOLT` (śruby) oraz
-`DKM_PRICE.opt` i `wt.opt` (kołnierze FA/FB, ramię reakcyjne, osłona, tuleje).
-Ceny i stany osprzętu czytamy z **dzisiejszego** cennika, więc nie dublują się
-w danych i odświeżają się razem z nim — 35 wpisów na osiem zespołów.
+w `drv-data.js`, bo cały kod kluczuje po nazwie korpusu. Ceny i stany osprzętu
+czytamy z **dzisiejszego** cennika (`DKM_PRICE.opt`, `wt.opt`), więc nie dublują
+się w danych i odświeżają razem z nim — 35 wpisów na osiem zespołów.
+
+**Lista tabel musi być zupełna — 21.09.2026 nie była.** Kopiowane były tylko
+`DKM_BORE`, `DKM_FOOT` i `DKM_BOLT`, czyli trzy z dziesięciu. Skutek: ekran
+„Sposób mocowania" pisał przy każdym zespole DRV **„brak dla tej wielkości"**
+przy mocowaniu bocznym, czołowym i ramieniu reakcyjnym — aplikacja odmawiała
+sprzedaży czegoś, co DKM ma na półce, i robiła to cicho, bez błędu. Właściciel
+wyłapał to na wersji testowej: „w DRV to wszystkie wymiary wyposażenie powinny
+być z 2 członu DRV".
+
+Kopiowane są teraz wszystkie tabele z `dims-data.js` kluczowane po korpusie:
+`DKM_BORE`, `DKM_FOOT`, `DKM_SIDE`, `DKM_FACE`, `DKM_ARM`, `DKM_PCV`,
+`DKM_SHAFT`, `DKM_SHAFT_DS_L1`, `DKM_BOLT` oraz `DKM_FLANGE` (ta ma o poziom
+więcej: typ kołnierza → korpus, więc osobną funkcją).
+
+**Jedyny wyjątek to `DKM_PAM`** — opisuje przyłącze **wejściowe**, a w zespole
+wejście należy do członu 1, nie 2. Kopiowanie jej z członu 2 byłoby nieprawdą.
+Aplikacja jej nie czyta (jest tylko na kartach wymiarowych), więc zostaje
+nietknięta.
+
+**Dwa testy pilnują tego od strony skutku, nie listy:** pierwszy porównuje każdy
+zespół z jego członem 2 wartość po wartości we wszystkich jedenastu tabelach,
+drugi liczy warunkiem z `mountBrak()`, czy ekran mocowania oferuje przy zespole
+to samo co przy samej przekładni. Sprawdzone przez wyłączenie jednej tabeli:
+oba padają i wskazują, której brakuje. Pominięcie kolejnej tabeli wyjdzie więc
+od razu, a nie po zgłoszeniu właściciela.
 
 Czego **nie** dziedziczymy: **wymiarów gabarytowych**. Długość całkowitą daje
 dopiero karta zespołu, bo to dwa korpusy plus łącznik.
+
+Czego brak jest prawdziwy: **kołnierz FB przy `DRV050/110`, `DRV063/130`
+i `DRV063/150`** — `DKM110`, `DKM130` i `DKM150` nie mają go i jako pojedyncze
+przekładnie też nie. To nie jest ta sama usterka.
 
 **Karta wymiarowa: `cardSrc()` pokazywał rysunek członu wejściowego.** Regexp
 brał z nazwy pierwszą trójkę cyfr, więc `DRV050/110` dostawał `karta-050.jpg` —

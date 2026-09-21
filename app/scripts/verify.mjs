@@ -1024,6 +1024,60 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await c2.close();
   }
 
+  // 14. Mocowanie i wyposażenie DRV dziedziczy po członie 2 — właściciel,
+  //     10.09.2026: „człon 2 to daje, a to ta sama przekładnia", powtórzone
+  //     21.09.2026: „w DRV to wszystkie wymiary wyposażenie powinny być
+  //     z 2 członu DRV".
+  //
+  //     Generator kopiuje tabele z dims-data.js pod nazwę zespołu, bo cały kod
+  //     kluczuje po nazwie korpusu. Przez pierwsze dni kopiował tylko trzy
+  //     z dziesięciu, więc ekran „Sposób mocowania" pisał przy DRV „brak dla
+  //     tej wielkości" przy mocowaniu bocznym, czołowym i ramieniu reakcyjnym
+  //     — czyli aplikacja odmawiała sprzedaży czegoś, co DKM ma na półce,
+  //     bez żadnego błędu. Test porównuje zespół z jego członem 2 wartość po
+  //     wartości, więc pominięcie kolejnej tabeli wyjdzie od razu.
+  {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    const w = await page.evaluate(() => {
+      const T = ['DKM_BORE', 'DKM_FOOT', 'DKM_SIDE', 'DKM_FACE', 'DKM_ARM', 'DKM_PCV',
+                 'DKM_SHAFT', 'DKM_SHAFT_DS_L1', 'DKM_BOLT'];
+      const jr = (x) => JSON.stringify(x === undefined ? null : x);
+      const P = window.DKM_PRICE || {};
+      const optOf = (c, b) => (P.opt || {})[c + '|' + b] || null;
+      // dokładnie warunek mountBrak() z logic.js
+      const brak = (b) => ({
+        '1a': !(window.DKM_FOOT || {})[b], '1b': !(window.DKM_SIDE || {})[b],
+        '1c': !(window.DKM_FACE || {})[b], '3': !(window.DKM_ARM || {})[b],
+        '2a': !optOf('FA', b) && !((window.DKM_FLANGE || {}).FA || {})[b],
+        '2b': !optOf('FB', b) && !((window.DKM_FLANGE || {}).FB || {})[b],
+      });
+      const rozjazdy = [], mocowania = [];
+      const Z = (window.DKM_DRV || {}).zespoly || {};
+      for (const [z, o] of Object.entries(Z)) {
+        for (const t of T)
+          if (jr((window[t] || {})[z]) !== jr((window[t] || {})[o.czlon2]))
+            rozjazdy.push(z + ' · ' + t);
+        for (const typ of ['FA', 'FB']) {
+          const tab = (window.DKM_FLANGE || {})[typ] || {};
+          if (jr(tab[z]) !== jr(tab[o.czlon2])) rozjazdy.push(z + ' · DKM_FLANGE.' + typ);
+        }
+        const a = brak(z), b = brak(o.czlon2);
+        for (const id of Object.keys(a))
+          if (a[id] !== b[id]) mocowania.push(z + ' · ' + id);
+      }
+      return { ile: Object.keys(Z).length, tabel: T.length + 2, rozjazdy, mocowania };
+    });
+    check('DRV dziedziczy po członie 2 wszystkie tabele wymiarów i osprzętu',
+      w.ile === 8 && w.rozjazdy.length === 0,
+      w.ile + ' zespołów × ' + w.tabel + ' tabel' + (w.rozjazdy.length ? ' — ROZJAZD: ' + w.rozjazdy.join(', ') : ''));
+    check('ekran mocowania oferuje przy DRV to samo co przy samym członie 2',
+      w.mocowania.length === 0,
+      w.mocowania.length ? 'różni się: ' + w.mocowania.join(', ') : 'zgodne we wszystkich zespołach');
+    await ctx.close();
+  }
+
 }
 
 await browser.close();
