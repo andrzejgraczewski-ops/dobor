@@ -238,9 +238,21 @@ wymieniały. Znalazłem to dopiero, składając podgląd z prawdziwych znacznik�
 z samego czytania kodu nie było tego widać.
 
 Po zmianie obrazka wersja cache'u service workera liczy się od nowa (liczona
-z zawartości plików), więc podmiana sama ją unieważnia. **Facebook trzyma
-jednak własną kopię** — nowy obrazek i opis pokażą się dopiero po przepuszczeniu
-adresu przez Sharing Debugger i „Scrape Again".
+z zawartości plików), więc podmiana sama ją unieważnia.
+
+**Trzy pamięci podręczne trzymają go niezależnie od siebie** — sprawdzone
+21.09.2026, gdy właściciel zgłosił „nie zmienił mi się rysunek", a plik był
+na produkcji i publikacja przebiegła pomyślnie:
+
+- **przeglądarka** — sam obrazek leży pod stałym adresem, więc przeładowanie
+  strony nie wystarcza. Pomaga `Ctrl+Shift+R` (to był ten przypadek) albo
+  otwarcie `obrazek-linku.png?v=2`, co omija pamięć bez czyszczenia czegokolwiek;
+- **Facebook** — trzyma własną kopię i nie pobiera jej ponownie sam z siebie.
+  Sharing Debugger → adres → **„Scrape Again"**;
+- **WhatsApp** — osobna pamięć, odświeża się sam po kilku godzinach.
+
+Zanim zaczniesz szukać błędu w kodzie, sprawdź adresem z `?v=`: rozstrzyga
+w jedną sekundę, czy problem jest na stronie, czy w cudzej pamięci.
 
 **Opis przy linku wymienia obie rodziny — poprawione 21.09.2026.** Właściciel:
 „teraz mam przekładnie DKM oraz DRV, czyli łączone". Do tego dnia opis mówił
