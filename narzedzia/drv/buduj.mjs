@@ -18,26 +18,42 @@ const K = JSON.parse(readFileSync(KORZEN + 'narzedzia/drv/drv-katalog.json', 'ut
 
 // Masa zestawu = oba człony + łącznik.
 //
-// Do 21.09.2026 stały tu masy szacowane i łączniki jednego zespołu miały tę samą
-// liczbę, więc na zespół wystarczała jedna. Prawdziwe masy z Optimy się różnią —
-// najmocniej w DRV063/130, gdzie wykonanie wyjątkowe (ŁĄCZNIK 063/110) waży
-// 2,47 kg przy 1,33 kg zwykłego. Bierzemy więc NAJCIĘŻSZY łącznik zespołu.
+// Do 21.09.2026 stały w drv-katalog.json masy szacowane i łączniki jednego
+// zespołu miały tę samą liczbę, więc na zespół wystarczała jedna. Prawdziwe masy
+// z Optimy się różnią — najmocniej w DRV063/130, gdzie wykonanie wyjątkowe
+// (ŁĄCZNIK 063/110) waży 2,47 kg przy 1,33 kg zwykłego.
 //
-// Dlaczego najcięższy, a nie ten faktycznie wybrany: kgGear() w logic.js kluczuje
-// po nazwie korpusu i nie wie, którą parę „łącznik + człon 2" wybrał drvVar().
-// Przeliczenie masy per łącznik oznaczałoby przebudowę drogi liczącej cenę
-// przesyłki, a różnice (0,004–1,14 kg) nie zmieniają dziś żadnego progu: zespoły
-// z DKM110/130/150 i tak jadą paletą i mieszczą się w 40–100 kg, a lekkie
-// zostają daleko pod PACK_CHEAP. Zaokrąglenie w górę nigdy nie zaniży masy
-// przesyłki — w drugą stronę zaniżałoby cenę kuriera.
+// Dwie reguły, obie w jedną stronę — na korzyść bezpieczeństwa wyceny:
+//
+//   1. NAJCIĘŻSZY łącznik zespołu. Dlaczego nie ten faktycznie wybrany: kgGear()
+//      w logic.js kluczuje po nazwie korpusu i nie wie, którą parę „łącznik +
+//      człon 2" wybrał drvVar(). Liczenie masy per łącznik oznaczałoby
+//      przebudowę drogi liczącej cenę przesyłki.
+//   2. ZAOKRĄGLENIE W GÓRĘ do 0,5 kg (właściciel, 21.09.2026: „zaokrąglaj
+//      w górę dla bezpieczeństwa"). Zapas na karton i wypełnienie, których
+//      w masach katalogowych nie ma wcale. Zaokrąglanie do najbliższej połówki
+//      byłoby gorsze niż nic: trzy z jedenastu łączników poszłyby w DÓŁ,
+//      a zaniżona masa to zaniżona cena wysyłki, czyli strata firmy.
+//
+// Masy zostają w drv-katalog.json DOKŁADNIE tak, jak podaje je Optima —
+// zaokrągla dopiero to miejsce. Inaczej przy następnej zmianie oferty nie byłoby
+// z czym porównać nowego zrzutu, a raport magazynowy mas nie odświeża.
+//
+// Ani jedna, ani druga reguła nie zmienia dziś żadnego progu: sprawdzone na
+// wszystkich 107 wierszach, zero zmian ceny i sposobu wysyłki. Najmniej zapasu
+// ma DRV040/090 z silnikiem 0,37 kW — 24 kg przy PACK_CHEAP 31 kg.
 const masyKorpusow = JSON.parse(readFileSync(KORZEN + 'narzedzia/cennik/katalog.json', 'utf8')).wt.gear;
+
+// w górę do pełnej połówki kilograma; zaokrąglenie na szóstym miejscu po
+// przecinku broni przed tym, żeby błąd binarny wypchnął równe 1,0 kg na 1,5
+const doPolowki = (m) => Math.ceil(Number((m * 2).toFixed(6))) / 2;
 
 const wt = {};
 for (const [zespol, z] of Object.entries(K.zespoly)) {
   const masy = z.laczniki.map(l => l.masa);
   if (masy.some(m => !(m > 0)))
     throw new Error(`${zespol}: łącznik bez masy w drv-katalog.json`);
-  const lacznik = Math.max(...masy);
+  const lacznik = doPolowki(Math.max(...masy));
   const g1 = masyKorpusow[z.czlon1], g2 = masyKorpusow[z.czlon2];
   if (!(g1 > 0) || !(g2 > 0))
     throw new Error(`${zespol}: brak masy korpusu ${!g1 ? z.czlon1 : z.czlon2} w katalog.json`);
@@ -123,3 +139,11 @@ console.log(`drv-data.js — wierszy ${wiersze.length} · zespołów ${Object.ke
   + ` · paletą ${sped.length} (${sped.join(', ')})`
   + ` · kart wymiarowych ${Object.keys(karty).length}/${Object.keys(K.zespoly).length}`
   + ` · masy ${Object.entries(wt).map(([z, m]) => z.replace('DRV', '') + ' ' + m.razem + 'kg').join(' · ')}`);
+
+// Widać, ile dokłada zaokrąglenie — gdyby kiedyś doszedł łącznik, którego
+// prawdziwa masa jest tuż nad połówką, narzut na zespół zrobi się spory.
+console.log('łączniki (najcięższy w zespole, dokładnie → w górę do 0,5): '
+  + Object.entries(K.zespoly).map(([z, o]) => {
+      const d = Math.max(...o.laczniki.map(l => l.masa));
+      return z.replace('DRV', '') + ' ' + d + '→' + doPolowki(d);
+    }).join(' · '));

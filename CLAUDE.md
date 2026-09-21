@@ -635,19 +635,37 @@ raport podaje ceny i ilości, nie wagi. `drv-katalog.json` jest jej jedynym
 źródłem i nikt go nie pilnuje, więc przy każdej zmianie oferty trzeba go poprawić
 ręcznie. Ceny łączników mają pierwszeństwo z cennika, masy nie mają skąd.
 
-**`buduj.mjs` bierze najcięższy łącznik zespołu.** Wcześniej rzucał błędem, gdy
-łączniki jednego zespołu miały różne masy — przy szacunkach były równe, przy
-prawdziwych już nie (`DRV063/130`: wykonanie wyjątkowe 2,47 kg kontra 1,33 kg).
-Masy per łącznik nie liczymy, bo `kgGear()` kluczuje po nazwie korpusu i nie wie,
-którą parę wybrał `drvVar()`; przeliczenie oznaczałoby przebudowę drogi liczącej
-cenę przesyłki. Różnice (0,004–1,14 kg) **nie zmieniają dziś żadnego progu** —
-sprawdzone na wszystkich 107 wierszach, zero zmian ceny i sposobu wysyłki.
-Zaokrąglenie w górę nigdy nie zaniży masy przesyłki; w drugą stronę zaniżałoby
-cenę kuriera.
+**`buduj.mjs` liczy masę zespołu dwiema regułami, obie w jedną stronę** — na
+korzyść bezpieczeństwa wyceny:
 
-Zapas do progu jest spory, ale nie nieskończony: `DRV040/090` z silnikiem
-0,37 kW waży 23,8 kg przy `PACK_CHEAP` 31 kg. Gdyby doszedł cięższy silnik
-albo cięższy łącznik, przeskok na 40 zł zrobi się realny.
+1. **Najcięższy łącznik zespołu.** Wcześniej generator rzucał błędem, gdy
+   łączniki jednego zespołu miały różne masy — przy szacunkach były równe, przy
+   prawdziwych już nie (`DRV063/130`: wykonanie wyjątkowe 2,47 kg kontra
+   1,33 kg). Masy per łącznik nie liczymy, bo `kgGear()` kluczuje po nazwie
+   korpusu i nie wie, którą parę wybrał `drvVar()`; przeliczenie oznaczałoby
+   przebudowę drogi liczącej cenę przesyłki.
+2. **Zaokrąglenie w górę do 0,5 kg** — właściciel, 21.09.2026: „zaokrąglaj
+   w górę dla bezpieczeństwa". To zapas na karton i wypełnienie, których
+   w masach katalogowych nie ma wcale. Zaokrąglanie do **najbliższej** połówki
+   byłoby gorsze niż nic: trzy z jedenastu łączników poszłyby w dół
+   (`030/063` 0,51 → 0,5, `063/150` 3,175 → 3,0, `25/38` 3,58 → 3,5),
+   a zaniżona masa to zaniżona cena wysyłki, czyli strata firmy.
+
+**Dokładne masy zostają w `drv-katalog.json`, zaokrągla dopiero generator.**
+Inaczej przy następnej zmianie oferty nie byłoby z czym porównać nowego zrzutu
+z Optimy — a masy, w przeciwieństwie do cen, nie odświeżają się z raportu
+magazynowego, bo raport podaje ceny i ilości, nie wagi.
+
+Żadna z reguł **nie zmienia dziś progu przesyłki** — sprawdzone na wszystkich
+107 wierszach, zero zmian ceny i sposobu wysyłki. Zapas jest spory, ale nie
+nieskończony: `DRV040/090` z silnikiem 0,37 kW waży 24 kg przy `PACK_CHEAP`
+31 kg. Gdyby doszedł cięższy silnik, przeskok na 40 zł zrobi się realny.
+
+Czego to **nie** rozwiązuje: masy palety (20–25 kg) i kartonu w wycenie nie ma
+wcale, a `DRV063/150` z silnikiem 1,5 kW waży 114 kg przy progu 100–150 kg.
+Jeśli przewoźnicy ważą przesyłkę z opakowaniem, narzut trzeba doliczyć jawnie
+do całej przesyłki — osobno dla kuriera i palety. Do ustalenia z właścicielem,
+bo to zmiana ceny wysyłki.
 
 W Optimie są też **`ŁĄCZNIK 040/063` i `040/063 SEM`**, a zespołu `DRV040/063`
 w aplikacji nie ma. Do ustalenia z właścicielem, czy to brakujący układ.
