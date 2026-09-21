@@ -79,11 +79,49 @@ for (const z of Object.keys(K.zespoly)) {
   if (existsSync(KORZEN + 'app/public/assets/' + plik)) karty[z] = plik;
 }
 
-const wiersze = K.wiersze.map(w => ({
-  p1: w.p1, box: w.zespol, flange: w.iec + 'B14/B5', motor: w.silnik, rpm: K.obroty,
-  n2: w.n2, i: w.i, m2: w.m2, fr2: w.fr2, fs: w.fs,
-  drv: w.zespol, i1: w.i1, i2: w.i2,
-}));
+// Kołnierz silnika bierzemy z tabeli pojedynczych przekładni dla CZŁONU 1 —
+// właściciel, 21.09.2026: „mapowanie masz zrobić z członu 1, czyli tak jak to
+// jest w pojedynczych przekładniach z silnikiem, tu się nie zmienia: ten sam
+// silnik, te same przekładnie, tylko że to człon 1 do DRV".
+//
+// Wcześniej stało tu `w.iec + 'B14/B5'`, czyli generator brał z tabeli DRV samą
+// WIELKOŚĆ silnika i dopisywał oba kołnierze z automatu. Przy DKM040 i 0,09 kW
+// dawało to `56B14`, którego dla przekładni **nie ma w ofercie** (potwierdzone
+// przez właściciela 21.09.2026) — więc pięć wierszy oferowało wykonanie, którego
+// nie da się zamówić. Ceny i tak nie miały, ale dane kłamały.
+//
+// Szukamy po tej samej WIELKOŚCI silnika, nie po samej mocy: tabela pojedyncza
+// ma dla jednej kombinacji osobny wiersz na każdą wielkość i każdy ma własny
+// moment i własne fs (DKM040 i10 0,25 kW: 63 → m2 15 Nm fs 2,7; 71 → 14 Nm 2,8).
+// Wiersz DRV ma wielkość ustaloną przez tabelę wydajności producenta, więc wolno
+// porównywać tylko B5/B14 w jej obrębie.
+const katalogPoj = await (async () => {
+  globalThis.window = globalThis.window || {};
+  await import(new URL('../../app/src/data/catalog-data.js', import.meta.url).href);
+  return globalThis.window.DKM_CATALOG || [];
+})();
+
+const kluczPoj = (box, p1, rpm, i, iec) => [box, p1, rpm, i, iec].join('|');
+const kolnierzePoj = {};
+for (const x of katalogPoj) {
+  const iec = String(x.flange || '').match(/^\d+/);
+  if (!iec) continue;
+  kolnierzePoj[kluczPoj(x.box, x.p1, Number(x.rpm), Number(x.i), iec[0])] = x.flange;
+}
+
+const wiersze = K.wiersze.map(w => {
+  const c1 = K.zespoly[w.zespol].czlon1;
+  const flange = kolnierzePoj[kluczPoj(c1, w.p1, K.obroty, w.i1, w.iec)];
+  if (!flange)
+    throw new Error(`${w.zespol} i${w.i}: tabela pojedyncza nie ma ${c1} `
+      + `${w.p1} kW ${K.obroty} obr i${w.i1} w wielkości IEC ${w.iec} — `
+      + `kołnierza nie wolno zgadywać`);
+  return {
+    p1: w.p1, box: w.zespol, flange, motor: w.silnik, rpm: K.obroty,
+    n2: w.n2, i: w.i, m2: w.m2, fr2: w.fr2, fs: w.fs,
+    drv: w.zespol, i1: w.i1, i2: w.i2,
+  };
+});
 
 // Mocowanie DRV dziedziczy po członie 2, bo człon 2 TO JEST ta sama przekładnia
 // (właściciel, 10.09.2026). Dotyczy średnicy wału, rozstawu otworów, rozstawu

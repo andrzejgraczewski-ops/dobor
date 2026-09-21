@@ -555,12 +555,68 @@ jak przy kołnierzu silnika w pojedynczych przekładniach.
 Stan na 10 września: **101 wierszy ze 107 z pełną ceną, 75 w całości na stanie.**
 Sześć bez ceny i to nie jest luka w kodzie:
 
-- pięć wierszy **0,09 kW** — `DKM040` w tym przełożeniu jest tylko w `56B5`,
-  a silnik 0,09 kW ma cenę tylko w `56B14`. Pojedyncze przekładnie zachowują
-  się tu identycznie (`DKM040 56B5 i50` też mówi „zapytaj o cenę"), więc DRV
-  nie jest gorsze od reszty aplikacji, tylko tak samo ostrożne;
-- `DRV040/075 0,25 kW i500` — `DKM075 I50` jest na stanie wyłącznie w IEC 80,
-  a łącznik 040/075 wymaga IEC 90.
+- pięć wierszy **0,09 kW** — `DKM040` jest w wielkości IEC 56 **tylko w `56B5`**,
+  a silnik 0,09 kW istnieje **tylko w `56B14`**. Obie strony potwierdzone przez
+  właściciela 21.09.2026: „0,09 kW w 56B5 nie mam go, ale jest w 56B14"
+  i „kołnierz 56B14 dla przekładni nie istnieje". Czyli tej pary nie da się
+  skręcić i „zapytaj o cenę" jest tam **prawdą, nie usterką**. Pojedyncze
+  przekładnie zachowują się identycznie: `DKM040 56B5 i50` ma cenę przekładni
+  180 zł, puste pole silnika i status 2;
+- `DRV040/075 0,25 kW i500` — `DKM075 I50` ma cenę w `71B5`, `80B5` i `80B14`
+  (nie tylko w IEC 80, jak pisałem wcześniej), a łącznik 040/075 wymaga IEC 90.
+  Do ustalenia, czy `DKM075 I50` w IEC 90 istnieje.
+
+#### Kołnierz silnika przy DRV pochodzi z tabeli pojedynczej dla członu 1
+
+Zmienione 21.09.2026. Właściciel: „mapowanie masz zrobić z członu 1, czyli tak
+jak to jest w pojedynczych przekładniach z silnikiem, tu się nie zmienia: ten
+sam silnik, te same przekładnie, tylko że to człon 1 do DRV".
+
+Generator składał wcześniej kołnierz jako **`w.iec + 'B14/B5'`** — brał z tabeli
+wydajności DRV samą *wielkość* silnika i dopisywał oba kołnierze z automatu.
+Przy `DKM040` z 0,09 kW wychodziło z tego `56B14`, którego dla przekładni nie ma
+w ofercie: pięć wierszy oferowało wykonanie niemożliwe do zamówienia. Ceny i tak
+nie miały, więc **na ekranie nie było tego widać** — kłamały same dane.
+
+Teraz `buduj.mjs` czyta `catalog-data.js` i bierze napis kołnierza **dosłownie
+z wiersza pojedynczej przekładni** dla członu 1, przy tej samej mocy, obrotach
+i przełożeniu `i₁`. Gdy takiego wiersza nie ma, **rzuca błędem** — kołnierza nie
+wolno zgadywać.
+
+**Porównywać wolno tylko w obrębie tej samej wielkości silnika.** Tabela
+pojedyncza ma dla jednej kombinacji osobny wiersz na każdą wielkość, z własnym
+momentem i własnym `fs`: `DKM040 i10 0,25 kW` to `63B5/B14` z `m2 = 15 Nm`,
+`fs = 2,7` **albo** `71B5/B14` z `m2 = 14 Nm`, `fs = 2,8`. To nie są zamienniki.
+Wielkość wiersza DRV ustala tabela wydajności producenta (pole `silnik`, np.
+`7114`), więc wolno porównywać wyłącznie `B5` kontra `B14` w jej obrębie.
+
+**Tu się pomyliłem i warto o tym pamiętać:** najpierw porównałem wszystkie
+wielkości razem i wyszło mi 33 rozjazdy oraz 21 wierszy, które „stanieją
+o 7–19 zł". Po zawężeniu do jednej wielkości rozjazdów jest **pięć**, a cen nie
+zmienia się **żadna**. Gdybym poszedł za pierwszym wyliczeniem, aplikacja
+proponowałaby silniki o innej wielkości niż ta, dla której producent podał
+moment i współczynnik pracy.
+
+Skutek zmiany: **101 wierszy ze 107 z ceną — dokładnie tyle samo co przed nią.**
+Żaden wiersz nie zyskał ani nie stracił ceny; zniknął tylko zmyślony kołnierz.
+Kolejność w napisie (`56B5/B14` kontra `56B14/B5`) nie ma znaczenia, bo
+`prefFlange()` zwraca dla DRV `null` (nie zna nazwy zespołu) i wybór robi
+sortowanie po statusie, a potem po cenie.
+
+**Dwa testy** pilnują tego dalej: że dla każdego ze 107 wierszy zbiór kołnierzy
+jest identyczny z tabelą pojedynczą dla członu 1 w tej samej wielkości, i że
+żaden kołnierz nie jest zmyślony. Sprawdzone przez przywrócenie starego wzoru —
+test pada i wypisuje wszystkie pięć wierszy.
+
+Zostało otwarte: `katalog.json` mapuje `0.09|1400|56B5` na silnik
+**`0,09 4 56B5 DKM`, którego nie ma w ofercie** — aplikacja szuka wyrobu,
+który nie istnieje. Usunięcie nic dziś nie zmieni (ceny i tak nie ma), ale
+zdejmie z danych nieprawdę. Czeka na decyzję właściciela.
+
+Osobna obserwacja, niezmieniana: `prefFlange()` nie zna nazw DRV, więc zespoły
+nie dostają preferencji `B14`, którą mają małe korpusy pojedyncze. Dziś wybór
+„najtańsze z dostępnych" jest sensowny, ale gdyby kiedyś iść konsekwentnie za
+zasadą „jak przy członie 1", to jest drugie miejsce do poprawienia.
 
 **Łącznik jest czwartym składnikiem i ma teraz swoją sekcję w cenniku.**
 `generuj.py` dopisuje `lac: {kod: [cena, stan]}` — kody czyta

@@ -1078,6 +1078,56 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await ctx.close();
   }
 
+  // 15. Kołnierz silnika przy DRV pochodzi z tabeli pojedynczych przekładni dla
+  //     CZŁONU 1 — właściciel, 21.09.2026: „ten sam silnik, te same przekładnie,
+  //     tylko że to człon 1 do DRV".
+  //
+  //     Generator składał go wcześniej z samej wielkości silnika (`iec+'B14/B5'`)
+  //     i przy DKM040 z 0,09 kW wychodziło `56B14`, którego dla przekładni nie ma
+  //     w ofercie. Pięć wierszy oferowało wykonanie niemożliwe do zamówienia —
+  //     ceny i tak nie miały, więc na ekranie nic nie było widać.
+  //
+  //     Porównujemy W OBRĘBIE TEJ SAMEJ WIELKOŚCI silnika: tabela pojedyncza ma
+  //     na każdą wielkość osobny wiersz z własnym momentem i własnym fs
+  //     (DKM040 i10 0,25 kW: IEC 63 → m2 15 Nm fs 2,7; IEC 71 → 14 Nm fs 2,8),
+  //     a wielkość wiersza DRV ustala tabela wydajności producenta.
+  {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    const w = await page.evaluate(() => {
+      const C = window.DKM_CATALOG || [];
+      const poj = C.filter((r) => !r.drv), drv = C.filter((r) => r.drv);
+      const rozbij = (f) => {
+        const m = String(f).match(/^(\d+)(.*)$/);
+        return m ? m[2].split('/').map((x) => m[1] + (x.startsWith('B') ? x : 'B' + x)) : [String(f)];
+      };
+      const Z = (window.DKM_DRV || {}).zespoly || {};
+      const zle = [];
+      for (const r of drv) {
+        const c1 = (Z[r.box] || {}).czlon1;
+        const iec = (String(r.flange).match(/^\d+/) || [''])[0];
+        const pasuje = poj.filter((x) => x.box === c1 && x.p1 === r.p1
+          && Number(x.rpm) === Number(r.rpm) && Number(x.i) === Number(r.i1)
+          && String(x.flange).startsWith(iec));
+        if (!pasuje.length) { zle.push(r.box + ' i' + r.i + ' — brak wiersza ' + c1); continue; }
+        const a = rozbij(r.flange).slice().sort().join(',');
+        const b = [...new Set(pasuje.flatMap((x) => rozbij(x.flange)))].sort().join(',');
+        if (a !== b) zle.push(r.box + ' i' + r.i + ' ' + a + ' ≠ ' + b);
+      }
+      return { ile: drv.length, zle };
+    });
+    check('kołnierz silnika przy DRV jest taki jak przy samym członie 1',
+      w.ile === 107 && w.zle.length === 0,
+      w.ile + ' wierszy' + (w.zle.length ? ' — ROZJAZD: ' + w.zle.join(', ') : ''));
+    // żaden kołnierz nie może być zmyślony: każdy musi mieć wiersz w tabeli
+    // pojedynczej, inaczej aplikacja proponuje wykonanie, którego nie ma
+    check('żaden kołnierz DRV nie jest zmyślony',
+      !w.zle.some((x) => /brak wiersza/.test(x)),
+      w.zle.filter((x) => /brak wiersza/.test(x)).join(', ') || 'każdy ma wiersz w tabeli pojedynczej');
+    await ctx.close();
+  }
+
 }
 
 await browser.close();
