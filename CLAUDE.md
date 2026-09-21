@@ -1011,7 +1011,9 @@ Dwie rzeczy z tego samego zrzutu, **których nie dopisałem**:
   Pełna nazwa mówi „Wuma — pasują tylko do przekładni WUMA", więc do zespołów
   DKM nie wchodzi, choć ma te same średnice `(25-38)` co `063/150 25/38`;
 - **`ŁĄCZNIK 040/063` i `040/063 SEM`** (90 zł, po 16–26 szt. na stanie) —
-  zespołu `DRV040/063` w aplikacji nie ma. Wciąż do ustalenia z właścicielem.
+  zespołu `DRV040/063` w aplikacji nie ma i **tak ma zostać**. Właściciel
+  zamknął temat 21.09.2026: „rozmawialiśmy i temat zamknąłem, tak ma być".
+  Nie dopisywać tych łączników i nie szukać tu brakującego układu.
 
 **Para „łącznik + człon 2" dobiera się po dostępności, potem po cenie.**
 Do 11 września oba łączniki DRV063/130 kosztowały 120 zł i wybór nie zmieniał
@@ -1068,7 +1070,9 @@ Masy palety i kartonu **przez dziesięć dni nie było w wycenie wcale** — dop
 `DRV063/130` przeskoczyło z 130 na 180 zł.
 
 W Optimie są też **`ŁĄCZNIK 040/063` i `040/063 SEM`**, a zespołu `DRV040/063`
-w aplikacji nie ma. Do ustalenia z właścicielem, czy to brakujący układ.
+w aplikacji nie ma — **sprawa zamknięta przez właściciela 21.09.2026**, patrz
+wyżej. To nie jest brakujący układ; obecność łącznika w magazynie nie znaczy,
+że zespół jest w ofercie.
 
 **Montaż nie może gubić masy przesyłki.** Dopłata `MONT` jest usługą i waży 0,
 a `shipPlan()` wymagał masy od każdego wyposażenia — więc zaznaczenie montażu
