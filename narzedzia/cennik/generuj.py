@@ -177,9 +177,9 @@ def main():
         w = z_raportu(sku)
         nam[sku] = nazwa_handlowa(w['nazwa']) if w else K['nazwyZapas'].get(sku, sku)
 
-    # Trzeci element to kod magazynowy — biuro szuka osprzętu po kodach, a nie
-    # po nazwie handlowej, więc musi trafić do maila z zamówieniem. Wcześniej
-    # generator go gubił: zostawała sama cena i stan.
+    # Trzeci element to kod magazynowy — biuro szuka osprzętu po kodach z Optimy,
+    # a nie po nazwie handlowej, więc musi trafić do maila z zamówieniem.
+    # Wcześniej generator go gubił: zostawała sama cena i stan.
     opt = {}
     for klucz, (kod, cena_zapas) in sorted(K['osprzet'].items()):
         w = z_raportu(kod)

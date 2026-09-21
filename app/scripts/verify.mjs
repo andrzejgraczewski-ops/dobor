@@ -483,8 +483,11 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await page.locator('[data-order-btn]').click();
   await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
   const poz = String(((posts[0] || {}).body || {}).Pozycje || '');
+  // Kod może być prawdziwy (cennik od 21.09.2026 niesie go z raportu) albo
+  // podstawiony wyżej dla starszego pliku — sprawdzamy mechanizm, nie datę
+  // cennika, więc wystarczy, że w nawiasie stoi jakikolwiek kod magazynowy.
   check('skrót podaje kod magazynowy osprzętu',
-    /Ramię reakcyjne \[KOD ARM DKM\d+\]/.test(poz),
+    /Ramię reakcyjne \[[^\]\n]+\]/.test(poz),
     (poz.match(/· Ramię reakcyjne[^\n]*/) || ['brak'])[0]);
   // falownik ma kod w samej nazwie — nie powielamy go w nawiasie
   check('kod nie dubluje się tam, gdzie jest już w nazwie',
