@@ -171,7 +171,7 @@ function Step1({ v }) {
               <div style={S('margin-top:2px;font:400 12px Barlow,sans-serif;color:var(--color-neutral-500)')}>{v.shipCod}</div>
             ) : null}
             {v.shipFree ? (
-              <div style={S('margin-top:3px;font:600 12px Barlow,sans-serif;color:var(--color-ok-ink)')}>Wysyłka gratis — zamówienie powyżej 3 000 zł netto</div>
+              <div style={S('margin-top:3px;font:600 12px Barlow,sans-serif;color:var(--color-ok-ink)')}>{v.shipFreeText}</div>
             ) : null}
             {v.shipShowToFree ? (
               <div style={S('margin-top:3px;font:400 12px Barlow,sans-serif;color:var(--color-accent-700)')}>{v.shipToFree}</div>

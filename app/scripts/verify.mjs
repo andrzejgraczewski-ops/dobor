@@ -1227,6 +1227,56 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await ctx.close();
   }
 
+  // 18. Próg darmowej wysyłki — właściciel, 21.09.2026: „od 5000 netto".
+  //     Kwota stoi wyłącznie w SHIP_FREE, a treść na ekranie i w mailu bierze ją
+  //     stamtąd. Wpisana drugi raz na sztywno rozjechałaby się przy następnej
+  //     zmianie progu i klient czytałby inną kwotę, niż liczy koszyk — dokładnie
+  //     ten sam błąd, który SPED_PROGI już raz naprawiły.
+  //
+  //     Nie przypinamy liczby do treści, tylko liczymy: „brakuje" plus wartość
+  //     towaru musi dać próg, a po przekroczeniu progu wysyłka ma być gratis.
+  {
+    const { ctx, page } = await open({ consent: 'no' });
+    await page.getByRole('button', { name: /Moc silnika/ }).first().click();
+    await page.locator('button').filter({ hasText: /^\s*2,2\s*kW/ }).first().click();
+    await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^DKM075/.test(x.innerText));
+      if (b) b.click();
+    });
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
+    await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+    const kwota = (txt, re) => {
+      const m = txt.match(re);
+      return m ? parseFloat(m[1].replace(/[\s  ]/g, '').replace(',', '.')) : null;
+    };
+    const przed = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    const towar = kwota(przed, /Wartość towaru ([\d\s  ,]+) zł netto/);
+    const brakuje = kwota(przed, /do darmowej wysyłki brakuje ([\d\s  ,]+) zł netto/);
+    check('próg darmowej wysyłki wychodzi z jednej liczby (towar + brakuje = próg)',
+      towar > 0 && brakuje > 0 && Math.abs(towar + brakuje - 5000) < 0.5,
+      towar + ' + ' + brakuje + ' = ' + (towar + brakuje) + ' zł');
+    // po przekroczeniu progu: gratis, a treść podaje ten sam próg
+    await page.evaluate(() => {
+      const plus = [...document.querySelectorAll('button')].filter((x) => x.innerText.trim() === '+');
+      for (let i = 0; i < 6; i++) plus.forEach((b) => b.click());
+    });
+    await page.waitForTimeout(400);
+    const po = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    const prog = kwota(po, /Wysyłka gratis — zamówienie od ([\d\s  ,]+) zł netto/);
+    check('po przekroczeniu progu wysyłka jest gratis i podaje ten sam próg',
+      prog === 5000 && !/brakuje/.test(po),
+      (po.match(/Wysyłka gratis[^R]{0,40}/) || ['brak napisu o darmowej wysyłce'])[0]);
+    // stara kwota nie może zostać nigdzie w treści — to jest ten cichy rozjazd
+    check('nigdzie nie została stara kwota 3 000 zł',
+      !/3[\s  ]000 zł/.test(przed + ' ' + po),
+      'ani przed progiem, ani po nim');
+    await ctx.close();
+  }
+
 }
 
 await browser.close();

@@ -512,6 +512,30 @@ więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wylicz
 datę z błędnej godziny — dlatego komunikat ma być warunkowy („jeśli zamówisz
 do 13:00"), a nie twardą gwarancją.
 
+### Darmowa wysyłka od 5 000 zł netto — 21.09.2026
+
+Było 3 000 zł, właściciel podniósł próg: „na pewno trzeba zmienić cenę darmowej
+wysyłki na od 5000 netto". Zmiana dotyczy **wyłącznie progu**, nie sposobu
+liczenia — `cartGoods() >= SHIP_FREE`, czyli liczy się wartość towaru netto,
+bez wysyłki i bez VAT-u.
+
+Kwota stoi **w jednym miejscu**, w `SHIP_FREE` w `logic.js`. Przedtem była
+wpisana jeszcze dwa razy w treści — na ekranie koszyka („powyżej 3 000 zł
+netto") i w mailu z zamówieniem — czyli w miejscach, których nikt by nie
+poprawił razem z progiem. Klient czytałby wtedy inną kwotę, niż liczy koszyk,
+i **dowiedziałby się o tym dopiero przy płaceniu za wysyłkę**. Obie treści
+biorą ją teraz z `shipFreeText()`. To ten sam błąd, który naprawiły już
+`SPED_PROGI`, i ta sama poprawka.
+
+Zmieniło się przy okazji brzmienie: **„od 5 000 zł netto"**, nie „powyżej".
+Warunek w kodzie jest nieostry (`>=`), więc przy okrągłych 5 000 zł wysyłka
+jest gratis — „powyżej" było nieprawdą, tylko akurat nikt w to nie trafił.
+
+Trzy testy, na uruchomionej aplikacji: że **wartość towaru plus „brakuje"
+daje próg** (czyli liczba wychodzi z jednego miejsca, a nie jest wpisana
+w treść), że po przekroczeniu progu wysyłka jest gratis i podaje ten sam próg,
+i że stara kwota `3 000 zł` nie została nigdzie w treści.
+
 ### Opakowanie wchodzi do masy — 21.09.2026
 
 Do 21 września wycena liczyła **samą masę towaru z kart katalogowych**, a próg

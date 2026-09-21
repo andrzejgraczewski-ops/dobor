@@ -662,10 +662,15 @@ export class DkmLogic extends React.Component {
   //     150\u2013200 kg 230 z\u0142, 200\u2013300 kg 260 z\u0142, powy\u017cej 300 kg 340 z\u0142
   //     (trzy g\u00f3rne progi dosz\u0142y 10.09.2026 \u2014 wcze\u015bniej powy\u017cej 150 kg
   //      aplikacja nie podawa\u0142a ceny wcale, tylko \u201ewycena indywidualna\u201d)
-  //   pobranie +5 z\u0142; od 3000 z\u0142 netto towaru wysy\u0142ka gratis
+  //   pobranie +5 z\u0142; od 5000 z\u0142 netto towaru wysy\u0142ka gratis
   // Dzielimy na paczki, gdy wychodzi taniej ni\u017c jedna przesy\u0142ka spedycj\u0105.
   SPED=['DKM110','DKM130','DKM150'];
-  SHIP_FREE=3000; SHIP_COD=5; PACK_MAX=40; PACK_CHEAP=31;
+  // Pr\u00f3g darmowej wysy\u0142ki \u2014 w\u0142a\u015bciciel, 21.09.2026: \u201eod 5000 netto".
+  // Kwota stoi TYLKO tutaj: tre\u015b\u0107 na ekranie i w mailu bierze j\u0105 ze
+  // shipFreeText(), bo wpisana drugi raz rozjecha\u0142aby si\u0119 przy zmianie progu
+  // i klient czyta\u0142by inn\u0105 kwot\u0119, ni\u017c liczy koszyk.
+  SHIP_FREE=5000; SHIP_COD=5; PACK_MAX=40; PACK_CHEAP=31;
+  shipFreeText(){ return 'zam\u00f3wienie od '+zl(this.SHIP_FREE)+' netto'; }
   // Opakowanie wchodzi do masy, KTÓRĄ WAŻY PRZEWOŹNIK — właściciel, 21.09.2026:
   // „paczka będzie skasowana za 40 zł, a DPD policzy nas 50, bo paczka była
   // cięższa". Progi 31 i 40 kg oraz SPED_PROGI dotyczą więc masy brutto,
@@ -925,7 +930,7 @@ export class DkmLogic extends React.Component {
       L.push('— Wysyłka —');
       L.push('masa zamówienia: '+num(sp.kg)+' kg');
       L.push('sposób: '+(sp.sped?'spedycja (Raben) — zamówienie do 9:00':'kurier')+' — '+sp.tier);
-      L.push('koszt netto: '+(sp.free?'gratis (zamówienie powyżej 3 000 zł netto)':(sp.net==null?'do wyceny':zl(sp.net)))
+      L.push('koszt netto: '+(sp.free?('gratis ('+this.shipFreeText()+')'):(sp.net==null?'do wyceny':zl(sp.net)))
         +(sp.cod?(' — w tym pobranie '+zl(sp.cod)):''));
       if(!sp.known) L.push('UWAGA: część pozycji bez masy w cenniku — wycenić wysyłkę ręcznie');
       L.push('');
@@ -2286,6 +2291,7 @@ export class DkmLogic extends React.Component {
       shipCod:(()=>{const p=this.shipPlan();return p.cod?('w tym pobranie '+zl(p.cod)):'';})(),
       shipHasCod:this.shipPlan().cod>0,
       shipFree:this.shipPlan().free,
+      shipFreeText:'Wysyłka gratis — '+this.shipFreeText(),
       shipUnknown:!this.shipPlan().known,
       shipToFree:(()=>{const p=this.shipPlan();const g=this.cartGoods();
         return (!p.free&&p.net!=null&&g>0)?('do darmowej wysyłki brakuje '+zl(this.SHIP_FREE-g)+' netto'):'';})(),
