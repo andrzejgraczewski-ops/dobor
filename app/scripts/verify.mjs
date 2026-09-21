@@ -1386,6 +1386,40 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await ctx.close();
   }
 
+  // 20. Termin trafia do maila z zamówieniem — właściciel, 21.09.2026:
+  //     „musimy wiedzieć, co obiecaliśmy". Biuro ma zobaczyć DOKŁADNIE ten sam
+  //     tekst co klient, plus godzinę z jego zegara — bo aplikacja nie ma
+  //     serwera i to jedyna godzina, jaką zna.
+  {
+    const { ctx, page, naPobranie } = await zZegarem(new Date(2026, 10, 10, 12, 0));
+    const naEkranie = await naPobranie();
+    const posty = [];
+    await page.context().route(/formspree\.io/, async (r) => {
+      posty.push(JSON.parse(r.request().postData() || '{}'));
+      await r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /Płatność/i.test(x.innerText));
+      if (b) b.click();
+    });
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+    await page.locator('[data-order-btn]').click();
+    await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+    const mail = JSON.stringify(posty[0] || {});
+    check('mail z zamówieniem niesie termin pokazany klientowi',
+      /Termin pokazany klientowi/.test(mail) && mail.indexOf('w czwartek 12 listopada') >= 0,
+      (mail.match(/Termin pokazany klientowi(\\n|.){0,90}/) || ['brak sekcji z terminem'])[0]);
+    // ten sam tekst co na ekranie — inaczej biuro i klient wiedzą co innego
+    const zEkranu = (naEkranie.match(/Wysyłka[^Z]{0,70}/) || [''])[0].trim();
+    check('mail podaje ten sam termin, który zobaczył klient',
+      !!zEkranu && mail.indexOf(zEkranu) >= 0, zEkranu || 'nie odczytałem terminu z ekranu');
+    check('mail mówi, że godzina jest z zegara klienta',
+      /policzone z zegara klienta: 10\.11\.2026, 12:00/.test(mail),
+      (mail.match(/policzone z zegara klienta[^"\\]{0,30}/) || ['brak'])[0]);
+    await ctx.close();
+  }
+
 }
 
 await browser.close();

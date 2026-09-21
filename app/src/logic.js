@@ -1013,6 +1013,24 @@ export class DkmLogic extends React.Component {
       L.push('koszt netto: '+(sp.free?('gratis ('+this.shipFreeText()+')'):(sp.net==null?'do wyceny':zl(sp.net)))
         +(sp.cod?(' — w tym pobranie '+zl(sp.cod)):''));
       if(!sp.known) L.push('UWAGA: część pozycji bez masy w cenniku — wycenić wysyłkę ręcznie');
+      // Termin, który zobaczył klient — właściciel, 21.09.2026: „musimy wiedzieć,
+      // co obiecaliśmy". Bez tego biuro czyta zamówienie, nie wiedząc, na kiedy
+      // aplikacja umówiła dostawę.
+      //
+      // Godzina jest z ZEGARA URZĄDZENIA KLIENTA, nie z serwera — aplikacja
+      // innego nie ma. Podajemy ją wprost, żeby biuro mogło odróżnić zamówienie
+      // złożone przed godziną graniczną od takiego, w którym klient miał źle
+      // ustawiony telefon albo siedział w koszyku przez 13:00.
+      const tp=this.terminPlan();
+      if(tp){
+        const t=new Date(), dw=n=>(n<10?'0':'')+n;
+        L.push('');
+        L.push('— Termin pokazany klientowi —');
+        L.push(tp.glowna);
+        L.push(tp.pod);
+        L.push('policzone z zegara klienta: '+dw(t.getDate())+'.'+dw(t.getMonth()+1)+'.'
+          +t.getFullYear()+', '+dw(t.getHours())+':'+dw(t.getMinutes()));
+      }
       L.push('');
       L.push('— Podsumowanie —');
       L.push('Razem netto: '+zl(net));

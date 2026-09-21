@@ -529,8 +529,31 @@ Sprawdzała więc mój algorytm przeciwko mojemu algorytmowi. Przeżyła celowe
 przesunięcie Bożego Ciała o dzień w `logic.js` i nadal pisała „OK". Wersja
 z zamrożonym zegarem to samo przesunięcie wykrywa od razu — sprawdzone.
 
-Czego **nie** zrobiono i trzeba zdecydować osobno: terminu **nie ma w mailu
-z zamówieniem**. Biuro nie widzi więc, co aplikacja obiecała klientowi.
+**Termin idzie też do maila z zamówieniem** — właściciel, 21.09.2026: „musimy
+wiedzieć, co obiecaliśmy". Sekcja `— Termin pokazany klientowi —` w `mailBody()`,
+zaraz pod „Wysyłką", powtarza **dosłownie** oba zdania z ekranu i dokłada
+**godzinę z zegara klienta**:
+
+```
+— Termin pokazany klientowi —
+Wysyłka jeszcze dziś — dostawa zwykle w czwartek 12 listopada
+Zamówienia złożone do 13:00 wysyłamy tego samego dnia. DPD dostarcza 95% …
+policzone z zegara klienta: 10.11.2026, 12:00
+```
+
+Godzina jest tam nie dla ozdoby: aplikacja nie ma serwera, więc to **jedyna
+godzina, jaką zna**. Biuro odróżni po niej zamówienie złożone przed godziną
+graniczną od takiego, w którym klient miał źle ustawiony telefon.
+
+Trzy testy: że sekcja jest, że niesie **ten sam napis co ekran** (inaczej biuro
+i klient wiedzą co innego) i że godzina z zegara klienta się zgadza. Sprawdzone
+przez wyłączenie sekcji — padają wszystkie trzy.
+
+Zostaje jedna szczelina, której nie da się zamknąć bez serwera: **mail liczy
+termin w chwili wysłania, a ekran w chwili narysowania.** Klient, który zostawi
+otwarty koszyk na 13:00 i dopiero potem zamówi, zobaczy „jeszcze dziś", a biuro
+dostanie „jutro". Wersja z maila jest tą prawdziwą — i dlatego właśnie idzie
+tam godzina.
 
 ### Stawki spedycji powyżej 150 kg — dodane 10 września 2026
 
