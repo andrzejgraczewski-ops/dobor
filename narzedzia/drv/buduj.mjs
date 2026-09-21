@@ -16,20 +16,32 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 const KORZEN = new URL('../../', import.meta.url).pathname;
 const K = JSON.parse(readFileSync(KORZEN + 'narzedzia/drv/drv-katalog.json', 'utf8'));
 
-// Masa zestawu = oba człony + łącznik. Łączniki jednego zespołu mają tę samą
-// masę (050/110 PRO i SEM po 0,9 kg, 063/150 i 25/38 po 1,2 kg), więc na zespół
-// wystarczy jedna liczba — sprawdzane niżej.
+// Masa zestawu = oba człony + łącznik.
+//
+// Do 21.09.2026 stały tu masy szacowane i łączniki jednego zespołu miały tę samą
+// liczbę, więc na zespół wystarczała jedna. Prawdziwe masy z Optimy się różnią —
+// najmocniej w DRV063/130, gdzie wykonanie wyjątkowe (ŁĄCZNIK 063/110) waży
+// 2,47 kg przy 1,33 kg zwykłego. Bierzemy więc NAJCIĘŻSZY łącznik zespołu.
+//
+// Dlaczego najcięższy, a nie ten faktycznie wybrany: kgGear() w logic.js kluczuje
+// po nazwie korpusu i nie wie, którą parę „łącznik + człon 2" wybrał drvVar().
+// Przeliczenie masy per łącznik oznaczałoby przebudowę drogi liczącej cenę
+// przesyłki, a różnice (0,004–1,14 kg) nie zmieniają dziś żadnego progu: zespoły
+// z DKM110/130/150 i tak jadą paletą i mieszczą się w 40–100 kg, a lekkie
+// zostają daleko pod PACK_CHEAP. Zaokrąglenie w górę nigdy nie zaniży masy
+// przesyłki — w drugą stronę zaniżałoby cenę kuriera.
 const masyKorpusow = JSON.parse(readFileSync(KORZEN + 'narzedzia/cennik/katalog.json', 'utf8')).wt.gear;
 
 const wt = {};
 for (const [zespol, z] of Object.entries(K.zespoly)) {
-  const masy = [...new Set(z.laczniki.map(l => l.masa))];
-  if (masy.length !== 1)
-    throw new Error(`${zespol}: łączniki mają różne masy (${masy.join(', ')}) — trzeba liczyć masę per łącznik`);
+  const masy = z.laczniki.map(l => l.masa);
+  if (masy.some(m => !(m > 0)))
+    throw new Error(`${zespol}: łącznik bez masy w drv-katalog.json`);
+  const lacznik = Math.max(...masy);
   const g1 = masyKorpusow[z.czlon1], g2 = masyKorpusow[z.czlon2];
   if (!(g1 > 0) || !(g2 > 0))
     throw new Error(`${zespol}: brak masy korpusu ${!g1 ? z.czlon1 : z.czlon2} w katalog.json`);
-  wt[zespol] = { czlon1: g1, czlon2: g2, lacznik: masy[0], razem: Math.round((g1 + g2 + masy[0]) * 10) / 10 };
+  wt[zespol] = { czlon1: g1, czlon2: g2, lacznik, razem: Math.round((g1 + g2 + lacznik) * 10) / 10 };
 }
 
 // Spedycja: zespół jedzie paletą, gdy jego człon 2 jest z listy SPED w logic.js.

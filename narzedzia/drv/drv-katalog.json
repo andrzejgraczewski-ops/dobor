@@ -3,6 +3,7 @@
  "zrodlo": "Katalog DKM, strony 45–46 (możliwe połączenia) i 47–51 (parametr wydajności).",
  "ustalenia": "Właściciel, 10.09.2026. Tylko silniki 1400 obr/min. Bez zespołów 025 (nie składane), bez 0,06 kW (brak silnika w ofercie), bez DRV030/040 i3000 i DRV030/050 i2400/i3000.",
  "cenyLacznikow": "Ceny łączników to zrzut z Optimy, stan na 11.09.2026 — obowiązują tylko wtedy, gdy raport magazynowy milczy. Pierwszeństwo ma DKM_PRICE.lac z dzisiejszego cennika. Gdy generuj.py zobaczy w raporcie inną cenę, wypisuje DO SPRAWDZENIA — wtedy popraw ten plik. 11.09.2026: ŁĄCZNIK 063/110 podrożał 120 → 150 zł.",
+ "masyLacznikow": "Masy łączników to kolumna Waga z Optimy, stan na 21.09.2026 — wcześniej były tu wartości szacowane. W przeciwieństwie do cen masa nie zmienia się sama, więc raport magazynowy jej nie odświeża i ten plik jest jej jedynym źródłem. Nazwy w Optimie potwierdzają średnice: ŁĄCZNIK 030/063 (14-19), 050/110 PRO (25-28), 050/110 SEM (25-24) itd. — zgadzają się z polem srednice we wszystkich jedenastu wpisach.",
  "obroty": 1400,
  "montazNetto": 60,
  "zespoly": {
@@ -17,7 +18,7 @@
       "71"
      ],
      "cena": 85,
-     "masa": 0.2
+     "masa": 0.375
     }
    ]
   },
@@ -32,7 +33,7 @@
       "71"
      ],
      "cena": 95,
-     "masa": 0.4
+     "masa": 0.385
     }
    ]
   },
@@ -47,7 +48,7 @@
       "80"
      ],
      "cena": 60.2,
-     "masa": 0.3
+     "masa": 0.51
     }
    ]
   },
@@ -62,7 +63,7 @@
       "90"
      ],
      "cena": 81,
-     "masa": 0.5
+     "masa": 0.8
     }
    ]
   },
@@ -77,7 +78,7 @@
       "90"
      ],
      "cena": 110,
-     "masa": 0.5
+     "masa": 0.8
     }
    ]
   },
@@ -93,7 +94,7 @@
       "112"
      ],
      "cena": 120,
-     "masa": 0.9
+     "masa": 2.394
     },
     {
      "kod": "ŁĄCZNIK 050/110 SEM",
@@ -102,7 +103,7 @@
       "90"
      ],
      "cena": 120,
-     "masa": 0.9
+     "masa": 2.39
     }
    ]
   },
@@ -117,7 +118,7 @@
       "90"
      ],
      "cena": 120,
-     "masa": 1
+     "masa": 1.33
     },
     {
      "kod": "ŁĄCZNIK 063/110",
@@ -127,7 +128,7 @@
       "112"
      ],
      "cena": 150,
-     "masa": 1,
+     "masa": 2.47,
      "wyjatek": true
     }
    ]
@@ -144,7 +145,7 @@
       "112"
      ],
      "cena": 200,
-     "masa": 1.2
+     "masa": 3.175
     },
     {
      "kod": "ŁĄCZNIK 063/150 25/38",
@@ -153,7 +154,7 @@
       "132"
      ],
      "cena": 200,
-     "masa": 1.2
+     "masa": 3.58
     }
    ]
   }

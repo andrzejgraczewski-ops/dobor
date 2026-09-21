@@ -619,6 +619,39 @@ zależnie od kolejności wpisów w pliku, czyli przez przypadek. Dziś nie zmien
 to niczego — `DKM130` z przełożeniem 30 ma cenę wyłącznie w IEC 100/112, więc
 „wyjątek" jest tam jedynym wykonaniem, jakie da się złożyć.
 
+#### Masy łączników — prawdziwe od 21.09.2026, zespół liczy się po najcięższym
+
+Do 21 września w `drv-katalog.json` stały masy **szacowane** (0,2 … 1,2 kg).
+Właściciel podał kolumnę „Waga" z Optimy i okazało się, że część była zaniżona
+nawet trzykrotnie: `ŁĄCZNIK 063/150` waży 3,175 kg, nie 1,2; `050/110 PRO`
+2,394 kg, nie 0,9. Masy zespołów wzrosły o 0 … 2,4 kg.
+
+Nazwy w Optimie zawierają średnice w nawiasie — `ŁĄCZNIK 030/063 (14-19)`,
+`050/110 SEM (25-24)` — i **zgadzają się z polem `srednice` we wszystkich
+jedenastu wpisach.** To niezależne potwierdzenie reguły doboru łącznika.
+
+Masa, w przeciwieństwie do ceny, **nie odświeża się z raportu magazynowego** —
+raport podaje ceny i ilości, nie wagi. `drv-katalog.json` jest jej jedynym
+źródłem i nikt go nie pilnuje, więc przy każdej zmianie oferty trzeba go poprawić
+ręcznie. Ceny łączników mają pierwszeństwo z cennika, masy nie mają skąd.
+
+**`buduj.mjs` bierze najcięższy łącznik zespołu.** Wcześniej rzucał błędem, gdy
+łączniki jednego zespołu miały różne masy — przy szacunkach były równe, przy
+prawdziwych już nie (`DRV063/130`: wykonanie wyjątkowe 2,47 kg kontra 1,33 kg).
+Masy per łącznik nie liczymy, bo `kgGear()` kluczuje po nazwie korpusu i nie wie,
+którą parę wybrał `drvVar()`; przeliczenie oznaczałoby przebudowę drogi liczącej
+cenę przesyłki. Różnice (0,004–1,14 kg) **nie zmieniają dziś żadnego progu** —
+sprawdzone na wszystkich 107 wierszach, zero zmian ceny i sposobu wysyłki.
+Zaokrąglenie w górę nigdy nie zaniży masy przesyłki; w drugą stronę zaniżałoby
+cenę kuriera.
+
+Zapas do progu jest spory, ale nie nieskończony: `DRV040/090` z silnikiem
+0,37 kW waży 23,8 kg przy `PACK_CHEAP` 31 kg. Gdyby doszedł cięższy silnik
+albo cięższy łącznik, przeskok na 40 zł zrobi się realny.
+
+W Optimie są też **`ŁĄCZNIK 040/063` i `040/063 SEM`**, a zespołu `DRV040/063`
+w aplikacji nie ma. Do ustalenia z właścicielem, czy to brakujący układ.
+
 **Montaż nie może gubić masy przesyłki.** Dopłata `MONT` jest usługą i waży 0,
 a `shipPlan()` wymagał masy od każdego wyposażenia — więc zaznaczenie montażu
 kasowało cenę wysyłki i koszyk pisał „masa do potwierdzenia". Kody bez masy
