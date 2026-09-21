@@ -1249,6 +1249,48 @@ prędkości powstaje z `N2POOL = CAT()`, czyli z całego katalogu, a nie z
 `matches()`. Przed DRV żaden kafelek tego nie ujawniał. Do decyzji z Design,
 bo lista kryteriów to ich działka.
 
+#### Współczynnik pracy przy DRV — SPRAWA ZAMKNIĘTA, nie liczyć inaczej
+
+Rozstrzygnięte 21.09.2026. Właściciel zauważył, że przy DRV `fs` wypada
+w okolicach 1 lub niżej, bo „tam są małe prędkości jak również duże straty",
+a klient ma domyślnie ustawione `B / 8 h / Z=10`. Policzone na danych — miał
+rację co do skali:
+
+| | pojedyncze | DRV |
+|---|---|---|
+| wierszy | 1034 | 107 |
+| mediana `fs` | 1,6 | **1,0** |
+| `fs` < 1,0 | 19% | **43%** |
+| `fs` < 1,3 | 36% | **78%** |
+
+Domyślne warunki dają wymagane `fs = 1,3`, więc dziś **24 zespoły ze 107**
+wychodzą jako „wstępnie odpowiedni", a **46 jest ukrytych** przez `hideLow`.
+
+**Co ustaliłem o samym `fs`:** dla tej samej przekładni i przełożenia, przy
+różnych silnikach, **`m2 × fs` jest stałe** — sprawdzone na 194 grupach,
+zgadza się w 189. Czyli `m2 × fs` to nośność przekładni, a `fs` to ta nośność
+podzielona przez moment, jaki da silnik przy pełnej mocy znamionowej.
+
+**Zaproponowałem** liczyć zapas od momentu podanego przez klienta
+(`(m2 × fs) / M₂ wymagany`) zamiast od momentu silnika — przy 60% obciążenia
+dałoby to 97 wierszy ze 107 jako odpowiednie.
+
+**Właściciel to odrzucił i ma rację:** „moment na wale jest wyliczony za pomocą
+sprawności przekładni, więc lepiej to zostawmy". `m2` z tabeli producenta jest
+już po stratach, czyli **straty siedzą w `fs`**. Moje przeliczanie podstawiałoby
+drugą stronę tego samego rachunku i wychodziłoby optymistyczniej, niż pozwala
+katalog. Przy ślimakach z dużym przełożeniem ograniczeniem bywa **temperatura**,
+a nie moment — tego z danych nie wyczytam i nie wolno tego zgadywać.
+
+**Czego więc NIE robić:** nie zmieniać `fsBand()`, `fsReqNum()` ani `matches()`,
+nie wprowadzać osobnego progu `fs` dla DRV i nie przeliczać zapasu od `M₂`
+podanego przez klienta. To nie jest luka — to decyzja.
+
+Skutki, które przez to zostają i **są prawidłowe**:
+78% wierszy DRV z etykietą „wymaga weryfikacji", 46 ukrytych przy domyślnym
+`hideLow`, i kafelek `0,28 obr/min` prowadzący do zera wyników (akapit wyżej).
+Ostatnie jest osobną sprawą — dotyczy listy kryteriów, nie `fs`.
+
 ### DRV, przystawka i UDL — kierunek ustalony, dane czekają
 
 Rozmowa z 9 września 2026. **Nic nie jest zaczęte.**
