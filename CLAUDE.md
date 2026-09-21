@@ -607,6 +607,62 @@ daje próg** (czyli liczba wychodzi z jednego miejsca, a nie jest wpisana
 w treść), że po przekroczeniu progu wysyłka jest gratis i podaje ten sam próg,
 i że stara kwota `3 000 zł` nie została nigdzie w treści.
 
+### Pobranie: domyślne, ze stawką i limitem przewoźnika — 21.09.2026
+
+Właściciel zauważył, że koszyk **zakładał z góry przedpłatę**: `pay` startowało
+na `proforma`, a wybór płatności jest dopiero na kroku 3. Pierwsze, co klient
+czytał o dostawie, było więc odpowiedzią na pytanie, którego jeszcze nie
+zadaliśmy — i akurat tą, która **zabiera datę**. Cały rachunek dni roboczych
+i świąt nie pokazywał się nikomu, kto nie doszedł do kroku 3 i nie przestawił
+płatności ręcznie.
+
+**Domyślną płatnością jest teraz pobranie.** Rozważane było wyjście pośrednie
+— pokazywać datę na kroku 1, a komunikat o proformie dopiero po jej wybraniu —
+i **odrzucone**: skoro nieruszone zamówienie i tak poszłoby jako proforma, data
+byłaby obietnicą niezgodną z tym, co klient zamawia.
+
+#### Stawka i limit zależą od przewoźnika
+
+Przy okazji wyszedł błąd, którego nikt wcześniej nie zauważył — właściciel:
+„pobranie jest 5 zł netto dla DPD to się zgadza, jednak dla spedycji-Rabena
+to kwota 20 zł netto". Aplikacja brała **5 zł zawsze**, także przy palecie,
+więc **różnicę 15 zł dopłacała firma** przy każdym paletowym zamówieniu
+za pobraniem. Cicho, bez błędu — ten sam rodzaj szkody co cena łącznika.
+
+```
+COD_KURIER = 5      COD_MAX_KURIER = 15000   // DPD
+COD_SPED   = 20     COD_MAX_SPED   = 10000   // Raben
+```
+
+**Limity są w BRUTTO, a nie w netto** — to kwota, którą kurier fizycznie
+inkasuje: towar plus wysyłka plus dopłata, razem z VAT-em. Porównywanie ich
+z wartością netto towaru przepuszczałoby zamówienia ponad limit przewoźnika.
+W przeliczeniu na wartość towaru granica wypada przy **12 190 zł netto**
+(kurier) i **8 110 zł netto** (spedycja), przy darmowej wysyłce.
+
+#### Ponad limit pobranie jest WYŁĄCZONE, nie tylko przestawione
+
+`payEff()` zwraca płatność **skuteczną**, a nie tę z przycisku: klient mógł
+wybrać pobranie przy małym koszyku i dołożyć pozycje ponad limit. Wszystko, co
+pokazuje płatność klientowi albo wypisuje ją do maila i do GA4, czyta stąd —
+inaczej biuro dostałoby „za pobraniem" dla kwoty, której kurier nie zainkasuje.
+
+Przycisk pobrania na kroku 3 jest wtedy **nieaktywny**, z podaniem powodu
+(`codNote()`), bo samo przestawienie w tle byłoby niezrozumiałe: klient
+kliknąłby i nic by się nie stało.
+
+**Siedem testów**, wszystkie na uruchomionej aplikacji: domyślne pobranie
+pokazuje datę zamiast prośby o przelew, dopłata to 5 zł przy kurierze i 20 zł
+przy palecie, ponad limitem pobranie znika z koszyka, przycisk jest wyłączony
+z podaniem limitu, a **zamówienie dochodzi do biura jako proforma**. Sprawdzone
+przez cofnięcie obu zmian osobno: przy stawce 5 zł dla spedycji pada test
+dopłaty, przy podniesionym limicie padają trzy testy limitu.
+
+Cztery starsze testy zakładały proformę jako domyślną i trzeba je było
+poprawić — w tym ten od paczek, bo cena wysyłki niesie teraz domyślną dopłatę
+(2 × 25 + 5 = 55 zł zamiast 50 zł; jedna paczka dałaby 30 zł, więc liczba nadal
+rozróżnia podział na paczki).
+
 ### Opakowanie wchodzi do masy — 21.09.2026
 
 Do 21 września wycena liczyła **samą masę towaru z kart katalogowych**, a próg

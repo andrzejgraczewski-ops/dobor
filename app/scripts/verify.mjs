@@ -358,7 +358,9 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   check('zgłoszenie nie ustawia adresu zwrotnego na klienta', !('_replyto' in b));
   check('adres dostawy w zgłoszeniu', b['Adres dostawy'] === '3 Maja 20, 87-640 Czernikowo', b['Adres dostawy']);
   check('adres dostawy w treści maila', (b['Szczegóły'] || '').includes('Adres dostawy: 3 Maja 20, 87-640 Czernikowo'));
-  check('dostawa i płatność', b.Dostawa === 'Kurier / spedycja' && /Proforma/.test(b['Płatność'] || ''),
+  // domyślną płatnością jest pobranie (właściciel, 21.09.2026) — pole musi nieść
+  // płatność SKUTECZNĄ, bo po przekroczeniu limitu przewoźnika wraca proforma
+  check('dostawa i płatność', b.Dostawa === 'Kurier / spedycja' && /Za pobraniem/.test(b['Płatność'] || ''),
     b.Dostawa + ' / ' + b['Płatność']);
   check('wartość netto podana kwotą', /\d.*zł/.test(b['Wartość netto'] || ''), b['Wartość netto']);
   check('pełna treść maila dołączona', (b['Szczegóły'] || '').includes('ZAMÓWIENIE') && (b['Szczegóły'] || '').includes('Razem brutto'),
@@ -392,7 +394,7 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   // zdarzenie analityczne o wysłanym zamówieniu
   const layer = await dl(page);
   check('zdarzenie submit_order z formą płatności',
-    layer.some((a) => a[0] === 'event' && a[1] === 'submit_order' && a[2] && a[2].payment === 'proforma'));
+    layer.some((a) => a[0] === 'event' && a[1] === 'submit_order' && a[2] && a[2].payment === 'pobranie'));
 
   // po 5 s powrót na start i wyczyszczony koszyk
   await page.waitForTimeout(6000);
@@ -1166,8 +1168,10 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
       return (p ? p.innerText : document.body.innerText).replace(/\n/g, ' ');
     });
     // towar 31 kg → dwie paczki brutto 24 i 11 kg, po 25 zł
+    // 2 × 25 zł + 5 zł pobrania = 55 zł; jedna paczka dałaby 30 zł, więc liczba
+    // nadal rozróżnia podział na paczki, tylko niesie domyślną dopłatę
     check('karton dzieli paczkę 31 kg na dwie — 2 × 25 zł, nie 1 × 25 zł',
-      /2 paczki/.test(linia) && /50 zł netto/.test(linia),
+      /2 paczki/.test(linia) && /55 zł netto/.test(linia),
       (linia.match(/Wysyłka[^|]{0,120}/) || ['brak'])[0]);
     // Masa przy „Wysyłce" jest BRUTTO — towar plus karton na każdą paczkę.
     // Nie przypinamy kilogramów na sztywno: aplikacja dobiera silnik po
@@ -1337,7 +1341,21 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
       await page.waitForTimeout(400);
       return panel();
     };
-    return { ctx, page, panel, naPobranie };
+    const naProforme = async () => {
+      await fillContact(page);
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find((x) => /proforma/i.test(x.innerText));
+        if (b) b.click();
+      });
+      await page.waitForTimeout(200);
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find((x) => /nap\u0119d/i.test(x.innerText));
+        if (b) b.click();
+      });
+      await page.waitForTimeout(400);
+      return panel();
+    };
+    return { ctx, page, panel, naPobranie, naProforme };
   }
 
   // święto STAŁE: 11 listopada 2026 to środa, więc dostawa przeskakuje na czwartek
@@ -1369,8 +1387,10 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
   }
   // proforma: daty NIE podajemy — aplikacja nie wie, kiedy wpłyną pieniądze
   {
-    const { ctx, panel } = await zZegarem(new Date(2026, 8, 22, 10, 0));
-    const t = await panel();
+    // proforma NIE jest już domyślna (od 21.09.2026 domyślne jest pobranie),
+    // więc test musi ją wybrać — inaczej sprawdzałby domyślną ścieżkę
+    const { ctx, naProforme } = await zZegarem(new Date(2026, 8, 22, 10, 0));
+    const t = await naProforme();
     const MIES = /stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia/;
     check('przy proformie termin nie podaje konkretnej daty',
       /liczymy od zaksięgowania wpłaty/.test(t) && !MIES.test(t), t.slice(0, 100));
@@ -1418,6 +1438,82 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
       /policzone z zegara klienta: 10\.11\.2026, 12:00/.test(mail),
       (mail.match(/policzone z zegara klienta[^"\\]{0,30}/) || ['brak'])[0]);
     await ctx.close();
+  }
+
+  // 21. Pobranie — dopłata i limit ZALEŻĄ OD PRZEWOŹNIKA (właściciel, 21.09.2026):
+  //     DPD 5 zł netto do 15 000 zł brutto, Raben 20 zł netto do 10 000 zł brutto.
+  //     Do 21.09 aplikacja brała 5 zł zawsze, także przy palecie — różnicę 15 zł
+  //     dopłacała firma, po cichu. Domyślną płatnością jest teraz pobranie, żeby
+  //     klient widział datę dostawy, a nie prośbę o przelew.
+  async function koszykPob(kW, box) {
+    const { ctx, page } = await open({ consent: 'no' });
+    await page.getByRole('button', { name: /Moc silnika/ }).first().click();
+    await page.locator('button').filter({ hasText: new RegExp('^\\s*' + kW + '\\s*kW') }).first().click();
+    await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await page.waitForTimeout(400);
+    const jest = await page.evaluate((b) => {
+      const x = [...document.querySelectorAll('button')].find((e) => e.innerText.startsWith(b));
+      if (x) { x.click(); return true; } return false;
+    }, box);
+    if (!jest) { await ctx.close(); return null; }
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
+    await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+    const tekst = async () => (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    return { ctx, page, tekst };
+  }
+  {
+    const k = await koszykPob('0,25', 'DKM040');
+    const t = await k.tekst();
+    check('domyślna płatność to pobranie — klient widzi datę, nie prośbę o przelew',
+      /TERMIN Wysyłka/.test(t) && !/liczymy od zaksięgowania wpłaty/.test(t),
+      (t.match(/TERMIN [^Z]{0,60}/) || ['brak panelu'])[0]);
+    check('kurier: dopłata za pobranie to 5 zł',
+      /w tym pobranie 5 zł/.test(t),
+      (t.match(/w tym pobranie[^W]{0,20}/) || ['brak dopłaty'])[0]);
+    await k.ctx.close();
+  }
+  {
+    // DKM110 wymusza paletę niezależnie od masy — tu obowiązuje stawka Rabena
+    const k = await koszykPob('1,5', 'DKM110');
+    const t = await k.tekst();
+    check('spedycja: dopłata za pobranie to 20 zł, nie 5 zł',
+      /w tym pobranie 20 zł/.test(t),
+      (t.match(/w tym pobranie[^W]{0,20}/) || ['brak dopłaty'])[0]);
+    // przekraczamy limit Rabena (10 000 zł brutto) ilością
+    await k.page.evaluate(() => {
+      const plus = [...document.querySelectorAll('button')].filter((x) => x.innerText.trim() === '+');
+      for (let i = 0; i < 12; i++) plus.forEach((b) => b.click());
+    });
+    await k.page.waitForTimeout(500);
+    const po = await k.tekst();
+    check('ponad limit przewoźnika pobranie znika, a termin wraca na proformę',
+      /liczymy od zaksięgowania wpłaty/.test(po) && !/w tym pobranie/.test(po),
+      (po.match(/TERMIN [^T]{0,70}/) || ['brak panelu'])[0]);
+    // krok 3: przycisk pobrania ma być wyłączony i ma być napisane dlaczego
+    await fillContact(k.page);
+    const stan = await k.page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /pobraniem/i.test(x.innerText));
+      return { off: !!(b && b.disabled), nota: document.body.innerText.replace(/\s+/g, ' ') };
+    });
+    check('przycisk pobrania jest wyłączony, z podaniem limitu przewoźnika',
+      stan.off && /Za pobraniem do 10[\s  ]000 zł brutto/.test(stan.nota),
+      (stan.nota.match(/Za pobraniem do[^.]{0,80}/) || ['brak noty'])[0]);
+    // i to samo musi dojść do biura — inaczej ktoś wyśle paczkę za pobraniem
+    const posty = [];
+    await k.page.context().route(/formspree\.io/, async (r) => {
+      posty.push(JSON.parse(r.request().postData() || '{}'));
+      await r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+    await k.page.getByRole('button', { name: /Zapoznałem się z/ }).click();
+    await k.page.locator('[data-order-btn]').click();
+    await k.page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
+    const mail = JSON.stringify(posty[0] || {});
+    check('zamówienie ponad limit idzie do biura jako proforma, nie pobranie',
+      /Proforma/.test(mail) && !/[Zz]a pobraniem/.test(mail),
+      (mail.match(/"Płatność":"[^"]*"/) || ['brak pola Płatność'])[0]);
+    await k.ctx.close();
   }
 
 }

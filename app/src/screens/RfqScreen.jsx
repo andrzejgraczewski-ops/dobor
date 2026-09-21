@@ -300,9 +300,12 @@ function Step3({ v }) {
         <div style={S("font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px")}>Jak płacisz</div>
         <div style={S(`display:grid;grid-template-columns:${v.formCols};gap:9px`)}>
           {v.payOpts.map((o, i) => (
-            <button key={i} onClick={o.pick} className={hv('border-color:var(--color-accent)')} style={S(`min-height:48px;padding:12px;background:${o.bg};color:${o.fg};border:1px solid ${o.bd};cursor:pointer;font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase`)}>{o.label}</button>
+            <button key={i} onClick={o.pick} disabled={o.off} className={o.off ? '' : hv('border-color:var(--color-accent)')} style={S(`min-height:48px;padding:12px;background:${o.bg};color:${o.fg};border:1px solid ${o.bd};cursor:${o.off ? 'not-allowed' : 'pointer'};font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase`)}>{o.label}</button>
           ))}
         </div>
+        {v.hasCodNote ? (
+          <div style={S('margin-top:8px;padding:8px 11px;background:var(--color-mid-bg);border-left:3px solid var(--color-mid);font:400 12px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)')}>{v.codNote}</div>
+        ) : null}
         <div style={S('margin:16px 0 0;border-top:1px solid var(--color-divider)')}></div>
       </div>
       <div style={S('padding:16px 20px 20px')}>

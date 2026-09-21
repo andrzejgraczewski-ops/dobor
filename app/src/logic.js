@@ -70,7 +70,7 @@ export class DkmLogic extends React.Component {
   A(f){ const R=window.__resources||{}; return R['a_'+String(f).replace(/[^a-zA-Z0-9]/g,'_')]||('assets/'+f); }
   state={screen:'home',mode:null,p1:null,i:null,n2Exact:null,box:null,rpmSel:1400,m2:'',n2:'',load:1,hours:1,z:10,temp:0,fsMinSel:null,fsOnly:false,wide:false,
     refine:false,sel:null,rfq:[],just:false,prevScreen:'home',typeQ:'',hist:[],hideLow:true,
-    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:'',street:'',zip:'',city:''},del:'kurier',pay:'proforma',orderErr:'',ordered:false,flangePick:null,borePick:null,
+    c:{first:'',last:'',firm:'',nip:'',email:'',phone:'',note:'',street:'',zip:'',city:''},del:'kurier',pay:'pobranie',orderErr:'',ordered:false,flangePick:null,borePick:null,
     anaConsent:null,sending:false,sentOk:false,sentRef:'',sendErr:'',
     ...stanZLinku()};
 
@@ -246,7 +246,7 @@ export class DkmLogic extends React.Component {
       // pozycji bywa bez ceny, więc suma wprowadzałaby w błąd
       ...(order?{
         'Wartość netto':kwota,
-        'Płatność':S.pay==='pobranie'?'Za pobraniem — u kuriera':'Proforma — przelew z góry',
+        'Płatność':this.payEff()==='pobranie'?'Za pobraniem — u kuriera':'Proforma — przelew z góry',
         'Dostawa':S.del==='odbior'?'Odbiór osobisty':'Kurier / spedycja'
       }:{'Rodzaj':'Zapytanie ofertowe — do wyceny'}),
       'Pozycje':this.pozycjeSkrot(),
@@ -280,7 +280,7 @@ export class DkmLogic extends React.Component {
         // wartość i liczba pozycji — bez nich GA4 pokazuje same sztuki zgłoszeń
         // i nie da się powiedzieć, ile aplikacja realnie przynosi
         this.track(order?'submit_order':'submit_rfq',
-          {...(order?{payment:S.pay||'proforma'}:{}),
+          {...(order?{payment:this.payEff()}:{}),
            value:Math.round(this.cartNet()*100)/100,currency:'PLN',items:S.rfq.length});
         this.setState({sending:false,sentOk:true,sentRef:ref,ordered:order});
         // potwierdzenie pojawia się pod przyciskiem — na telefonie bywa poza ekranem
@@ -663,15 +663,24 @@ export class DkmLogic extends React.Component {
   //     150\u2013200 kg 230 z\u0142, 200\u2013300 kg 260 z\u0142, powy\u017cej 300 kg 340 z\u0142
   //     (trzy g\u00f3rne progi dosz\u0142y 10.09.2026 \u2014 wcze\u015bniej powy\u017cej 150 kg
   //      aplikacja nie podawa\u0142a ceny wcale, tylko \u201ewycena indywidualna\u201d)
-  //   pobranie +5 z\u0142; od 5000 z\u0142 netto towaru wysy\u0142ka gratis
+  //   pobranie: kurier +5 z\u0142, spedycja +20 z\u0142; od 5000 z\u0142 netto wysy\u0142ka gratis
   // Dzielimy na paczki, gdy wychodzi taniej ni\u017c jedna przesy\u0142ka spedycj\u0105.
   SPED=['DKM110','DKM130','DKM150'];
   // Pr\u00f3g darmowej wysy\u0142ki \u2014 w\u0142a\u015bciciel, 21.09.2026: \u201eod 5000 netto".
   // Kwota stoi TYLKO tutaj: tre\u015b\u0107 na ekranie i w mailu bierze j\u0105 ze
   // shipFreeText(), bo wpisana drugi raz rozjecha\u0142aby si\u0119 przy zmianie progu
   // i klient czyta\u0142by inn\u0105 kwot\u0119, ni\u017c liczy koszyk.
-  SHIP_FREE=5000; SHIP_COD=5; PACK_MAX=40; PACK_CHEAP=31;
+  SHIP_FREE=5000; PACK_MAX=40; PACK_CHEAP=31;
   shipFreeText(){ return 'zam\u00f3wienie od '+zl(this.SHIP_FREE)+' netto'; }
+  // Pobranie \u2014 w\u0142a\u015bciciel, 21.09.2026. Dop\u0142ata i limit ZALE\u017b\u0104 OD PRZEWO\u0179NIKA,
+  // a do 21.09 aplikacja bra\u0142a 5 z\u0142 zawsze, tak\u017ce przy palecie. Przy spedycji
+  // r\u00f3\u017cnic\u0119 15 z\u0142 dop\u0142aca\u0142a firma, po cichu \u2014 dlatego nie ma tu jednej sta\u0142ej.
+  //
+  // Limity s\u0105 w BRUTTO, bo to kwota, kt\u00f3r\u0105 kurier fizycznie inkasuje: towar
+  // plus wysy\u0142ka plus dop\u0142ata, razem z VAT-em. Por\u00f3wnywanie ich z warto\u015bci\u0105
+  // netto towaru przepu\u015bci\u0142oby zam\u00f3wienia ponad limit przewo\u017anika.
+  COD_KURIER=5;      COD_SPED=20;        // netto
+  COD_MAX_KURIER=15000; COD_MAX_SPED=10000;   // brutto
   // Opakowanie wchodzi do masy, KTÓRĄ WAŻY PRZEWOŹNIK — właściciel, 21.09.2026:
   // „paczka będzie skasowana za 40 zł, a DPD policzy nas 50, bo paczka była
   // cięższa". Progi 31 i 40 kg oraz SPED_PROGI dotyczą więc masy brutto,
@@ -776,9 +785,16 @@ export class DkmLogic extends React.Component {
       mode='spedycja'; net=sp; packs=1; kg=kgPal;
       tier='spedycja (Raben) \u00b7 '+this.spedProg(kgPal)[2]+' \u2014 zam\u00f3wienie do 9:00';
     } else { tier='mas\u0119 wyceniamy indywidualnie'; }
-    const cod=this.state.pay==='pobranie'&&net!=null?this.SHIP_COD:0;
+    const sped=mode==='spedycja';
+    const codFee=sped?this.COD_SPED:this.COD_KURIER;
+    const codMax=sped?this.COD_MAX_SPED:this.COD_MAX_KURIER;
     const free=net!=null&&this.cartGoods()>=this.SHIP_FREE;
-    return {kg,known,mode,packs,tier,sped:mode==='spedycja',
+    // Kurier inkasuje CAŁĄ kwotę brutto — towar, wysyłkę i dopłatę za pobranie.
+    // Z nią porównujemy limit, bo to ona przechodzi przez jego ręce.
+    const codBrutto=net==null?null:(this.cartGoods()+(free?codFee:net+codFee))*1.23;
+    const codOk=net!=null&&codBrutto<=codMax;
+    const cod=this.state.pay==='pobranie'&&codOk?codFee:0;
+    return {kg,known,mode,packs,tier,sped,codOk,codFee,codMax,codBrutto,
       base:net,cod,net:free?cod:(net==null?null:net+cod),free};
   }
   // ——— Termin dostawy ————————————————————————————————————————————————
@@ -840,7 +856,7 @@ export class DkmLogic extends React.Component {
       glowna:'Część pozycji domawiamy — wysyłka w 1–3 dni robocze',
       pod:'Dokładny termin potwierdzimy po przyjęciu zamówienia.'};
     const godz=sp.sped?this.GODZ_SPED:this.GODZ_KURIER;
-    if(S.pay==='proforma') return {ok:false,
+    if(this.payEff()==='proforma') return {ok:false,
       glowna:'Termin wysyłki liczymy od zaksięgowania wpłaty',
       pod:'Towar jest w magazynie. Przy przedpłacie nie wiemy, kiedy wpłata dojdzie — '
         +'zaksięgowana do '+godz+':00 oznacza wysyłkę tego samego dnia roboczego.'};
@@ -868,7 +884,20 @@ export class DkmLogic extends React.Component {
     return (x.extras||[]).some(e=>!e.off&&e.net==null);
   }); }
   DELS={kurier:'Kurier'};
-  PAYS={proforma:'Proforma — przedpłata',pobranie:'Za pobraniem — u kuriera'};
+  PAYS={pobranie:'Za pobraniem — u kuriera',proforma:'Proforma — przedpłata'};
+  // Płatność SKUTECZNA, nie ta z przycisku. Klient mógł wybrać pobranie przy
+  // małym koszyku i dołożyć pozycje ponad limit przewoźnika — wtedy zamówienie
+  // i tak pójdzie na proformę. Wszystko, co pokazuje płatność klientowi albo
+  // wypisuje ją do maila, czyta STĄD, nie z this.state.pay: inaczej biuro
+  // dostałoby „za pobraniem" dla kwoty, której kurier nie zainkasuje.
+  payEff(){ return (this.state.pay==='pobranie'&&this.shipPlan().codOk)?'pobranie':'proforma'; }
+  codNote(){
+    const sp=this.shipPlan();
+    if(sp.codOk||sp.base==null) return '';
+    return 'Za pobraniem do '+zl(sp.codMax)+' brutto'
+      +(sp.sped?' (spedycja)':' (kurier)')+' — to zamówienie przekracza limit przewoźnika, '
+      +'więc realizujemy je na proformę.';
+  }
   itemStatus(x){
     if(x.boreOpt) return 2;
     const row=CAT().find(rr=>this.key(rr)===this.baseKey(x.k)); if(!row) return 2;
@@ -947,7 +976,7 @@ export class DkmLogic extends React.Component {
           'Data i godzina akceptacji: '+((x.consent&&x.consent.at)||'brak'),
           'Wersja warunków: '+((x.consent&&x.consent.ver)||this.CONSENT_V),'');
       });
-      L.push('Metoda realizacji: '+(this.PAYS[S.pay]||'—'),
+      L.push('Metoda realizacji: '+(this.PAYS[this.payEff()]||'—'),
         'Informacja czytelna dla pracownika realizującego zamówienie.','');
     }
     const bopt=S.rfq.filter(x=>x.boreOpt);
@@ -1070,9 +1099,9 @@ export class DkmLogic extends React.Component {
     if(order){
       L.push('','— Zamówienie —');
       L.push('Dostawa: '+(this.DELS[S.del]||'—'));
-      L.push('Płatność: '+(this.PAYS[S.pay]||'—'));
+      L.push('Płatność: '+(this.PAYS[this.payEff()]||'—'));
       if(this.cartMissing()) L.push('','Część pozycji nie ma ceny w cenniku — proszę o wycenę i doliczenie ich do proformy.');
-      L.push('',S.pay==='pobranie'
+      L.push('',this.payEff()==='pobranie'
         ? 'Proszę o potwierdzenie zamówienia i wysyłkę za pobraniem.'
         : 'Proszę o wystawienie faktury proforma i potwierdzenie terminu wysyłki.');
     }
@@ -2407,9 +2436,17 @@ export class DkmLogic extends React.Component {
       delOpts:Object.keys(this.DELS).map(k=>({label:this.DELS[k],on:S.del===k,
         bg:S.del===k?V('accent'):'transparent',fg:S.del===k?V('bg'):V('accent'),
         bd:S.del===k?V('accent'):V('accent-300'),pick:()=>this.setState({del:k,orderErr:''})})),
-      payOpts:Object.keys(this.PAYS).map(k=>({label:this.PAYS[k],on:S.pay===k,
-        bg:S.pay===k?V('accent'):'transparent',fg:S.pay===k?V('bg'):V('accent'),
-        bd:S.pay===k?V('accent'):V('accent-300'),pick:()=>this.setState({pay:k,orderErr:''})})),
+      // Pobranie ponad limit przewoźnika jest WYŁĄCZONE, nie tylko przestawione:
+      // klient, który je kliknie, dostałby obietnicę, której kurier nie wykona,
+      // a biuro musiałoby do niego dzwonić. Powód podaje codNote().
+      payOpts:Object.keys(this.PAYS).map(k=>{
+        const off=k==='pobranie'&&!this.shipPlan().codOk;
+        const on=this.payEff()===k;
+        return {label:this.PAYS[k],on,off,
+          bg:on?V('accent'):'transparent',fg:off?V('neutral-400'):(on?V('bg'):V('accent')),
+          bd:on?V('accent'):(off?V('neutral-300'):V('accent-300')),
+          pick:off?(()=>{}):(()=>this.setState({pay:k,orderErr:''}))};}),
+      codNote:this.codNote(),hasCodNote:!!this.codNote(),
       orderRfq:this.order,orderErr:S.orderErr||'',hasOrderErr:!!S.orderErr,
       legalOpen:!!S.legalOpen,
       legalLabel:S.legalOpen?'Zwiń ▲':'Rozwiń ▼',
@@ -2424,7 +2461,7 @@ export class DkmLogic extends React.Component {
       sendBd:this.canOrder()?V('accent-300'):V('accent'),
       orderLabel:S.sending?'Wysyłam zamówienie…'
         :(S.ordered?'✓ zamówienie wysłane'
-        :(S.pay==='pobranie'?'Zamawiam — wysyłka za pobraniem':'Zamawiam — proszę o proformę')),
+        :(this.payEff()==='pobranie'?'Zamawiam — wysyłka za pobraniem':'Zamawiam — proszę o proformę')),
       showStep,nextStep:nextStep||{title:'',hint:'',opts:[]},stepTabs,
       stdOn:S.rpmSel===1400,stdOff:S.rpmSel==null,
       stdBlocks:S.rpmSel!=null&&rowsRaw.length===0&&otherRpm>0,
