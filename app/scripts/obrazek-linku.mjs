@@ -40,7 +40,7 @@ const STRONA = `<!doctype html><meta charset="utf-8">
   <h1>Dobór przekładni ślimakowych</h1>
   <p>Od mocy silnika do gotowego zamówienia — z cenami netto i dostępnością.</p>
 </div>
-<div class="pasek"><span>DKM025 – DKM150</span><span>0,06 – 15 kW</span><span>silnik i falownik</span></div>
+<div class="pasek"><span>DKM025 – DKM150</span><span>DRV030/040 – DRV063/150</span><span>0,06 – 15 kW</span><span>silnik i falownik</span></div>
 <img class="zdjecie" src="/assets/hero-przekladnia.png" alt="">`;
 
 const server = createServer(async (req, res) => {

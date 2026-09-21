@@ -220,6 +220,28 @@ Obrazek pokazywany przy linku (`public/obrazek-linku.png`, 1200 × 630 px) skła
 `scripts/obrazek-linku.mjs` — renderuje stronę w przeglądarce i robi zrzut.
 Uruchamia się go ręcznie, tylko gdy zmienia się logo albo hasło.
 
+**Pasek na obrazku wymienia obie rodziny — 21.09.2026.** Właściciel:
+„zmień znacznik i dopisz DRV tak, jak to jest zrobione w DKM025–DKM150".
+Cztery pola zamiast trzech, w tym samym stylu:
+
+```
+DKM025 – DKM150 | DRV030/040 – DRV063/150 | 0,06 – 15 kW | silnik i falownik
+```
+
+Zakres DRV to osiem zespołów, od `DRV030/040` do `DRV063/150`. Pasek jest
+wpisany w `STRONA` w `obrazek-linku.mjs` na sztywno i **nie liczy się z danych**
+— przy dojściu nowej rodziny trzeba go poprawić ręcznie, tak samo jak hasło.
+
+To był najważniejszy kawałek karty: **obrazek jest większy niż cały tekst
+podglądu**, a mówił o ofercie bez DRV jeszcze wtedy, gdy opisy już ją
+wymieniały. Znalazłem to dopiero, składając podgląd z prawdziwych znaczników —
+z samego czytania kodu nie było tego widać.
+
+Po zmianie obrazka wersja cache'u service workera liczy się od nowa (liczona
+z zawartości plików), więc podmiana sama ją unieważnia. **Facebook trzyma
+jednak własną kopię** — nowy obrazek i opis pokażą się dopiero po przepuszczeniu
+adresu przez Sharing Debugger i „Scrape Again".
+
 **Opis przy linku wymienia obie rodziny — poprawione 21.09.2026.** Właściciel:
 „teraz mam przekładnie DKM oraz DRV, czyli łączone". Do tego dnia opis mówił
 tylko o korpusach `DKM025–DKM150`, choć aplikacja od dawna dobierała też zespoły
