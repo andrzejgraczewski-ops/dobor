@@ -122,10 +122,31 @@ Kołnierz w `catalog-data.js` zmieniony więc na `63B5/B14` w dwóch wierszach
 wariantów**. Właściciel: „to w takim razie tu zróbmy 63B14 / 63B5, tak jest
 bezpieczniej" — czyli oba dopuszczone, wybiera dostępność.
 
-**Wiersza 0,18 kW / 2800 obr/min celowo nie ruszono**: silnika `0,18|2800|63B14`
-nie ma w `katalog.json`, więc dopisanie kołnierza dałoby pięć wariantów bez
-ceny — na zawsze „zapytaj o cenę" i śmieci na liście DO SPRAWDZENIA.
-Do ustalenia z właścicielem, czy taki silnik istnieje.
+**Wiersz 0,18 kW / 2800 obr/min dostał `63B5/B14` 21.09.2026.** Przez dziesięć
+dni stała tu notatka, że go celowo nie ruszamy, bo silnika `0,18|2800|63B14`
+nie ma w `katalog.json` i dopisanie kołnierza dałoby pięć wariantów bez ceny.
+Właściciel rozstrzygnął inaczej: **„silnik istnieje, tylko ja nie mam go
+w sprzedaży, mogę kupić lokalnie"**, i na pytanie, czy dopisać — „tak zrobić".
+
+To ten sam przypadek co `0,09 4 56B5`: wyrób da się domówić, więc **„zapytaj
+o cenę" jest prawdą**, a klient szukający DKM050 przy 0,18 kW i 2800 obr może
+wybrać `B14` — czyli wykonanie, które DKM realnie trzyma w tej rodzinie —
+i wysłać zapytanie, zamiast nie widzieć pozycji wcale.
+
+Dopisany **sam kołnierz, bez wymyślonego kodu silnika.** Mapowania
+`0.18|2800|63B14` nie dodałem świadomie: nie znam nazwy, pod jaką Optima ten
+silnik zapisze, a zgadnięta („`0,18 2 63B14 DKM`") wyglądałaby na prawdziwą
+i **przy zakupie nie trafiłaby w raport**, więc cena i tak by się nie pojawiła,
+tylko trudniej byłoby to zauważyć. Bez mapowania generator zachowa się właściwie:
+gdy silnik pojawi się w magazynie, wypisze go jako `DO SPRAWDZENIA` z **realnym
+kodem**, a człowiek dopisze mapowanie. To jest dokładnie ta reguła, po której
+generator nie zgaduje przypisań silnika.
+
+Skutek, policzony na cenniku wygenerowanym ze sztucznego raportu: `warianty.json`
+**+5 wpisów**, wszystkie pięć ze statusem `2` („zapytaj o cenę"), zero nowych
+pozycji na liście `DO SPRAWDZENIA`. Przekładnia `DKM050 63B14` ma cenę przy
+`i60`, `i80` i `i100` (260 zł), a przy `i40` i `i50` nie ma jej w żadnym
+kołnierzu — to nie zmiana, tak było i przy `63B5`.
 
 Dlaczego to bezpieczne: dopisanie kołnierza tylko **dodaje** opcję. `variants()`
 odfiltrowuje kołnierze bez klucza w cenniku, a `pickVar()` sięga po B14
@@ -940,9 +961,18 @@ Osobna rzecz, nie błąd: karty podają **liczbę kombinacji z katalogu
 producenta**, a aplikacja ma ich mniej przy pięciu mniejszych zespołach
 (`DRV030/040` — 1 z 14, `DRV030/050` — 6 z 13, `DRV030/063` — 7 z 13,
 `DRV040/075` — 10 z 13, `DRV040/090` — 12 z 13). Trzy duże zgadzają się co do
-sztuki. To skutek zasady „tylko to, co właściciel potwierdzi jako realny
-produkt", ale klient czytający kartę może poprosić o układ, którego aplikacja
-nie zaproponuje.
+sztuki.
+
+**Właściciel to sprawdził i potwierdził (21.09.2026): „DRV030/040 niestety ale
+tak jest, to jest zgodnie z katalogiem".** Powód jest w tym, że karta i aplikacja
+liczą dwie różne rzeczy: karta podaje **możliwe połączenia** (katalog, strony
+45–46), a aplikacja bierze wiersze z **tabeli wydajności** (strony 47–51), gdzie
+każdy wiersz ma moc, moment i `fs`. Tego jest znacznie mniej. Sprawa zamknięta —
+nie szukać tu braków.
+
+Przy `DRV030/050` właściciel sprawdzał przełożenia 400, 500 i 600 — **wszystkie
+trzy są**: `400` i `500` przy 0,09 i 0,12 kW, `600` przy 0,09 kW. Pełna lista
+zespołu: `300, 400, 500, 600, 750, 900` w ośmiu wierszach.
 
 **Montaż 60 zł netto od sztuki** idzie jako zwykłe wyposażenie (`code: 'MONT'`),
 więc pokazuje się, liczy i trafia do maila istniejącą drogą — bez nowego
