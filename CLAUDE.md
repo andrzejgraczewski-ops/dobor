@@ -612,6 +612,48 @@ Zostaje jedno, czego testem nie da się zastąpić: **dopóki sekcja `lac` nie j
 na `main`, automat jej nie liczy**, więc cena łącznika nie odświeża się sama.
 To jedyna realna naprawa u źródła.
 
+#### Dziesięć dni na zrzucie dało rozjazd do 40 zł — 21.09.2026
+
+Właściciel przysłał nowy cennik Comarcha (obowiązuje od 22.09) i **sześć
+z jedenastu cen łączników się zmieniło**: `030/050` 95 → 85, `030/063`
+60,2 → 85, `040/075` 81 → 95, `050/110 PRO` i `SEM` 120 → 130, `063/130`
+120 → 160. Zrzut poprawiony, ale to **potwierdzenie problemu, nie jego
+rozwiązanie** — przez dziesięć dni aplikacja liczyła ceny ze zrzutu, który
+się rozjechał, i nikt by tego nie zauważył.
+
+Skutek na cenach zespołów: **63 wiersze ze 107** mają inną cenę.
+`DRV030/063` +24,80 zł, `DRV040/075` +14 zł, `DRV050/110` +10 zł,
+`DRV063/130` +30 zł, `DRV030/050` **−10 zł**. Trzy zespoły bez zmian.
+
+**Że ceny idą po SKU, jest sprawdzone przebiegiem, nie czytaniem kodu.**
+`generuj.py` woła `z_raportu(l['kod'])`, czyli szuka po kodzie magazynowym,
+a zrzut podstawia dopiero wtedy, gdy raport milczy. Puszczone na dwóch
+sztucznych raportach z datą 22.09:
+
+- raport z **nowymi** cenami → sekcja `lac` ma wszystkie jedenaście kodów
+  z cenami z raportu (`ŁĄCZNIK 063/130: [160,1]`), zero ostrzeżeń;
+- raport ze **starymi** cenami → `DO SPRAWDZENIA — cena łącznika rozjechała
+  się ze zrzutem: 7`, z podaniem kodu i obu kwot.
+
+Uwaga praktyczna: generator odrzuca raport **starszy niż cennik** („zostawiam
+bez zmian"), więc do próby trzeba podmienić datę w komórce A1.
+
+**Czego to wszystko nie naprawia, i trzeba to powiedzieć wprost:** sekcja `lac`
+jest tylko na `test`, a automat uruchamia `generuj.py` **z `main`**. Jutrzejszy
+raport przyniesie nowe ceny, ale `price-data.js` ich nie dostanie, bo generator
+z `main` sekcji `lac` w ogóle nie tworzy — aplikacja dalej będzie czytać zrzut.
+**Ceny łączników zaczną się odświeżać same dopiero po przeniesieniu DRV
+na `main`**, czyli po „tak do DKM API". Do tego czasu każdy nowy cennik Comarcha
+trzeba wpisać do `drv-katalog.json` ręcznie.
+
+Dwie rzeczy z tego samego zrzutu, **których nie dopisałem**:
+
+- **`ŁĄCZNIK 063/150 WUMA`** — to był ucięty wiersz z poprzedniego zrzutu.
+  Pełna nazwa mówi „Wuma — pasują tylko do przekładni WUMA", więc do zespołów
+  DKM nie wchodzi, choć ma te same średnice `(25-38)` co `063/150 25/38`;
+- **`ŁĄCZNIK 040/063` i `040/063 SEM`** (90 zł, po 16–26 szt. na stanie) —
+  zespołu `DRV040/063` w aplikacji nie ma. Wciąż do ustalenia z właścicielem.
+
 **Para „łącznik + człon 2" dobiera się po dostępności, potem po cenie.**
 Do 11 września oba łączniki DRV063/130 kosztowały 120 zł i wybór nie zmieniał
 kwoty; teraz zmienia. Bez porównania ceny zespół dostawałby droższe wykonanie
