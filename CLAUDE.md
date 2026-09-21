@@ -705,12 +705,48 @@ w nazwie łącznika** `(25-28)` i `(25-38)`. Reguła doboru łącznika jest wię
 potwierdzona wprost w katalogu producenta. Fałszywa jest tylko długość całkowita
 i to, że na wejściu jest łącznik, nie silnik.
 
-Właściciel przygotowuje **własne karty DRV**. Generator szuka ich pod nazwą
-`karta-drv-050-110.jpg` (z nazwy zespołu: małe litery, `/` na `-`) w
-`app/public/assets/` i wpisuje do `DKM_DRV.karty` **tylko te, których plik
-naprawdę leży na dysku** — inaczej karta pokazywałaby zepsuty obrazek.
-Po wrzuceniu plików wystarczy `node narzedzia/drv/buduj.mjs`. Do tego czasu
-karta DRV jest bez rysunku.
+Generator szuka kart pod nazwą `karta-drv-050-110.jpg` (z nazwy zespołu: małe
+litery, `/` na `-`) w `app/public/assets/` i wpisuje do `DKM_DRV.karty` **tylko
+te, których plik naprawdę leży na dysku** — inaczej karta pokazywałaby zepsuty
+obrazek. Po wrzuceniu plików wystarczy `node narzedzia/drv/buduj.mjs`.
+
+#### Komplet ośmiu kart DRV — 21.09.2026, gałąź `test`
+
+Właściciel przysłał je z Claude Design jako PNG 1588 × 2246 px z kanałem alfa.
+Kod czyta `.jpg`, więc konwersja przez **kanwę w Chromium** (Pillow ani
+ImageMagick w środowisku nie ma, ale Playwright jest — ten sam, którym powstaje
+obrazek podglądu linku); alfa spłaszczona na biel, jakość 0,9, po ~420 kB.
+Rozdzielczości nie zmniejszałem do 1240 × 1752 kart pojedynczych — na karcie
+wymiarowej liczy się czytelność małych cyfr, a mieszane rozmiary nic nie psują,
+bo `cardSrc()` tylko podstawia adres.
+
+Układ jest inny i lepszy niż w kartach pojedynczych: sekcja **1 „Budowa
+zespołu"** (człon 1 + człon 2 = zespół, z zakresami `i₁`, `i₂` i liczbą
+kombinacji), **2** wymiary gabarytowe z jedną tabelą liter, **3** wał wyjściowy
+wg członu 2, **4** przyłącze PAM-IEC **wg członu 1** — czyli dokładnie to, czego
+brakowało, gdy karta członu 2 kłamała o wejściu.
+
+Sprawdzone przed wgraniem, klucz po kluczu, przeciwko `dims-data.js`
+i `DKM_DRV.wt`: masy wszystkich ośmiu zespołów, wały (`DKM_BORE`), rozstawy
+`C × C1` (`DKM_FOOT`), `H` (`DKM_FACE.h`) i tabele PAM-IEC członu 1 (`DKM_PAM`)
+— zgadza się wszystko. Litery opisujące człon 1 (`A1`, `I`, `M1`, `N1`, `O1`,
+`H2`, `J`, `K`, `L`) też są spójne: `A1` to wymiar `A` członu wejściowego.
+
+Dwie rozbieżności zgłoszone właścicielowi, **kart nie poprawiałem**:
+
+- **`E` ma tolerancję `h8` na wszystkich ośmiu kartach DRV**, a `h7` na kartach
+  pojedynczych i w `DKM_FACE`. Jedno z dwóch źródeł kłamie — to pasowanie
+  gniazda, więc nie jest to kosmetyka;
+- **`PE` na karcie DRV030/040 to `M6x10`**, a karta DKM040 i aplikacja mówią
+  `M6×8`. Pozostałe siedem kart ma `PE` zgodne co do gwintu i głębokości.
+
+Osobna rzecz, nie błąd: karty podają **liczbę kombinacji z katalogu
+producenta**, a aplikacja ma ich mniej przy pięciu mniejszych zespołach
+(`DRV030/040` — 1 z 14, `DRV030/050` — 6 z 13, `DRV030/063` — 7 z 13,
+`DRV040/075` — 10 z 13, `DRV040/090` — 12 z 13). Trzy duże zgadzają się co do
+sztuki. To skutek zasady „tylko to, co właściciel potwierdzi jako realny
+produkt", ale klient czytający kartę może poprosić o układ, którego aplikacja
+nie zaproponuje.
 
 **Montaż 60 zł netto od sztuki** idzie jako zwykłe wyposażenie (`code: 'MONT'`),
 więc pokazuje się, liczy i trafia do maila istniejącą drogą — bez nowego
