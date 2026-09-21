@@ -1166,20 +1166,31 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     check('karton dzieli paczkę 31 kg na dwie — 2 × 25 zł, nie 1 × 25 zł',
       /2 paczki/.test(linia) && /50 zł netto/.test(linia),
       (linia.match(/Wysyłka[^|]{0,120}/) || ['brak'])[0]);
-    // Nie przypinamy konkretnych kilogramów — aplikacja dobiera silnik po
-    // dostępności i cenie, więc masa zależy od cennika. Pilnujemy reguły:
-    // pokazane masy są brutto, sumują się do masy przesyłki i ŻADNA nie
-    // przekracza taniego progu 31 kg — inaczej 25 zł za paczkę kłamie.
-    //
-    // W treści nie piszemy „z kartonami" ani „z paletą" — właściciel,
-    // 21.09.2026: „nie pisz z kartonami czy z paletą, bo to logiczne".
-    const paczki = (linia.match(/paczk\w*\s*\(([^)]*)\)/) || [null, ''])[1]
-      .split('+').map((s) => parseFloat(s.replace(',', '.'))).filter((n) => n > 0);
+    // Masa przy „Wysyłce" jest BRUTTO — towar plus karton na każdą paczkę.
+    // Nie przypinamy kilogramów na sztywno: aplikacja dobiera silnik po
+    // dostępności i cenie, więc masa zależy od cennika. Sprawdzamy regułę —
+    // pokazana masa minus kartony musi być masą któregoś silnika 2,2 kW
+    // z cennika powiększoną o masę DKM075.
     const razem = parseFloat(((linia.match(/Wysyłka\D*([\d,]+) kg/) || [])[1] || '0').replace(',', '.'));
-    check('masy paczek są brutto, sumują się i mieszczą w progu 31 kg',
-      paczki.length === 2 && paczki.every((k) => k <= 31)
-        && Math.abs(paczki.reduce((a, k) => a + k, 0) - razem) < 0.05,
-      paczki.join(' + ') + ' = ' + razem + ' kg');
+    const masy = await page.evaluate(() => {
+      const wt = (window.DKM_PRICE || {}).wt || {};
+      const gear = (wt.gear || {}).DKM075 || 0;
+      const mot = Object.entries(wt.mot || {}).filter(([k]) => /^2,2 /.test(k)).map(([, v]) => v);
+      return { gear, mot };
+    });
+    check('masa przy „Wysyłce" jest brutto (towar + 2 kartony)',
+      masy.gear > 0 && masy.mot.some((m) => Math.abs(masy.gear + m + 2 * 2 - razem) < 0.05),
+      razem + ' kg = ' + masy.gear + ' + silnik 2,2 kW + 2 × 2 kg');
+    // Masy poszczególnych paczek w opisie NIE pokazujemy — właściciel,
+    // 21.09.2026: „masy poszczególnych paczek bym usunął". Zostaje liczba
+    // paczek i masa całej przesyłki; cena 2 × 25 zł i tak dowodzi, że obie
+    // paczki zmieściły się w tanim progu.
+    //
+    // W treści nie piszemy też „z kartonami" ani „z paletą" — właściciel,
+    // 21.09.2026: „nie pisz z kartonami czy z paletą, bo to logiczne".
+    check('opis kuriera nie wypisuje mas poszczególnych paczek',
+      !/paczk\w*\s*\([^)]*kg/.test(linia),
+      (linia.match(/kurier[^—]{0,60}/) || ['brak'])[0]);
     check('opis przesyłki nie dopisuje „z kartonami" ani „z paletą"',
       !/z kartonami|z palet/.test(linia),
       (linia.match(/kurier[^—]{0,60}/) || ['brak'])[0]);

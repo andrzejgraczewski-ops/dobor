@@ -551,19 +551,26 @@ i pilnuje tego osobny test:
 
 ```
 Wysyłka · 33,5 kg  ·  50 zł netto
-kurier · 2 paczki (22,5 kg + 11 kg) — taniej niż spedycja
+kurier · 2 paczki — taniej niż spedycja
 
 Wysyłka · 79,6 kg  ·  130 zł netto
 spedycja (Raben) · 40–100 kg — zamówienie do 9:00
 ```
 
-**Dwa testy, oba na uruchomionej aplikacji.** Pierwszy przechodzi ścieżkę
-do `DKM075` z silnikiem 2,2 kW (towar 29,5 kg — bez kartonu jedna tania paczka,
-z kartonem dwie) i sprawdza **regułę, nie kilogramy**: masy są z kartonami,
-sumują się do masy przesyłki i żadna nie przekracza 31 kg. Kilogramów nie
-przypinamy, bo aplikacja dobiera silnik po dostępności i cenie, więc zależą
-od cennika. Drugi sprawdza na danych, że przy `DKM110`, `DKM130` i `DKM150`
-próg liczy się od brutto, a nie od towaru.
+**Mas poszczególnych paczek nie pokazujemy** — właściciel, 21.09.2026: „masy
+poszczególnych paczek bym usunął". Zostaje liczba paczek i masa brutto całej
+przesyłki. `courierPlan()` nadal je liczy i zwraca w polu `bins`, bo z nich
+bierze się cena; po prostu nie trafiają na ekran.
+
+**Trzy testy, wszystkie na uruchomionej aplikacji.** Pierwszy przechodzi ścieżkę
+do `DKM075` z silnikiem 2,2 kW (towar 31 kg — bez kartonu jedna tania paczka,
+z kartonem dwie) i sprawdza **regułę, nie kilogramy**: dwie paczki i 50 zł,
+czyli 2 × 25 zł — a to dowodzi, że obie zmieściły się w tanim progu, bez
+wypisywania ich mas. Drugi liczy, że masa przy „Wysyłce" to masa `DKM075`
+plus któryś silnik 2,2 kW z cennika plus dwa kartony, czyli że jest brutto;
+konkretnych kilogramów nie przypinamy, bo aplikacja dobiera silnik po
+dostępności i cenie. Trzeci sprawdza na danych, że przy `DKM110`, `DKM130`
+i `DKM150` próg liczy się od brutto, a nie od towaru.
 
 ### Przekładnie łączone DRV — dane i wysyłka wdrożone na `test`
 
