@@ -588,8 +588,9 @@ export class DkmLogic extends React.Component {
       lacKod:best?best.lac.kod:'',fl2:best?best.fl2:''};
   }
   // Termin dla DRV, gdy wszystkie części są na stanie. Dwa komunikaty, bo dwie
-  // drogi: kurier dowozi następnego dnia roboczego, a paleta (Raben) jedzie D+2
-  // i montaż do 12:00 nie zdąży na odbiór tego samego dnia — stąd widełki.
+  // drogi: kurier dowozi następnego dnia roboczego, a spedycja Raben w 1–3 dni
+  // robocze (właściciel, 21.09.2026 — wcześniej stało tu D+2 i było to błędne).
+  // Do tego montaż do 12:00 nie zdąży na odbiór tego samego dnia — stąd widełki.
   // Nie zwracamy konkretnej daty: aplikacja nie ma serwera i czyta zegar
   // urządzenia klienta, więc twarda data przy źle ustawionym telefonie kłamałaby.
   drvTermin(box){
@@ -779,6 +780,85 @@ export class DkmLogic extends React.Component {
     const free=net!=null&&this.cartGoods()>=this.SHIP_FREE;
     return {kg,known,mode,packs,tier,sped:mode==='spedycja',
       base:net,cod,net:free?cod:(net==null?null:net+cod),free};
+  }
+  // ——— Termin dostawy ————————————————————————————————————————————————
+  // Reguły od właściciela, 21.09.2026:
+  //   · kurier DPD — zamówienie do 13:00, „dostarcza 95% przesyłek na drugi
+  //     dzień", więc piszemy „zwykle", nigdy „na pewno";
+  //   · spedycja Raben — zamówienie do 9:00, dostawa w 1–3 dni robocze.
+  //     UWAGA: wcześniej stało tu D+2 i było to BŁĘDNE — patrz CLAUDE.md;
+  //   · godziny graniczne obowiązują także w piątek;
+  //   · firma nie ma własnych dni wolnych: „dni wolne zgodne z kalendarzem".
+  //
+  // Aplikacja nie ma serwera, więc czyta ZEGAR URZĄDZENIA KLIENTA. Przy źle
+  // ustawionym telefonie wyliczy datę z błędnej godziny — dlatego komunikat
+  // jest warunkowy („zamówienia złożone do 13:00 wysyłamy tego samego dnia"),
+  // a nie obietnicą bez zastrzeżeń.
+  GODZ_KURIER=13; GODZ_SPED=9;
+  DNI_TYG=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  // „we wtorek", nie „w wtorek" — jedyny wyjątek w tygodniu
+  DNI_W=['w niedzielę','w poniedziałek','we wtorek','w środę','w czwartek','w piątek','w sobotę'];
+  MIESIACE=['stycznia','lutego','marca','kwietnia','maja','czerwca',
+    'lipca','sierpnia','września','października','listopada','grudnia'];
+  // Wielkanoc — algorytm gregoriański; z niej wynikają cztery święta ruchome
+  wielkanoc(y){
+    const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+      f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+      i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+    return new Date(y,Math.floor((h+l-7*m+114)/31)-1,((h+l-7*m+114)%31)+1);
+  }
+  _swieta={};
+  swieta(y){
+    if(this._swieta[y]) return this._swieta[y];
+    const W=this.wielkanoc(y), dn=(d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x;};
+    const k=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+    this._swieta[y]=[new Date(y,0,1),new Date(y,0,6),W,dn(W,1),       // Nowy Rok, Trzech Króli, Wielkanoc, Lany Poniedziałek
+      new Date(y,4,1),new Date(y,4,3),dn(W,49),dn(W,60),               // 1 i 3 maja, Zielone Świątki, Boże Ciało
+      new Date(y,7,15),new Date(y,10,1),new Date(y,10,11),             // Wniebowzięcie, Wszystkich Świętych, 11 listopada
+      new Date(y,11,25),new Date(y,11,26)].map(k);
+    return this._swieta[y];
+  }
+  wolny(d){ const g=d.getDay(); if(g===0||g===6) return true;
+    return this.swieta(d.getFullYear()).indexOf(d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate())>=0; }
+  nastRoboczy(d){ const x=new Date(d); do{ x.setDate(x.getDate()+1); }while(this.wolny(x)); return x; }
+  plusRobocze(d,n){ let x=new Date(d); for(let i=0;i<n;i++) x=this.nastRoboczy(x); return x; }
+  dataSlownie(d){ return this.DNI_W[d.getDay()]+' '+d.getDate()+' '+this.MIESIACE[d.getMonth()]; }
+  zakresDat(a,b){ return a.getMonth()===b.getMonth()
+    ? a.getDate()+'–'+b.getDate()+' '+this.MIESIACE[b.getMonth()]
+    : a.getDate()+' '+this.MIESIACE[a.getMonth()]+' – '+b.getDate()+' '+this.MIESIACE[b.getMonth()]; }
+  // Termin pokazujemy TYLKO wtedy, gdy wiemy wszystko: kto wiezie, że towar
+  // jest na stanie i że koszyk ma komplet cen. Każda niewiadoma to brak
+  // terminu albo widełki — obietnica dnia dla czegoś, czego nie ma na półce,
+  // byłaby gorsza niż jej brak.
+  terminPlan(teraz){
+    const S=this.state;
+    if(!S.rfq.length||this.cartMissing()) return null;
+    const sp=this.shipPlan(); if(!sp.mode) return null;   // nie wiemy, kto wiezie
+    const st=S.rfq.reduce((a,x)=>Math.max(a,this.itemStatus(x)),0);
+    if(st===2) return null;                               // „zapytaj o cenę"
+    if(st===1) return {ok:false,
+      glowna:'Część pozycji domawiamy — wysyłka w 1–3 dni robocze',
+      pod:'Dokładny termin potwierdzimy po przyjęciu zamówienia.'};
+    const godz=sp.sped?this.GODZ_SPED:this.GODZ_KURIER;
+    if(S.pay==='proforma') return {ok:false,
+      glowna:'Termin wysyłki liczymy od zaksięgowania wpłaty',
+      pod:'Towar jest w magazynie. Przy przedpłacie nie wiemy, kiedy wpłata dojdzie — '
+        +'zaksięgowana do '+godz+':00 oznacza wysyłkę tego samego dnia roboczego.'};
+    const t=teraz||new Date();
+    const dzis=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+    const zdazy=!this.wolny(dzis)&&t.getHours()<godz;
+    const wys=zdazy?dzis:this.nastRoboczy(dzis);
+    const jutro=new Date(dzis); jutro.setDate(jutro.getDate()+1);
+    const ten=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+    const kiedy=zdazy?'jeszcze dziś':(ten(wys,jutro)?'jutro':this.DNI_W[wys.getDay()]);
+    const d1=this.nastRoboczy(wys);
+    if(sp.sped) return {ok:true,
+      glowna:'Wysyłka '+kiedy+' — dostawa '+this.zakresDat(d1,this.plusRobocze(wys,3)),
+      pod:'Przesyłki paletowe nadajemy do 9:00. Spedycja Raben dostarcza w 1–3 dni robocze.'};
+    return {ok:true,
+      glowna:'Wysyłka '+kiedy+' — dostawa zwykle '+this.dataSlownie(d1),
+      pod:'Zamówienia złożone do 13:00 wysyłamy tego samego dnia. '
+        +'DPD dostarcza 95% przesyłek następnego dnia roboczego.'};
   }
   cartGoods(){ return this.state.rfq.reduce((a,x)=>a+this.lineTotal(x),0); }
   cartNet(){ const sp=this.shipPlan(); return this.cartGoods()+(sp.net||0); }
@@ -2292,6 +2372,10 @@ export class DkmLogic extends React.Component {
       shipHasCod:this.shipPlan().cod>0,
       shipFree:this.shipPlan().free,
       shipFreeText:'Wysyłka gratis — '+this.shipFreeText(),
+      // Termin dostawy — liczony raz, bo terminPlan() woła shipPlan()
+      ...(()=>{const t=this.terminPlan();
+        return {showTermin:!!t,terminOk:!!t&&t.ok,
+          terminGlowna:t?t.glowna:'',terminPod:t?t.pod:''};})(),
       shipUnknown:!this.shipPlan().known,
       shipToFree:(()=>{const p=this.shipPlan();const g=this.cartGoods();
         return (!p.free&&p.net!=null&&g>0)?('do darmowej wysyłki brakuje '+zl(this.SHIP_FREE-g)+' netto'):'';})(),

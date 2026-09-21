@@ -1277,6 +1277,112 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await ctx.close();
   }
 
+  // 19. Termin dostawy w koszyku — reguły od właściciela, 21.09.2026:
+  //     kurier do 13:00 (DPD „dostarcza 95% przesyłek na drugi dzień" → piszemy
+  //     „zwykle"), spedycja do 9:00 (Raben 1–3 dni robocze), godziny graniczne
+  //     także w piątek, brak własnych dni wolnych poza kalendarzem świąt.
+  //
+  //     Zegar jest ZAMROŻONY, bo inaczej test sprawdzałby dzień, w którym akurat
+  //     się uruchomił, a nie regułę. Dwie daty wybrane celowo: jedna zasłonięta
+  //     świętem stałym (11 listopada), druga ruchomym (Boże Ciało 4 czerwca
+  //     2026, liczone z Wielkanocy). Pomyłka w którymkolwiek to zła data
+  //     u klienta — obietnica dnia, w którym kurier nie jeździ.
+  async function zZegarem(kiedy) {
+    const ctx = await browser.newContext({ viewport: { width: 520, height: 900 } });
+    await ctx.route(/googletagmanager\.com|google-analytics\.com/,
+      (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+    await ctx.addInitScript((ms) => {
+      try { localStorage.setItem('dkm-analytics-consent', 'no'); } catch (e) {}
+      const R = Date;
+      const F = class extends R {
+        constructor(...a) { if (a.length === 0) super(ms); else super(...a); }
+        static now() { return ms; }
+      };
+      window.Date = F;
+    }, kiedy.getTime());
+    const page = await ctx.newPage();
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    // lekki koszyk → kurier; 0,25 kW mieści się w jednej paczce
+    await page.getByRole('button', { name: /Moc silnika/ }).first().click();
+    await page.locator('button').filter({ hasText: /^\s*0,25\s*kW/ }).first().click();
+    await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^DKM0/.test(x.innerText));
+      if (b) b.click();
+    });
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
+    await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+    const panel = async () => {
+      const t = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+      const m = t.match(/TERMIN (.{0,240})/);
+      return m ? m[1] : '(brak panelu z terminem)';
+    };
+    const naPobranie = async () => {
+      await fillContact(page);
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find((x) => /pobraniem/i.test(x.innerText));
+        if (b) b.click();
+      });
+      await page.waitForTimeout(200);
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find((x) => /napęd/i.test(x.innerText));
+        if (b) b.click();
+      });
+      await page.waitForTimeout(400);
+      return panel();
+    };
+    return { ctx, page, panel, naPobranie };
+  }
+
+  // święto STAŁE: 11 listopada 2026 to środa, więc dostawa przeskakuje na czwartek
+  {
+    const { ctx, naPobranie } = await zZegarem(new Date(2026, 10, 10, 12, 0));
+    const t = await naPobranie();
+    check('termin omija święto stałe (11 listopada)',
+      /Wysyłka jeszcze dziś/.test(t) && /w czwartek 12 listopada/.test(t),
+      t.slice(0, 90));
+    await ctx.close();
+  }
+  // święto RUCHOME: Boże Ciało 2026 wypada 4 czerwca (czwartek), liczone z Wielkanocy
+  {
+    const { ctx, naPobranie } = await zZegarem(new Date(2026, 5, 3, 12, 0));
+    const t = await naPobranie();
+    check('termin omija święto ruchome (Boże Ciało, liczone z Wielkanocy)',
+      /Wysyłka jeszcze dziś/.test(t) && /w piątek 5 czerwca/.test(t),
+      t.slice(0, 90));
+    await ctx.close();
+  }
+  // godzina graniczna działa także w piątek — wysyłka w poniedziałek, nie w sobotę
+  {
+    const { ctx, naPobranie } = await zZegarem(new Date(2026, 8, 25, 15, 0));
+    const t = await naPobranie();
+    check('po 13:00 w piątek wysyłka idzie w poniedziałek, nie w weekend',
+      /Wysyłka w poniedziałek/.test(t) && /we wtorek 29 września/.test(t),
+      t.slice(0, 90));
+    await ctx.close();
+  }
+  // proforma: daty NIE podajemy — aplikacja nie wie, kiedy wpłyną pieniądze
+  {
+    const { ctx, panel } = await zZegarem(new Date(2026, 8, 22, 10, 0));
+    const t = await panel();
+    const MIES = /stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia/;
+    check('przy proformie termin nie podaje konkretnej daty',
+      /liczymy od zaksięgowania wpłaty/.test(t) && !MIES.test(t), t.slice(0, 100));
+    // obietnica jest warunkowa, bo aplikacja czyta zegar telefonu klienta
+    await ctx.close();
+  }
+  {
+    const { ctx, naPobranie } = await zZegarem(new Date(2026, 8, 22, 10, 0));
+    const t = await naPobranie();
+    check('termin jest warunkowy, a nie twardą gwarancją',
+      /do 13:00 wysyłamy tego samego dnia/.test(t) && /zwykle/.test(t),
+      (t.match(/Zamówienia[^.]{0,70}\./) || ['brak zastrzeżenia'])[0]);
+    await ctx.close();
+  }
+
 }
 
 await browser.close();

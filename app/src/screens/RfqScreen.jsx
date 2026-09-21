@@ -179,6 +179,13 @@ function Step1({ v }) {
             {v.shipUnknown ? (
               <div style={S('margin-top:3px;font:400 12px Barlow,sans-serif;color:var(--color-neutral-500)')}>Masę części bez danych potwierdzimy przy wycenie wysyłki.</div>
             ) : null}
+            {v.showTermin ? (
+              <div style={S(`margin-top:10px;padding:10px 12px;border-left:4px solid ${v.terminOk ? 'var(--color-ok)' : 'var(--color-neutral-400)'};background:${v.terminOk ? 'var(--color-ok-bg)' : 'var(--color-neutral-100)'}`)}>
+                <span style={S(`display:block;font:600 10.5px/1.3 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:${v.terminOk ? 'var(--color-ok-ink)' : 'var(--color-neutral-700)'}`)}>Termin</span>
+                <div style={S('margin-top:4px;font:600 14.5px/1.3 Barlow,sans-serif;color:var(--color-neutral-900)')}>{v.terminGlowna}</div>
+                <div style={S('margin-top:4px;font:400 12px/1.5 Barlow,sans-serif;color:var(--color-neutral-700)')}>{v.terminPod}</div>
+              </div>
+            ) : null}
           </div>
           <div style={S('display:flex;justify-content:space-between;gap:12px;font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)')}><span>Razem netto z wysyłką</span><span style={S('font-variant-numeric:tabular-nums')}>{v.cartNet}</span></div>
           <div style={S('margin-top:5px;display:flex;justify-content:space-between;gap:12px;font:400 14px Barlow,sans-serif;color:var(--color-neutral-700)')}><span>VAT 23%</span><span style={S('font-variant-numeric:tabular-nums')}>{v.cartVat}</span></div>

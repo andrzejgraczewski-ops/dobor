@@ -449,40 +449,88 @@ z adresu nie wykonuje się jako kod, i zachowanie przy przekręconej wartości.
 
 ## Do zrobienia i do ustalenia
 
-### Termin dostawy w koszyku — propozycja czeka na decyzję
+### Termin dostawy w koszyku — wdrożone 21.09.2026 na `test`
 
-Klient ma widzieć, kiedy dostanie towar: „wysyłka jeszcze dziś — dostawa w środę
-9 września". **Nic nie jest wdrożone.** Propozycja z sześcioma przykładami:
-`https://claude.ai/code/artifact/2b180300-9c6b-4a44-8149-0b4030b9fef6`
+Klient widzi w koszyku, kiedy dostanie towar. Propozycja z sześcioma przykładami
+(`https://claude.ai/code/artifact/2b180300-9c6b-4a44-8149-0b4030b9fef6`) czekała
+od 8 września; właściciel odpowiedział na wszystkie pytania 21.09 i to jest
+wdrożone dokładnie w tym brzmieniu.
 
-Co już policzone i sprawdzone (prototyp uruchomiony, nie tylko napisany):
-dni robocze, 13 świąt państwowych łącznie z ruchomymi (Wielkanoc 2026 — 5 kwietnia,
-Boże Ciało — 4 czerwca), przypadki brzegowe typu 24 grudnia → dostawa 28 grudnia.
+**Reguły, wszystkie od właściciela:**
 
-Reguły zaproponowane, do zatwierdzenia:
+- **kurier DPD — zamówienie do 13:00**, dostawa następnego dnia roboczego.
+  Właściciel: „DPD dostarcza 95% przesyłek na drugi dzień", więc w treści jest
+  **„zwykle"** i tak ma zostać — tego terminu firma nie gwarantuje;
+- **spedycja Raben — zamówienie do 9:00**, dostawa **w 1–3 dni robocze**,
+  czyli widełki, nie jedna data;
+- **godziny graniczne obowiązują także w piątek** — potwierdzone wprost;
+- **firma nie ma własnych dni wolnych**: „dni wolne zgodne z kalendarzem",
+  więc liczy się soboty, niedziele i 13 świąt państwowych, nic ponadto;
+- **termin tylko wtedy, gdy cały koszyk jest od ręki.** Przy „dostawa 1–3 dni"
+  nie ma daty, tylko „część pozycji domawiamy"; przy „zapytaj o cenę" i przy
+  braku ceny w koszyku panelu nie ma wcale;
+- **przy proformie bez daty** — aplikacja nie wie, kiedy wpłyną pieniądze.
 
-- **dwie godziny graniczne, bo dwóch przewoźników** — kurier DPD do 13:00,
-  spedycja Raben do 9:00. Godzina 9:00 jest już w kodzie, w treści maila
-  z zamówieniem; klient dowiaduje się o niej dopiero po złożeniu zamówienia.
-- **przewoźnika wyznacza `shipPlan()`** — i robi to inaczej, niż opisywałem
-  tu wcześniej. **Nie ma progu na masie koszyka.** Działa tak:
-  `SPED=['DKM110','DKM130','DKM150']` — jeśli w koszyku jest którykolwiek z tych
-  korpusów, spedycja jest wymuszona **bez patrzenia na masę**. Poza tym liczy się
-  masa **pojedynczej paczki**, nie koszyka: `PACK_CHEAP=31` kg (25 zł),
-  a `PACK_MAX=40` kg (40 zł) tylko dla sztuki, której nie da się rozbić.
-  Koszyk 3 × 20 kg jedzie więc **kurierem w trzech paczkach**, choć waży 60 kg.
-  Na koniec `courierPlan()` porównuje się kosztem ze `spedCost()` (130 zł
-  do 100 kg, 180 zł do 150 kg, wyżej wycena indywidualna) i wygrywa tańsze.
-- **termin tylko wtedy, gdy cały koszyk jest od ręki**; przy „dostawa 1–3 dni"
-  widełki, przy „zapytaj o cenę" nic.
-- **przy proformie bez konkretnej daty** — aplikacja nie wie, kiedy wpłyną pieniądze.
+**Sprostowanie: Raben NIE dowozi D+2.** Stało tu, że właściciel potwierdził D+2
+10 września, i na tej podstawie napisałbym „dwa dni robocze od wyjazdu palety".
+21.09 na wprost zadane pytanie odpowiedział: **„nie, Raben — spedycja dowozi
+1–3 dni"**. Jedna data zamieniłaby się więc w obietnicę, której spedycja nie
+dotrzymuje w części przypadków. Stary zapis zostawiam tu wykreślony celowo —
+żeby nikt nie wrócił do niego, czytając starszą wersję pliku.
 
-**Raben dowozi D+2** — właściciel potwierdził 10 września 2026. To była jedyna
-rzecz blokująca; DPD zostaje przy następnym dniu roboczym. Czyli przy spedycji
-termin liczy się jako **dwa dni robocze od wyjazdu palety**, a nie jeden.
+**Gdzie to siedzi.** Cały rachunek jest w `logic.js`: `wielkanoc()` (algorytm
+gregoriański), `swieta()`, `wolny()`, `nastRoboczy()`, `plusRobocze()`,
+`dataSlownie()`, `zakresDat()` i `terminPlan()`, która składa komunikat.
+Na ekranie to **nowy element w `RfqScreen.jsx`**, pod blokiem „Wysyłka" —
+czyli w pliku, który przy następnym eksporcie z Design zniknie, jeśli ktoś
+wgra go hurtem. Cała treść przychodzi z `logic.js`, więc przeniesienie to
+skopiowanie jednego bloku; pilnują tego testy.
 
-Zostaje do ustalenia: czy godziny graniczne obowiązują też w piątek, czy DPD
-wszędzie dowozi następnego dnia i czy firma ma własne dni wolne poza świętami.
+**Zegar jest zegarem telefonu klienta.** Aplikacja nie ma serwera, więc przy
+źle ustawionym urządzeniu wyliczy datę z błędnej godziny. Dlatego komunikat
+jest **warunkowy** — „Zamówienia złożone do 13:00 wysyłamy tego samego dnia" —
+a nie obietnicą bez zastrzeżeń. Osobny test pilnuje, że to zdanie tam jest.
+
+Co widzi klient (prawdziwe wyjścia z uruchomionej aplikacji):
+
+```
+TERMIN
+Wysyłka jeszcze dziś — dostawa zwykle w środę 23 września
+Zamówienia złożone do 13:00 wysyłamy tego samego dnia.
+DPD dostarcza 95% przesyłek następnego dnia roboczego.
+
+TERMIN
+Wysyłka jutro — dostawa 24–28 września
+Przesyłki paletowe nadajemy do 9:00. Spedycja Raben dostarcza w 1–3 dni robocze.
+
+TERMIN
+Termin wysyłki liczymy od zaksięgowania wpłaty
+Towar jest w magazynie. Przy przedpłacie nie wiemy, kiedy wpłata dojdzie —
+zaksięgowana do 13:00 oznacza wysyłkę tego samego dnia roboczego.
+
+TERMIN
+Część pozycji domawiamy — wysyłka w 1–3 dni robocze
+Dokładny termin potwierdzimy po przyjęciu zamówienia.
+```
+
+Godzina w komunikacie proformy **idzie za przewoźnikiem** — przy palecie jest
+tam 9:00, nie 13:00.
+
+**Pięć testów, wszystkie z zamrożonym zegarem.** Bez zamrożenia test
+sprawdzałby dzień, w którym akurat się uruchomił, a nie regułę. Daty dobrane
+celowo: 10 listopada 2026 (nazajutrz święto stałe), 3 czerwca 2026 (nazajutrz
+Boże Ciało, czyli święto **ruchome**, liczone z Wielkanocy) i piątek
+25 września po 13:00 (weekend po drodze). Do tego proforma bez daty i obecność
+zdania warunkowego.
+
+Uwaga metodyczna, bo najpierw napisałem test bezwartościowy: pierwsza wersja
+**liczyła święta sama**, w kodzie testu, zamiast sprawdzać te z aplikacji.
+Sprawdzała więc mój algorytm przeciwko mojemu algorytmowi. Przeżyła celowe
+przesunięcie Bożego Ciała o dzień w `logic.js` i nadal pisała „OK". Wersja
+z zamrożonym zegarem to samo przesunięcie wykrywa od razu — sprawdzone.
+
+Czego **nie** zrobiono i trzeba zdecydować osobno: terminu **nie ma w mailu
+z zamówieniem**. Biuro nie widzi więc, co aplikacja obiecała klientowi.
 
 ### Stawki spedycji powyżej 150 kg — dodane 10 września 2026
 
@@ -1140,9 +1188,16 @@ biuro wiedziało, czym zastąpić brakujący egzemplarz bez dzwonienia do klient
 
 **Termin przy pełnym stanie ma dwa brzmienia** (`drvTermin()`), bo dwie drogi:
 kurier — „składamy dziś — dostawa następnego dnia roboczego"; paleta —
-„składamy — dostawa zwykle w 1–3 dni robocze", bo Raben jedzie D+2 i montaż
-do 12:00 nie zdąży na odbiór tego samego dnia. Konkretnej daty nie podajemy:
-aplikacja czyta zegar urządzenia klienta.
+„składamy — dostawa zwykle w 1–3 dni robocze", bo Raben dowozi w 1–3 dni robocze
+(patrz sprostowanie przy „Termin dostawy w koszyku" — wcześniej stało tu D+2)
+i montaż do 12:00 nie zdąży na odbiór tego samego dnia. Konkretnej daty nie
+podajemy: aplikacja czyta zegar urządzenia klienta.
+
+**Otwarte, odkąd koszyk zna datę:** `drvTermin()` pisze „składamy **dziś**"
+bez patrzenia na godzinę, a panel terminu w koszyku po 13:00 pisze „Wysyłka
+jutro". Na jednym ekranie się to nie spotyka — pierwsze jest na karcie produktu,
+drugie w koszyku — ale klient, który zajrzy w oba po 13:00, zobaczy dwie różne
+rzeczy. Do decyzji z właścicielem, bo to zmiana obietnicy terminu.
 
 **Silnik trójfazowy przy DRV — asymetria naprawiona 10.09.2026.** Właściciel:
 „brakuje mi silnika 0,25 kW… a dlaczego przy 3-fazowym nie?". Powód: cennik
