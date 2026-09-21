@@ -997,10 +997,11 @@ kasowało cenę wysyłki i koszyk pisał „masa do potwierdzenia". Kody bez mas
 siedzą teraz w jednej liście `BEZ_MASY = ['PCV','MONT']`, czytanej i przez
 `kgExtra()`, i przez sprawdzenie „czy znamy masy".
 
-Otwarte: przy dopłacie za montaż zestaw jedzie **jako bryła**, a `shipItems()`
-nadal rozbija go na cztery sztuki. Przy palecie nie zmienia to nic, przy kurierze
-może zmienić liczbę paczek. Do ustalenia z właścicielem, bo to zmiana ceny
-wysyłki.
+~~Otwarte: przy dopłacie za montaż zestaw jedzie jako bryła, a `shipItems()`
+nadal rozbija go na cztery sztuki.~~ **Nieaktualne — to jest zrobione**, patrz
+„Złożony zestaw jedzie jako jedna bryła" niżej. Zapis stał tu jeszcze po
+poprawce i przy przeglądzie 21.09.2026 wyglądał na otwartą sprawę, choć
+`shipItems()` sprawdza `MONT` i wtedy nie rozbija zestawu.
 
 **Mocowanie i wyposażenie DRV dziedziczy po członie 2** — właściciel, 10.09.2026:
 „człon 2 to daje, a to ta sama przekładnia". Kopiowane pod nazwę zespołu
