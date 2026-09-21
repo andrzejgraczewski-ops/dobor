@@ -666,6 +666,15 @@ export class DkmLogic extends React.Component {
   // Dzielimy na paczki, gdy wychodzi taniej ni\u017c jedna przesy\u0142ka spedycj\u0105.
   SPED=['DKM110','DKM130','DKM150'];
   SHIP_FREE=3000; SHIP_COD=5; PACK_MAX=40; PACK_CHEAP=31;
+  // Opakowanie wchodzi do masy, KTÓRĄ WAŻY PRZEWOŹNIK — właściciel, 21.09.2026:
+  // „paczka będzie skasowana za 40 zł, a DPD policzy nas 50, bo paczka była
+  // cięższa". Progi 31 i 40 kg oraz SPED_PROGI dotyczą więc masy brutto,
+  // a nie masy towaru z karty katalogowej.
+  //   karton z wypełnieniem  2 kg — na KAŻDĄ paczkę kurierską
+  //   paleta                25 kg — RAZ na przesyłkę spedycyjną
+  // Bez tego wycena była zaniżona: 44 koszyki paletowe siedziały w progu
+  // 40–100 kg, a z paletą wchodzą w 100–150 kg, i różnicę dopłacałaby firma.
+  KG_KARTON=2; KG_PALETA=25;
   // pojedyncze sztuki do pakowania \u2014 nie da si\u0119 podzieli\u0107 silnika ani korpusu
   shipItems(){
     const out=[];
@@ -712,16 +721,22 @@ export class DkmLogic extends React.Component {
   // Reszta pakuje si\u0119 wed\u0142ug taniej regu\u0142y 31 kg.
   courierPlan(items){
     if(!items.length) return null;
-    if(items.some(kg=>kg>this.PACK_MAX)) return null;      // za ci\u0119\u017ckie na kuriera
-    const heavy=items.filter(kg=>kg>this.PACK_CHEAP);      // ka\u017cda osobn\u0105 paczk\u0105 po 40 z\u0142
-    const light=items.filter(kg=>kg<=this.PACK_CHEAP);
-    const bins=light.length?this.packFFD(light,this.PACK_CHEAP):[];
+    // Progi przewo\u017anika dotycz\u0105 masy BRUTTO, wi\u0119c na sam towar zostaje o karton
+    // mniej: 29 kg do taniej paczki i 38 kg dla sztuki nierozbijalnej.
+    const lim=this.PACK_CHEAP-this.KG_KARTON, max=this.PACK_MAX-this.KG_KARTON;
+    if(items.some(kg=>kg>max)) return null;                // za ci\u0119\u017ckie na kuriera
+    const heavy=items.filter(kg=>kg>lim);                  // ka\u017cda osobn\u0105 paczk\u0105 po 40 z\u0142
+    const light=items.filter(kg=>kg<=lim);
+    const bins=light.length?this.packFFD(light,lim):[];
     if(bins==null) return null;
     const all=heavy.concat(bins);
-    const costs=all.map(kg=>this.packCost(kg));
+    // cena i pokazane masy licz\u0105 si\u0119 od brutto \u2014 tyle wa\u017cy paczka na li\u015bcie
+    // przewozowym i tyle skasuje kurier
+    const brutto=all.map(kg=>Math.round((kg+this.KG_KARTON)*10)/10);
+    const costs=brutto.map(kg=>this.packCost(kg));
     if(!all.length||costs.some(c=>c==null)) return null;
     return {packs:all.length,net:costs.reduce((a,c)=>a+c,0),
-      bins:all.map(kg=>Math.round(kg*10)/10)};
+      bins:brutto,kg:Math.round(brutto.reduce((a,k)=>a+k,0)*10)/10};
   }
   // cennik spedycji startuje od 40 kg \u2014 ni\u017cej nie jest alternatyw\u0105
   SPED_PROGI=[[100,130,'40–100 kg'],[150,180,'100–150 kg'],[200,230,'150–200 kg'],
@@ -731,7 +746,9 @@ export class DkmLogic extends React.Component {
   shipPlan(){
     const R=this.state.rfq;
     const items=this.shipItems();
-    const kg=Math.round(items.reduce((a,x)=>a+x.kg,0)*10)/10;
+    const kgTow=Math.round(items.reduce((a,x)=>a+x.kg,0)*10)/10;
+    // na palecie do masy towaru dochodzi sama paleta — raz, nie od sztuki
+    const kgPal=Math.round((kgTow+this.KG_PALETA)*10)/10;
     // ka\u017cda sztuka musi mie\u0107 mas\u0119 \u2014 zerowa masa silnika zani\u017ca\u0142aby koszt
     const known=R.length>0&&R.every(x=>{
       if(this.gQty(x)>0&&!(this.kgGear(x.box)>0)) return false;
@@ -742,17 +759,18 @@ export class DkmLogic extends React.Component {
     });
     const mustSped=items.some(x=>x.sped);
     const cour=mustSped?null:this.courierPlan(items.map(x=>x.kg));
-    const sp=this.spedCost(kg);
-    let mode='', net=null, tier='', packs=0;
+    const sp=this.spedCost(kgPal);
+    let mode='', net=null, tier='', packs=0, kg=kgTow;
     if(!known){ tier='masa do potwierdzenia'; }
     else if(cour&&(sp==null||cour.net<=sp)){
-      mode='kurier'; net=cour.net; packs=cour.packs;
+      mode='kurier'; net=cour.net; packs=cour.packs; kg=cour.kg;
       tier='kurier \u00b7 '+cour.packs+' '+plural(cour.packs,'paczka','paczki','paczek')
-        +' ('+cour.bins.map(b=>num(b)+' kg').join(' + ')+')'
+        +' ('+cour.bins.map(b=>num(b)+' kg').join(' + ')+' z kartonami)'
         +((sp!=null&&cour.packs>1)?' \u2014 taniej ni\u017c spedycja':'');
     } else if(sp!=null){
-      mode='spedycja'; net=sp; packs=1;
-      tier='spedycja (Raben) \u00b7 '+this.spedProg(kg)[2]+' \u2014 zam\u00f3wienie do 9:00';
+      mode='spedycja'; net=sp; packs=1; kg=kgPal;
+      tier='spedycja (Raben) \u00b7 '+this.spedProg(kgPal)[2]+' z palet\u0105'
+        +' \u2014 zam\u00f3wienie do 9:00';
     } else { tier='mas\u0119 wyceniamy indywidualnie'; }
     const cod=this.state.pay==='pobranie'&&net!=null?this.SHIP_COD:0;
     const free=net!=null&&this.cartGoods()>=this.SHIP_FREE;

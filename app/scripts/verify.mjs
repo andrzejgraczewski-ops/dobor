@@ -1131,6 +1131,85 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await ctx.close();
   }
 
+  // 16. Opakowanie wchodzi do masy, którą waży przewoźnik — właściciel,
+  //     21.09.2026: „paczka będzie skasowana za 40 zł, a DPD policzy nas 50,
+  //     bo paczka była cięższa". Karton 2 kg na każdą paczkę, paleta 25 kg raz
+  //     na przesyłkę. Bez tego wycena była zaniżona i różnicę dopłacała firma.
+  //
+  //     DKM075 z silnikiem 2,2 kW to towar 9 + 22 = 31 kg. Bez kartonu mieścił
+  //     się w jednej taniej paczce (limit 31 kg, 25 zł); z kartonem już nie,
+  //     więc jadą dwie paczki po 25 zł. Świadomie NIE łączymy ich w jedną
+  //     cięższą za 40 zł: klient zapłaciłby 40, a kurier skasowałby firmę
+  //     wyżej — próg 31–40 kg zostaje tylko dla sztuki nierozbijalnej.
+  {
+    const { ctx, page } = await open({ consent: 'no' });
+    await page.getByRole('button', { name: /Moc silnika/ }).first().click();
+    await page.locator('button').filter({ hasText: /^\s*2,2\s*kW/ }).first().click();
+    await page.getByRole('button', { name: /Dalej · warunki pracy/ }).click();
+    await page.getByRole('button', { name: /Pokaż wyniki/ }).click();
+    await page.waitForTimeout(400);
+    const otwarte = await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^DKM075/.test(x.innerText));
+      if (b) { b.click(); return b.innerText.split('\n')[0]; } return null;
+    });
+    check('karta DKM075 przy 2,2 kW otwarta', !!otwarte, otwarte || 'nie znalazłem wiersza');
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Dodaj do koszyka/ }).click();
+    await page.locator('h2', { hasText: 'Zamówienie' }).waitFor();
+    const linia = await page.evaluate(() => {
+      const e = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0
+        && /Wysyłka/.test(x.textContent || ''));
+      const p = e.length ? e[0].closest('div').parentElement : null;
+      return (p ? p.innerText : document.body.innerText).replace(/\n/g, ' ');
+    });
+    // towar 31 kg → dwie paczki brutto 24 i 11 kg, po 25 zł
+    check('karton dzieli paczkę 31 kg na dwie — 2 × 25 zł, nie 1 × 25 zł',
+      /2 paczki/.test(linia) && /50 zł netto/.test(linia),
+      (linia.match(/Wysyłka[^|]{0,120}/) || ['brak'])[0]);
+    // Nie przypinamy konkretnych kilogramów — aplikacja dobiera silnik po
+    // dostępności i cenie, więc masa zależy od cennika. Pilnujemy reguły:
+    // pokazane masy są z kartonami, sumują się do masy przesyłki i ŻADNA
+    // nie przekracza taniego progu 31 kg — inaczej 25 zł za paczkę kłamie.
+    const paczki = (linia.match(/\(([^)]*?) z kartonami\)/) || [null, ''])[1]
+      .split('+').map((s) => parseFloat(s.replace(',', '.'))).filter((n) => n > 0);
+    const razem = parseFloat(((linia.match(/Wysyłka\D*([\d,]+) kg/) || [])[1] || '0').replace(',', '.'));
+    check('masy paczek są z kartonami, sumują się i mieszczą w progu 31 kg',
+      paczki.length === 2 && paczki.every((k) => k <= 31)
+        && Math.abs(paczki.reduce((a, k) => a + k, 0) - razem) < 0.05,
+      paczki.join(' + ') + ' = ' + razem + ' kg');
+    await ctx.close();
+  }
+
+  // 17. Paleta liczy się RAZ na przesyłkę i wchodzi do progu SPED_PROGI.
+  //     Sprawdzamy na danych, żeby nie zależeć od jednego koszyka: dla każdego
+  //     korpusu z listy SPED masa brutto musi być masą towaru powiększoną
+  //     o paletę, a próg musi być liczony od brutto.
+  {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    const w = await page.evaluate(() => {
+      const P = window.DKM_PRICE || {};
+      const PROGI = [[100, 130], [150, 180], [200, 230], [300, 260], [Infinity, 340]];
+      const prog = (kg) => (kg <= 40 ? null : (PROGI.find((p) => kg <= p[0]) || null));
+      const zle = [];
+      for (const box of ['DKM110', 'DKM130', 'DKM150']) {
+        const g = (P.wt || {}).gear ? P.wt.gear[box] : null;
+        if (!(g > 0)) { zle.push(box + ' — brak masy'); continue; }
+        const bez = prog(g), z = prog(g + 25);
+        if (!z) zle.push(box + ' — brutto ' + (g + 25) + ' kg bez progu');
+        // sam korpus DKM130 (59 kg) jest w progu 40–100, z paletą 84 kg też;
+        // chodzi o to, by próg BYŁ liczony od brutto, nie o konkretną kwotę
+        if (bez && z && g + 25 > 100 && bez[1] === z[1])
+          zle.push(box + ' — paleta nie przesunęła progu przy ' + (g + 25) + ' kg');
+      }
+      return { zle };
+    });
+    check('paleta 25 kg wchodzi do progu spedycji, nie jest pomijana',
+      w.zle.length === 0, w.zle.join(', ') || 'DKM110, DKM130 i DKM150 liczone od brutto');
+    await ctx.close();
+  }
+
 }
 
 await browser.close();

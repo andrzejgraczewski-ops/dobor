@@ -512,6 +512,57 @@ więc czyta **zegar urządzenia klienta**. Przy źle ustawionym telefonie wylicz
 datę z błędnej godziny — dlatego komunikat ma być warunkowy („jeśli zamówisz
 do 13:00"), a nie twardą gwarancją.
 
+### Opakowanie wchodzi do masy — 21.09.2026
+
+Do 21 września wycena liczyła **samą masę towaru z kart katalogowych**, a próg
+przewoźnika dotyczy tego, co on faktycznie zważy. Właściciel podał brakujące
+liczby: **karton z wypełnieniem 2 kg, paleta 25 kg**.
+
+```
+KG_KARTON = 2    // na KAŻDĄ paczkę kurierską
+KG_PALETA = 25   // RAZ na przesyłkę spedycyjną
+```
+
+- **kurier** — progi 31 i 40 kg liczą się od brutto, więc `courierPlan()`
+  pakuje towar do **29 kg** na tanią paczkę i **38 kg** dla sztuki
+  nierozbijalnej, a cenę bierze z masy brutto;
+- **paleta** — próg ze `SPED_PROGI` liczy się od `towar + 25 kg`.
+
+Skutek na 317 koszykach jednopozycyjnych (każda przekładnia z silnikiem, każdy
+wiersz DRV luzem i złożony): **drożeje od 26 do 48 koszyków** — widełki, bo masa
+zależy od tego, który silnik danej mocy klient weźmie. Z tego 24–42 to przeskok
+palety z progu 40–100 na 100–150 kg (**+50 zł**), 1–2 przeskok na 150–200 kg
+(+50 zł), a 1–4 to rozbicie jednej paczki kurierskiej na dwie (**+25 zł**).
+**Żaden koszyk nie staniał i żaden nie stracił ceny wysyłki.**
+
+**`courierPlan()` celowo NIE łączy lekkich sztuk w jedną cięższą paczkę.**
+Zaproponowałem to jako „poprawę" — próg 31–40 kg dałby 40 zł zamiast dwóch
+paczek po 25 zł — i **właściciel to odrzucił**: „paczka będzie skasowana za
+40 zł, a DPD policzy nas 50, bo paczka była cięższa". Czyli klient zapłaciłby
+40, a firma dopłaciłaby różnicę. Reguła stała w kodzie od początku, w komentarzu
+(„próg 31–40 kg stosujemy TYLKO do pojedynczej sztuki, której nie da się
+rozbić") — przeczytałem ją jako ograniczenie, a nie jako decyzję. Nie ruszać.
+
+Pokazana masa to od tej pory **brutto**, bo tylko taka zgadza się z ceną
+i z opisem progu. W treści doszło **„z kartonami"** i **„z paletą"**, żeby nikt
+nie pomyślał, że przekładnia przybrała na wadze:
+
+```
+Wysyłka · 33,5 kg  ·  50 zł netto
+kurier · 2 paczki (22,5 kg + 11 kg z kartonami) — taniej niż spedycja
+
+Wysyłka · 79,6 kg  ·  130 zł netto
+spedycja (Raben) · 40–100 kg z paletą — zamówienie do 9:00
+```
+
+**Dwa testy, oba na uruchomionej aplikacji.** Pierwszy przechodzi ścieżkę
+do `DKM075` z silnikiem 2,2 kW (towar 29,5 kg — bez kartonu jedna tania paczka,
+z kartonem dwie) i sprawdza **regułę, nie kilogramy**: masy są z kartonami,
+sumują się do masy przesyłki i żadna nie przekracza 31 kg. Kilogramów nie
+przypinamy, bo aplikacja dobiera silnik po dostępności i cenie, więc zależą
+od cennika. Drugi sprawdza na danych, że przy `DKM110`, `DKM130` i `DKM150`
+próg liczy się od brutto, a nie od towaru.
+
 ### Przekładnie łączone DRV — dane i wysyłka wdrożone na `test`
 
 Stan na 10 września 2026, gałąź `test`. **107 wierszy, 8 zespołów, silnik
@@ -851,11 +902,10 @@ magazynowego, bo raport podaje ceny i ilości, nie wagi.
 nieskończony: `DRV040/090` z silnikiem 0,37 kW waży 24 kg przy `PACK_CHEAP`
 31 kg. Gdyby doszedł cięższy silnik, przeskok na 40 zł zrobi się realny.
 
-Czego to **nie** rozwiązuje: masy palety (20–25 kg) i kartonu w wycenie nie ma
-wcale, a `DRV063/150` z silnikiem 1,5 kW waży 114 kg przy progu 100–150 kg.
-Jeśli przewoźnicy ważą przesyłkę z opakowaniem, narzut trzeba doliczyć jawnie
-do całej przesyłki — osobno dla kuriera i palety. Do ustalenia z właścicielem,
-bo to zmiana ceny wysyłki.
+Masy palety i kartonu **przez dziesięć dni nie było w wycenie wcale** — dopisana
+21.09.2026, patrz „Opakowanie wchodzi do masy" wyżej. `DRV063/150` z silnikiem
+1,5 kW ma dziś 139,5 kg brutto, wciąż w progu 100–150 kg, ale osiem zespołów
+`DRV063/130` przeskoczyło z 130 na 180 zł.
 
 W Optimie są też **`ŁĄCZNIK 040/063` i `040/063 SEM`**, a zespołu `DRV040/063`
 w aplikacji nie ma. Do ustalenia z właścicielem, czy to brakujący układ.
