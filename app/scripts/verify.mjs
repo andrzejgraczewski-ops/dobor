@@ -1106,14 +1106,17 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
       const zle = [];
       for (const r of drv) {
         const c1 = (Z[r.box] || {}).czlon1;
-        const iec = (String(r.flange).match(/^\d+/) || [''])[0];
+        // napis kołnierza ma być PRZEPISANY z wiersza pojedynczej przekładni dla
+        // członu 1, znak w znak — wtedy zespół dopuszcza dokładnie to samo
+        // co ta przekładnia sprzedawana osobno, i nic nie jest zgadywane
         const pasuje = poj.filter((x) => x.box === c1 && x.p1 === r.p1
-          && Number(x.rpm) === Number(r.rpm) && Number(x.i) === Number(r.i1)
-          && String(x.flange).startsWith(iec));
+          && Number(x.rpm) === Number(r.rpm) && Number(x.i) === Number(r.i1));
         if (!pasuje.length) { zle.push(r.box + ' i' + r.i + ' — brak wiersza ' + c1); continue; }
-        const a = rozbij(r.flange).slice().sort().join(',');
-        const b = [...new Set(pasuje.flatMap((x) => rozbij(x.flange)))].sort().join(',');
-        if (a !== b) zle.push(r.box + ' i' + r.i + ' ' + a + ' ≠ ' + b);
+        if (!pasuje.some((x) => String(x.flange) === String(r.flange)))
+          zle.push(r.box + ' i' + r.i + ' ma „' + r.flange + '", a ' + c1 + ' i' + r.i1
+            + ' ma ' + [...new Set(pasuje.map((x) => '„' + x.flange + '"'))].join(' / '));
+        // dodatkowo: każdy pojedynczy kołnierz musi dać się rozłożyć
+        if (!rozbij(r.flange).length) zle.push(r.box + ' i' + r.i + ' — nieczytelny kołnierz');
       }
       return { ile: drv.length, zle };
     });

@@ -101,13 +101,32 @@ const katalogPoj = await (async () => {
   return globalThis.window.DKM_CATALOG || [];
 })();
 
+// Indeksujemy pod KAŻDĄ wielkością, jaka występuje w napisie, bo jeden wiersz
+// może dopuszczać więcej niż jedną: DKM030 przy 0,12 kW ma „56B14/63B5/B14",
+// odkąd właściciel potwierdził (21.09.2026), że przy tej mocy moment i fs są
+// w wielkości 56 takie same jak w 63. Wiersz DRV pyta o wielkość z tabeli
+// wydajności (tu 63) i ma dostać cały napis, żeby zespół dopuszczał to samo
+// co pojedyncza przekładnia.
+// Wielkości wyciągamy DOKŁADNIE tak, jak robi to flangeList() w logic.js —
+// segment po segmencie, z przenoszeniem wielkości na kolejne. Zwykły `\d+`
+// łapałby też liczby z „B14", a napis „100/112B5" (DKM150) aplikacja czyta
+// jako samo 112, więc generator musi go czytać tak samo.
+const wielkosciZNapisu = (flange) => {
+  const out = []; let iec = null;
+  for (const seg of String(flange || '').split('/')) {
+    const m = /^(\d+)?(B\d+)$/.exec(seg.trim());
+    if (!m) continue;
+    if (m[1]) iec = m[1];
+    if (iec) out.push(iec);
+  }
+  return [...new Set(out)];
+};
+
 const kluczPoj = (box, p1, rpm, i, iec) => [box, p1, rpm, i, iec].join('|');
 const kolnierzePoj = {};
-for (const x of katalogPoj) {
-  const iec = String(x.flange || '').match(/^\d+/);
-  if (!iec) continue;
-  kolnierzePoj[kluczPoj(x.box, x.p1, Number(x.rpm), Number(x.i), iec[0])] = x.flange;
-}
+for (const x of katalogPoj)
+  for (const iec of wielkosciZNapisu(x.flange))
+    kolnierzePoj[kluczPoj(x.box, x.p1, Number(x.rpm), Number(x.i), iec)] = x.flange;
 
 const wiersze = K.wiersze.map(w => {
   const c1 = K.zespoly[w.zespol].czlon1;

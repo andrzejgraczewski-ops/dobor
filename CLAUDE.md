@@ -564,7 +564,8 @@ Sześć bez ceny i to nie jest luka w kodzie:
   180 zł, puste pole silnika i status 2;
 - `DRV040/075 0,25 kW i500` — `DKM075 I50` ma cenę w `71B5`, `80B5` i `80B14`
   (nie tylko w IEC 80, jak pisałem wcześniej), a łącznik 040/075 wymaga IEC 90.
-  Do ustalenia, czy `DKM075 I50` w IEC 90 istnieje.
+  **Właściciel, 21.09.2026: „tak ma zostać na zapytanie".** Sprawa zamknięta —
+  nie naprawiać.
 
 #### Kołnierz silnika przy DRV pochodzi z tabeli pojedynczej dla członu 1
 
@@ -612,6 +613,65 @@ Zostało otwarte: `katalog.json` mapuje `0.09|1400|56B5` na silnik
 **`0,09 4 56B5 DKM`, którego nie ma w ofercie** — aplikacja szuka wyrobu,
 który nie istnieje. Usunięcie nic dziś nie zmieni (ceny i tak nie ma), ale
 zdejmie z danych nieprawdę. Czeka na decyzję właściciela.
+
+#### DKM030 przy 0,12 kW dopuszcza też IEC 56 — 21.09.2026
+
+Właściciel: „przy 0,12 kW moment i fs jest w 56 a 63 jest to samo", po
+wskazaniu przykładu: „DRV030/050 z silnikiem 0,12, przełożenie i10, czyli
+człon 1 to DKM030 i10 — i tu może być w 56B14 oraz 63B14".
+
+Tabela doborowa producenta podawała przy 0,12 kW **samą wielkość 63** dla
+wszystkich korpusów. W ofercie DKM jest inaczej: `DKM030 i10` ma cenę we
+wszystkich czterech wykonaniach (`56B14`, `56B5`, `63B14`, `63B5` — po 165 zł),
+a silnik **`0,12 4 56B14 DKM` leży w magazynie** (210 zł), podczas gdy
+trzyfazowy `0,12 4 63B14 DKM` (235 zł) jest na stanie 0 i wraca dopiero
+z dostawą.
+
+**Dotyczy wyłącznie DKM030 i to rozstrzyga się danymi, nie decyzją:** IEC 56
+ma w cenniku tylko `DKM025` (`56B14`) i `DKM030` (`56B14`, `56B5`); `DKM040`
+ma sam `56B5`, a `DKM050` nie ma wielkości 56 wcale. `DKM025` przy 0,12 kW
+i 1400 obr nie ma wierszy. Pytanie „czy także DKM040 i DKM050" odpowiada więc
+samo — nie ma gdzie.
+
+Zmienione trzy pliki, wszystkie w źródłach:
+
+- `catalog-data.js` — kołnierz wiersza `0,12 kW · DKM030` z `63B5/B14`
+  na **`56B14/63B5/B14`**. `flangeList()` czyta zapis trzyczłonowy poprawnie
+  (segment bez cyfr przenosi poprzednią wielkość), więc **wystarczy jeden
+  wiersz** i wyniki się nie dublują. `56B5` **nie** dopisano: silnika 0,12 kW
+  w tym kołnierzu nie ma;
+- `warianty.json` — przeliczone, **+9 wpisów** (dziewięć przełożeń), zero
+  usuniętych;
+- `katalog.json` — mapowanie `0.12|1400|56B14 → 0,12 4 56B14 DKM` oraz cena
+  zapasowa 210 zł. Masę (4,2 kg) `wt.mot` znał już wcześniej.
+
+Co z tego wyjdzie, policzone na cenniku wygenerowanym ze sztucznego raportu
+z datą 22.09 — czyli „co pokaże aplikacja po przebiegu automatu":
+
+| | `63B14` (dziś) | `56B14` (nowe) |
+|---|---|---|
+| pojedynczy DKM030 0,12 kW | 165 + 235 = **400 zł** | 165 + 210 = **375 zł** |
+| stan silnika | 0 → „dostawa 1–3 dni" | 1 → przy i20…i60 **„w magazynie"** |
+
+Zespoły DRV: **sześć wierszy taniej o 25 zł** — `DRV030/050` 745 → **720 zł**,
+`DRV030/063` 825 → **800 zł**. Termin zostaje „dostawa 1–3 dni", bo sama
+przekładnia `DKM030 56B14` przy `i10` i `i15` jest na stanie 0. Wiersze
+z członem 1 = `DKM040`/`DKM050` zostają na 63 i nie zmieniają się wcale.
+
+**Dziś na `test` nie widać z tego nic** — i tak ma być. `price-data.js` jest
+kopią z produkcji i nie ma jeszcze kluczy `DKM030|56B14|…|0.12|1400`, więc
+`variants()` odfiltrowuje nowy kołnierz. Zadziała po przebiegu automatu,
+czyli **po przeniesieniu `warianty.json` i `katalog.json` na `main`** — ten sam
+warunek co przy sekcji `lac`. Jedyne, co widać od razu, to dłuższy podpis
+`56B14/63B5/B14` w wierszu wyników na szerokim ekranie (`rowSub`).
+
+Uwaga metodyczna: `warianty.json` przeliczyłem `wyodrebnij-katalog.mjs`, który
+**przy okazji znowu zepsuł `katalog.json`** — usunął `DKM075|90B14|100`
+i `DKM110|100B5|7.5`, dokładnie te same dwie ceny co 10 września, i dopisał
+cztery inne. `katalog.json` przywróciłem z gita i porównałem klucz po kluczu
+(identyczny), a z przebiegu zostawiłem tylko `warianty.json`. Ostrzeżenie
+z sekcji „Rzeczy, które łatwo zepsuć" sprawdziło się drugi raz — trzeba je
+traktować dosłownie.
 
 Osobna obserwacja, niezmieniana: `prefFlange()` nie zna nazw DRV, więc zespoły
 nie dostają preferencji `B14`, którą mają małe korpusy pojedyncze. Dziś wybór
