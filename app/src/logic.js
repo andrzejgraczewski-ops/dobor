@@ -1205,7 +1205,9 @@ export class DkmLogic extends React.Component {
   }
   matches(skip){
     const S=this.state, m2=this.numIn(S.m2), n2=this.numIn(S.n2), fsReq=this.fsReqNum();
-    const on=f=>skip!==f;
+    // skip bywa listą: facet() musi policzyć zarówno pozycje widoczne, jak i te
+    // schowane filtrem fs, więc pomija dwa filtry naraz
+    const on=f=>Array.isArray(skip)?skip.indexOf(f)<0:skip!==f;
     let rows=CAT().filter(r=>
       (!on('p1')||S.p1==null||r.p1===S.p1)&&
       (!on('i')||S.i==null||r.i===S.i)&&
@@ -1237,10 +1239,18 @@ export class DkmLogic extends React.Component {
       return vals.map(v=>({v,count:m.get(v),optOnly:!std.has(v)}));
     }
     const key={p1:'p1',i:'i',n2:'n2',box:'box',rpm:'rpm'}[f];
-    const pool=this.matches(f), m=new Map();
-    pool.forEach(r=>{ const v=r[key]; if(v==null) return; m.set(v,(m.get(v)||0)+1); });
+    // Liczymy z puli BEZ filtra fs, żeby zobaczyć także to, co on chowa.
+    // Wartość, która ma wyłącznie zestawienia poza zalecanym zakresem, znikała
+    // wcześniej z listy zwężania zupełnie — klient nie miał skąd wiedzieć,
+    // że taka prędkość w ogóle istnieje (DRV przy 0,28 obr/min).
+    const pool=this.matches(Array.isArray(f)?f:[f,'low']), m=new Map(), vis=new Map();
+    pool.forEach(r=>{ const v=r[key]; if(v==null) return;
+      m.set(v,(m.get(v)||0)+1);
+      if(!this.state.hideLow||this.fsBand(r.fs)!=='low') vis.set(v,(vis.get(v)||0)+1); });
     const vals=[...m.keys()].sort((a,b)=>f==='box'?String(a).localeCompare(String(b)):(f==='n2'||f==='rpm'?b-a:a-b));
-    return vals.map(v=>({v,count:m.get(v)}));
+    // count to liczba, którą klient NAPRAWDĘ zobaczy; lowOnly oznacza wartość
+    // dostępną wyłącznie poza zalecanym zakresem, razem z jej liczbą pozycji
+    return vals.map(v=>({v,count:vis.get(v)||0,lowOnly:!vis.get(v),lowCount:m.get(v)}));
   }
 
   HKEYS=['p1','i','n2Exact','box','rpmSel','boreSel','borePick','m2','n2','fsMinSel','screen','mode','sel','refine'];
@@ -1264,7 +1274,24 @@ export class DkmLogic extends React.Component {
     this.setState({...prev,ustack:h});
   };
   fieldOf(f){ return {p1:'p1',i:'i',n2:'n2Exact',box:'box',rpm:'rpmSel',bore:'boreSel'}[f]; }
-  setField(f,v){ const p={sel:null}; p[this.fieldOf(f)]=v; this.pushHist(p); }
+  // Wartość, dla której WSZYSTKIE zestawienia są poza zalecanym zakresem, znika
+  // przez filtr fs — klient dostawał wtedy „Brak pozycji dla tych kryteriów"
+  // i radę, żeby usunąć kryterium, choć pozycje istnieją. Odznaczamy więc filtr
+  // JAWNIE: ptaszek znika u klienta na oczach, wraca jednym kliknięciem,
+  // a zestawienia lądują w sekcji „poza zalecanym zakresem" z ostrzeżeniem.
+  // Po cichu tego nie obchodzimy — fs poniżej 1,0 to nie jest drobiazg.
+  odsloniPoza(rows){
+    return (this.state.hideLow&&rows.length&&rows.every(r=>this.fsBand(r.fs)==='low'))
+      ? {hideLow:false} : {};
+  }
+  setField(f,v){
+    const p={sel:null}; p[this.fieldOf(f)]=v;
+    if(v!=null){
+      const key={p1:'p1',i:'i',n2:'n2',box:'box',rpm:'rpm'}[f];
+      if(key) Object.assign(p,this.odsloniPoza(this.matches([f,'low']).filter(r=>r[key]===v)));
+    }
+    this.pushHist(p);
+  }
 
   // Potwierdzone serie zamienników (lista ostateczna od DKM, 02.09.2026) — wyłącznie
   // te sześć oznaczeń dostaje plakietkę „Odpowiednik DKM”. Wcześniejsza, szersza lista
@@ -1337,15 +1364,20 @@ export class DkmLogic extends React.Component {
     // czyli mniej niż wygodny obszar dotyku i łamiące się liczby
     const nCols=this.state.wide?cols:({p1:3,i:4,n2:3,box:2,bore:3,rpm:3}[f]||3);
     const fmt=v=>f==='box'?String(v):(f==='bore'?('⌀ '+num(v)):num(v));
-    const opts=[{v:null,l:'wszystkie',c:null}].concat(this.facet(f).map(o=>({v:o.v,l:fmt(o.v),c:o.count,optOnly:o.optOnly})))
+    const opts=[{v:null,l:'wszystkie',c:null}]
+      .concat(this.facet(f).map(o=>({v:o.v,l:fmt(o.v),c:o.count,optOnly:o.optOnly,
+        lowOnly:o.lowOnly,lowCount:o.lowCount})))
       .map(o=>{const on=cur===o.v, any=o.v==null;
-        return {label:o.l,count:o.c==null?'':(f==='rpm'&&o.v===1400?o.c+' · std':String(o.c)),optOnly:!!o.optOnly,
+        return {label:o.l,
+          count:o.c==null?'':(o.lowOnly?(o.lowCount+' poza zakresem')
+            :(f==='rpm'&&o.v===1400?o.c+' · std':String(o.c))),
+          optOnly:!!o.optOnly,lowOnly:!!o.lowOnly,
           // pełne granatowe wypełnienie tylko dla świadomie wybranej wartości;
           // „wszystkie” = brak zawężenia, więc dostaje sam obrys
           bg:(on&&!any)?V('accent'):'transparent',
           fg:(on&&!any)?V('bg'):((on&&any)?V('accent'):V('text')),
           bd:on?V('accent'):V('divider'),
-          cg:(on&&!any)?'rgba(255,255,255,.7)':V('neutral-500'),
+          cg:(on&&!any)?'rgba(255,255,255,.7)':(o.lowOnly?V('warn'):V('neutral-500')),
           go:()=>this.setField(f,o.v)};});
     return {label:label,unit:unit,cols:String(nCols),opts,f,cur};
   }
@@ -2167,7 +2199,7 @@ export class DkmLogic extends React.Component {
       const rpms=[...new Set(hit.map(r=>r.rpm))].sort((a,b)=>a-b);
       return {label:num(v),count:hit.length,
         rpmNote:'n₁ '+rpms.join(' / '),
-        go:()=>this.pushHist({n2Exact:v,rpmSel:null,screen:'results'})};
+        go:()=>this.pushHist({n2Exact:v,rpmSel:null,screen:'results',...this.odsloniPoza(hit)})};
     });
     const rowsRaw=this.matches();
     const allRows=rowsRaw.map(r=>({...this.decorate(r),
@@ -2655,7 +2687,11 @@ export class DkmLogic extends React.Component {
       canStepBack:(S.ustack||[]).length>0,stepBack:this.stepBack,
       totalCount:String(POOL.length),
       poolNote:S.rpmSel!=null?('Liczby dla silnika '+num(S.rpmSel)+' obr/min — standard'):'Liczby dla wszystkich prędkości silnika',
-      poolNoteAll:S.rpmSel!=null?('Cały katalog · liczby wariantów dla silnika '+num(S.rpmSel)+' obr/min (standard)'):'Cały katalog · wszystkie prędkości silnika',count:String(rows.length),empty:rows.length===0,
+      poolNoteAll:S.rpmSel!=null?('Cały katalog · liczby wariantów dla silnika '+num(S.rpmSel)+' obr/min (standard)'):'Cały katalog · wszystkie prędkości silnika',// Licznik i „Brak pozycji" muszą liczyć to, co ekran NAPRAWDĘ wypisuje —
+      // razem z sekcją „poza zalecanym zakresem". Inaczej przy prędkości, która
+      // ma wyłącznie takie zestawienia, nagłówek pisał „0 z 1141", a pod spodem
+      // stały trzy pozycje i rada, żeby usunąć kryterium.
+      count:String(rows.length+rowsOut.length),empty:rows.length===0&&rowsOut.length===0,
       m2In:S.m2,n2In:S.n2,fsReq:fs1(fsReq),
       setM2:e=>this.setState({m2:e.target.value,sel:null}),
       setN2:e=>this.setState({n2:e.target.value,sel:null}),

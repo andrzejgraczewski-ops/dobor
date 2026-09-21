@@ -1301,13 +1301,47 @@ przelatywałoby się przy każdym rysowaniu. Podłączone w `priceOf()`,
 Tą samą tabelą (`drvTab()`, składaną raz na datę cennika) liczy się dziś cena
 całego zespołu — patrz „Cena DRV liczy się w locie ze składników" wyżej.
 
-**Jeden kafelek prowadzi do pustych wyników.** DRV dokłada 16 nowych prędkości
-na wale (9,33 … 0,28 obr/min). Przy `0,28 obr/min` wszystkie trzy wiersze mają
-`fs < 1`, a aplikacja domyślnie takie ukrywa (`hideLow: true`), więc kafelek
-pokazuje „3 poz." i prowadzi do zera. Powód jest starszy niż DRV: lista
-prędkości powstaje z `N2POOL = CAT()`, czyli z całego katalogu, a nie z
-`matches()`. Przed DRV żaden kafelek tego nie ujawniał. Do decyzji z Design,
-bo lista kryteriów to ich działka.
+**Prędkość dostępna wyłącznie poza zalecanym zakresem — naprawione 21.09.2026.**
+DRV dokłada 16 nowych prędkości na wale (9,33 … 0,28 obr/min). Przy
+`0,28 obr/min` wszystkie trzy wiersze mają `fs < 1`, a filtr „ukryj fs poniżej
+1,0" jest domyślnie włączony. Skutek był podwójny:
+
+- kafelek na ekranie startowym pokazywał „3 poz." i prowadził do ekranu
+  z napisem **„Brak pozycji dla tych kryteriów. Usuń jedno z kryteriów powyżej
+  albo zmniejsz wymagany moment"** — rady **fałszywej**, bo pozycje istnieją,
+  tylko są schowane. Nad tym stało „0 z 1141", a pod spodem przełącznik
+  mówiący „3 pozycji poza zalecanym zakresem". Trzy sprzeczne komunikaty naraz;
+- na liście zwężania taka prędkość **nie pokazywała się wcale**, bo `facet()`
+  liczył z `matches()`, czyli z puli już przefiltrowanej. Klient nie miał skąd
+  wiedzieć, że DRV przy tej prędkości w ogóle istnieje.
+
+Właściciel: „0,28 obr/min popraw, żeby było widać, że są dostępne w momencie
+zwężania wyboru". Zrobione w czterech miejscach:
+
+- **`matches()` przyjmuje listę filtrów do pominięcia** (`skip` może być tablicą),
+  więc `facet()` widzi jednocześnie pozycje widoczne i te schowane;
+- **`facet()` zwraca `lowOnly` i `lowCount`** — wartość dostępna wyłącznie poza
+  zakresem zostaje na liście z podpisem **„3 poza zakresem"** w kolorze
+  ostrzegawczym. `count` to nadal liczba, którą klient **naprawdę** zobaczy,
+  więc pozostałe wartości nie zaczęły kłamać;
+- **`odsloniPoza()` odznacza filtr `hideLow`, gdy wybrana wartość ma wyłącznie
+  takie zestawienia** — i robi to **jawnie**: ptaszek znika klientowi na oczach
+  i wraca jednym kliknięciem. Po cichu tego nie obchodzimy, bo `fs` poniżej 1,0
+  to nie jest drobiazg; zestawienia lądują w istniejącej sekcji „poza zalecanym
+  zakresem", razem z jej ostrzeżeniem i ścieżką świadomej zgody;
+- **licznik i „Brak pozycji" liczą to, co ekran wypisuje** (`rows + rowsOut`).
+  Inaczej nagłówek pisał „0" nad trzema wypisanymi pozycjami.
+
+To jest **zmiana sposobu doboru, czyli działka Design** — przy następnym
+eksporcie trzeba ją przenieść razem z resztą prawej kolumny. Cała logika siedzi
+w `logic.js` (`facet()`, `odsloniPoza()`, `setField()`), w szablonie zostaje
+samo `lowOnly` w podpisie opcji.
+
+**Cztery testy**, wszystkie na uruchomionej aplikacji: kafelek prowadzi do
+pozycji zamiast do pustego ekranu, filtr jest odznaczony **na widoku**, licznik
+zgadza się z liczbą wypisanych zestawień, a lista zwężania pokazuje
+`0,28 · 3 poza zakresem`. Sprawdzone przez cofnięcie obu połówek osobno —
+bez odsłaniania filtru padają trzy, bez pokazywania w zwężaniu jeden.
 
 #### Współczynnik pracy przy DRV — SPRAWA ZAMKNIĘTA, nie liczyć inaczej
 

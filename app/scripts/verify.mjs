@@ -1516,6 +1516,68 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await k.ctx.close();
   }
 
+  // 22. Prędkość dostępna WYŁĄCZNIE poza zalecanym zakresem — właściciel,
+  //     21.09.2026: „0,28 obr/min popraw, żeby było widać, że są dostępne
+  //     w momencie zwężania wyboru".
+  //
+  //     DRV dokłada prędkości, przy których wszystkie zestawienia mają fs < 1.
+  //     Filtr „ukryj fs poniżej 1,0" jest domyślnie włączony, więc taka wartość
+  //     znikała z listy zwężania zupełnie, a kafelek na ekranie startowym
+  //     prowadził do „Brak pozycji dla tych kryteriów. Usuń jedno z kryteriów" —
+  //     rady fałszywej, bo pozycje istnieją, tylko są schowane.
+  {
+    const { ctx, page } = await open({ consent: 'no' });
+    await page.getByRole('button', { name: /Prędkość obrotowa na wale/ }).first().click();
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /^0,28\b/.test(x.innerText));
+      if (b) b.click();
+    });
+    await page.waitForTimeout(400);
+    for (const n of [/Dalej · warunki pracy/, /Pokaż wyniki/]) {
+      if (await page.getByRole('button', { name: n }).count()) {
+        await page.getByRole('button', { name: n }).first().click();
+        await page.waitForTimeout(400);
+      }
+    }
+    const t = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    check('kafelek 0,28 obr/min prowadzi do pozycji, a nie do pustego ekranu',
+      /POZA ZALECANYM ZAKRESEM/.test(t) && !/Brak pozycji dla tych kryteri/.test(t),
+      /Brak pozycji dla tych kryteri/.test(t) ? 'nadal „Brak pozycji"' : 'sekcja poza zakresem jest');
+    // filtr odznacza się JAWNIE — klient widzi, dlaczego to zobaczył, i może wrócić
+    check('filtr fs zostaje odznaczony na widoku, a nie obchodzony po cichu',
+      !/✓ UKRYJ WSPÓŁCZYNNIK PRACY FS/.test(t) && /UKRYJ WSPÓŁCZYNNIK PRACY FS/.test(t),
+      (t.match(/.{2}UKRYJ WSPÓŁCZYNNIK PRACY FS[^0-9]{0,22}/) || ['brak przełącznika'])[0]);
+    // licznik ma liczyć to, co ekran wypisuje — inaczej mówi „0" nad trzema pozycjami
+    check('licznik zgadza się z liczbą wypisanych zestawień',
+      /\b3 z \d+ pozycji/.test(t),
+      (t.match(/\d+ z \d+ pozycji/) || ['brak licznika'])[0]);
+    await ctx.close();
+  }
+  {
+    // lista zwężania musi pokazać taką prędkość — inaczej klient nie ma skąd
+    // wiedzieć, że DRV przy tej prędkości w ogóle istnieje
+    const { ctx, page } = await open({ consent: 'no' });
+    await page.getByRole('button', { name: /PRZEGLĄDAJ CAŁY KATALOG/i }).first().click();
+    await page.waitForTimeout(400);
+    for (const n of [/Dalej · warunki pracy/, /Pokaż wyniki/]) {
+      if (await page.getByRole('button', { name: n }).count()) {
+        await page.getByRole('button', { name: n }).first().click();
+        await page.waitForTimeout(400);
+      }
+    }
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => /ZMIEŃ KRYTERIA/i.test(x.innerText));
+      if (b) b.click();
+    });
+    await page.waitForTimeout(500);
+    const t = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+    check('zwężanie pokazuje prędkość dostępną tylko poza zakresem, z liczbą pozycji',
+      /0,28 3 poza zakresem/.test(t),
+      (t.match(/0,28[^0-9]{0,4}\d+[^A-ZŁ]{0,16}/) || ['0,28 nie ma na liście'])[0]);
+    await ctx.close();
+  }
+
 }
 
 await browser.close();
