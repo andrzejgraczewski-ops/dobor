@@ -1383,7 +1383,7 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     const { ctx, naPobranie } = await zZegarem(new Date(2026, 10, 10, 12, 0));
     const t = await naPobranie();
     check('termin omija święto stałe (11 listopada)',
-      /Wysyłka jeszcze dziś/.test(t) && /w czwartek 12 listopada/.test(t),
+      /Wysyłka jeszcze dziś/.test(t) && /przewidywana dostawa: czwartek 12 listopada/.test(t),
       t.slice(0, 90));
     await ctx.close();
   }
@@ -1392,7 +1392,7 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     const { ctx, naPobranie } = await zZegarem(new Date(2026, 5, 3, 12, 0));
     const t = await naPobranie();
     check('termin omija święto ruchome (Boże Ciało, liczone z Wielkanocy)',
-      /Wysyłka jeszcze dziś/.test(t) && /w piątek 5 czerwca/.test(t),
+      /Wysyłka jeszcze dziś/.test(t) && /przewidywana dostawa: piątek 5 czerwca/.test(t),
       t.slice(0, 90));
     await ctx.close();
   }
@@ -1401,7 +1401,7 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     const { ctx, naPobranie } = await zZegarem(new Date(2026, 8, 25, 15, 0));
     const t = await naPobranie();
     check('po 13:00 w piątek wysyłka idzie w poniedziałek, nie w weekend',
-      /Wysyłka w poniedziałek/.test(t) && /we wtorek 29 września/.test(t),
+      /Wysyłka w poniedziałek/.test(t) && /przewidywana dostawa: wtorek 29 września/.test(t),
       t.slice(0, 90));
     await ctx.close();
   }
@@ -1421,7 +1421,8 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     const { ctx, naPobranie } = await zZegarem(new Date(2026, 8, 22, 10, 0));
     const t = await naPobranie();
     check('termin jest warunkowy, a nie twardą gwarancją',
-      /do 13:00 wysyłamy tego samego dnia/.test(t) && /zwykle/.test(t),
+      /do 13:00 wysyłamy tego samego dnia/.test(t) && /przewidywana dostawa/.test(t)
+        && /95% przesyłek/.test(t) && !/gwarantujemy|na pewno|dostarczymy/.test(t),
       (t.match(/Zamówienia[^.]{0,70}\./) || ['brak zastrzeżenia'])[0]);
     await ctx.close();
   }
@@ -1448,7 +1449,7 @@ console.log('\n— Przekładnie łączone DRV (cena ze składników) —');
     await page.waitForSelector('text=Numer zgłoszenia', { timeout: 15000 });
     const mail = JSON.stringify(posty[0] || {});
     check('mail z zamówieniem niesie termin pokazany klientowi',
-      /Termin pokazany klientowi/.test(mail) && mail.indexOf('w czwartek 12 listopada') >= 0,
+      /Termin pokazany klientowi/.test(mail) && mail.indexOf('przewidywana dostawa: czwartek 12 listopada') >= 0,
       (mail.match(/Termin pokazany klientowi(\\n|.){0,90}/) || ['brak sekcji z terminem'])[0]);
     // ten sam tekst co na ekranie — inaczej biuro i klient wiedzą co innego
     const zEkranu = (naEkranie.match(/Wysyłka[^Z]{0,70}/) || [''])[0].trim();

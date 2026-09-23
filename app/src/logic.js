@@ -839,6 +839,8 @@ export class DkmLogic extends React.Component {
   nastRoboczy(d){ const x=new Date(d); do{ x.setDate(x.getDate()+1); }while(this.wolny(x)); return x; }
   plusRobocze(d,n){ let x=new Date(d); for(let i=0;i<n;i++) x=this.nastRoboczy(x); return x; }
   dataSlownie(d){ return this.DNI_W[d.getDay()]+' '+d.getDate()+' '+this.MIESIACE[d.getMonth()]; }
+  // Bez przyimka — „przewidywana dostawa: czwartek 24 września", nie „…: w czwartek".
+  dataDnia(d){ return this.DNI_TYG[d.getDay()]+' '+d.getDate()+' '+this.MIESIACE[d.getMonth()]; }
   zakresDat(a,b){ return a.getMonth()===b.getMonth()
     ? a.getDate()+'–'+b.getDate()+' '+this.MIESIACE[b.getMonth()]
     : a.getDate()+' '+this.MIESIACE[a.getMonth()]+' – '+b.getDate()+' '+this.MIESIACE[b.getMonth()]; }
@@ -872,7 +874,11 @@ export class DkmLogic extends React.Component {
       glowna:'Wysyłka '+kiedy+' — dostawa '+this.zakresDat(d1,this.plusRobocze(wys,3)),
       pod:'Przesyłki paletowe nadajemy do 9:00. Spedycja Raben dostarcza w 1–3 dni robocze.'};
     return {ok:true,
-      glowna:'Wysyłka '+kiedy+' — dostawa zwykle '+this.dataSlownie(d1),
+      // Właściciel, 23.09.2026: nie „dostawa zwykle", tylko „przewidywana dostawa".
+      // Obie formy mówią to samo — że terminu nie gwarantujemy — ale „przewidywana"
+      // brzmi jak termin, a „zwykle" jak zastrzeżenie. Niegwarantowanie niesie dalej
+      // zdanie pod spodem, o 95% przesyłek DPD.
+      glowna:'Wysyłka '+kiedy+' — przewidywana dostawa: '+this.dataDnia(d1),
       pod:'Zamówienia złożone do 13:00 wysyłamy tego samego dnia. '
         +'DPD dostarcza 95% przesyłek następnego dnia roboczego.'};
   }

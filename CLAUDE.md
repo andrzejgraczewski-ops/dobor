@@ -567,7 +567,7 @@ Co widzi klient (prawdziwe wyjścia z uruchomionej aplikacji):
 
 ```
 TERMIN
-Wysyłka jeszcze dziś — dostawa zwykle w środę 23 września
+Wysyłka jeszcze dziś — przewidywana dostawa: środa 23 września
 Zamówienia złożone do 13:00 wysyłamy tego samego dnia.
 DPD dostarcza 95% przesyłek następnego dnia roboczego.
 
@@ -587,6 +587,27 @@ Dokładny termin potwierdzimy po przyjęciu zamówienia.
 
 Godzina w komunikacie proformy **idzie za przewoźnikiem** — przy palecie jest
 tam 9:00, nie 13:00.
+
+**„Przewidywana dostawa", nie „dostawa zwykle" — właściciel, 23.09.2026.**
+Pierwsza wersja brzmiała „dostawa zwykle w czwartek 24 września"; słowo „zwykle"
+wstawiłem, żeby nie obiecywać terminu, którego firma nie gwarantuje. Właściciel:
+„chodzi o słowo «zwykle», powinno być «przewidywana dostawa — czwartek»".
+
+Obie formy mówią to samo, ale **„zwykle" brzmi jak zastrzeżenie, a „przewidywana"
+jak termin** — a niegwarantowanie niesie i tak zdanie pod spodem, o 95% przesyłek
+DPD. Przy okazji zniknął przyimek: `dataDnia()` daje `czwartek 24 września`
+(mianownik), bo `dataSlownie()` z „w czwartek" po dwukropku czytało się źle.
+
+Zmiana dotyczy **samego kuriera** — przy palecie zdanie brzmi „dostawa 24–28
+września" i nie miało słowa „zwykle". `drvTermin()` na karcie produktu ma własne
+„składamy — dostawa zwykle w 1–3 dni robocze" i **zostało nietknięte**;
+do ustalenia, czy tam też zmieniać.
+
+Test „termin jest warunkowy" pilnuje teraz **reguły, nie słowa**: że jest
+„przewidywana dostawa", zdanie o 13:00 i zdanie o 95%, a **nie ma** słów
+„gwarantujemy", „na pewno" ani „dostarczymy". Cztery pozostałe testy terminu
+miały wpisane stare brzmienie z przyimkiem i też je poprawiłem — sprawdzone
+przez przywrócenie starego tekstu, pada wszystkie pięć.
 
 **Pięć testów, wszystkie z zamrożonym zegarem.** Bez zamrożenia test
 sprawdzałby dzień, w którym akurat się uruchomił, a nie regułę. Daty dobrane
