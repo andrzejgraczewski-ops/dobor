@@ -452,6 +452,11 @@ export class DkmLogic extends React.Component {
     window.location.href='mailto:'+to+'?subject='+encodeURIComponent('Prośba o dobór przekładni — brak pozycji w katalogu')+'&body='+encodeURIComponent(L.join('\n'));
   };
   setC(f,v){ this.setState(s=>({c:{...s.c,[f]:v}})); }
+  // Pole opuszczone przez klienta wolno już oceniać. Właściciel, 24.09.2026:
+  // „niech podświetlają od razu, co jest źle". Puste pole, do którego klient
+  // jeszcze nie doszedł, nie jest jeszcze „źle” — inaczej formularz świeciłby
+  // na czerwono, zanim ktokolwiek cokolwiek wpisze, i czerwień przestałaby znaczyć.
+  dotknij(f){ this.setState(s=>({touched:{...(s.touched||{}),[f]:true}})); }
   qty(k,d){ this.setState(s=>{const rfq=s.rfq.map(x=>{
     if(x.k!==k) return x;
     const q=Math.max(1,x.qty+d);
@@ -2903,9 +2908,15 @@ export class DkmLogic extends React.Component {
       // gdy klient poprawi ostatnie pole — bez ponownego klikania „Dalej”
       stepErrMsg:S.stepErr===2?this.brakiTekst():'',
       hasStepErr:S.stepErr===2&&!!this.brakiTekst(),
-      // pola zaznaczamy dopiero po próbie przejścia dalej; inaczej cały formularz
-      // świeciłby na czerwono, zanim klient zdąży cokolwiek wpisać
-      errs:S.stepErr===2?this.braki():{},
+      // Pole zapala się na czerwono, gdy klient je opuści (`touched`) albo gdy
+      // kliknie „Dalej”. Zgaśnie samo, gdy wartość stanie się poprawna — `braki()`
+      // liczy się przy każdym rysowaniu, więc czerwień znika w trakcie pisania.
+      errs:(()=>{ const b=this.braki(), t={...(S.touched||{})}, out={};
+        // firma i NIP idą parą: wpisanie firmy zapala brak NIP-u, choć klient
+        // nie był jeszcze w polu NIP-u — dotknięcie jednego liczy się za oba
+        if(t.firm||t.nip){ t.firm=true; t.nip=true; }
+        Object.keys(b).forEach(k=>{ if(S.stepErr===2||t[k]) out[k]=b[k]; });
+        return out; })(),
       rfqLines:rfqRows.length+' '+plural(rfqRows.length,'pozycja','pozycje','pozycji')+' · '+S.rfq.reduce((a,x)=>a+x.qty,0)+' szt.',rfqCount:String(S.rfq.reduce((a,x)=>a+x.qty,0)),
       // wartość towaru netto w pasku koszyka — gdy choć jedna pozycja jest bez ceny,
       // pokazujemy „do wyceny” zamiast sumy zaniżonej o brakujące składniki
@@ -2914,6 +2925,7 @@ export class DkmLogic extends React.Component {
       cStreet:S.c.street||'',cZip:S.c.zip||'',cCity:S.c.city||'',
       setStreet:e=>this.setC('street',e.target.value),setZip:e=>this.setC('zip',e.target.value),
       setCity:e=>this.setC('city',e.target.value),
+      dotknij:k=>()=>this.dotknij(k),
       // adres tylko przy wysyłce — fakturę wystawiamy w KSeF na NIP, więc przy odbiorze
       // osobistym żaden adres nie jest potrzebny
       showAddr:S.del!=='odbior',

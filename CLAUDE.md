@@ -1679,8 +1679,17 @@ Teraz jedna funkcja `braki()` obsługuje wszystkie trzy miejsca: „Dalej" na kr
 podświetlenie pól i przycisk zamówienia. Zwraca mapę `pole → zdanie`; `brakiTekst()`
 składa z niej komunikat, a `errs` w widoku maluje pola.
 
-- **zaznaczenie pojawia się dopiero po kliknięciu „Dalej"** — inaczej cały formularz
-  świeciłby na czerwono, zanim klient zdąży cokolwiek wpisać;
+- **pole zapala się w chwili, gdy klient je opuszcza** — właściciel, 24.09.2026:
+  „niech podświetlają od razu, co jest źle na czerwono, to musi być jasne
+  i czytelne". Pierwsza wersja czekała z czerwienią na kliknięcie „Dalej";
+- **puste pole, do którego klient jeszcze nie doszedł, nie jest jeszcze „źle"** —
+  dlatego świeży formularz nie świeci na czerwono. Czerwień od wejścia na krok 2
+  oznaczałaby dziewięć czerwonych pól, zanim ktokolwiek cokolwiek wpisze,
+  i przestałaby cokolwiek znaczyć. Warunek jest jednym wyrażeniem w `errs`,
+  więc gdyby właściciel chciał jednak dosłownie — to jedna linijka;
+- **wymagane pola są oznaczone gwiazdką od początku.** Dotąd miał ją tylko adres;
+  imię, nazwisko, e-mail i telefon nie miały żadnego oznaczenia, więc nie dało
+  się poznać, co jest obowiązkowe, dopóki formularz nie zaprotestował;
 - **gaśnie samo**, gdy pole stanie się poprawne — bez ponownego klikania;
 - **`skrolDoBledu()` przewija do pierwszego złego pola**, bo komunikat na górze jest
   bez wartości, jeśli pole jest pod zgięciem ekranu;
@@ -1695,11 +1704,17 @@ obie reguły obowiązywały już przy „Dalej", więc nikt nie mógł ich omin�
 Formatu kodu pocztowego **nie** sprawdzamy: odrzucony adres prawdziwego klienta
 kosztuje więcej niż przepuszczona literówka.
 
-**Dziewięć testów**, wszystkie na uruchomionej aplikacji. Najważniejszy nie czyta
-tekstu, tylko **mierzy geometrię**: czy zaznaczone pole leży nad przyciskiem
+**Czternaście testów**, wszystkie na uruchomionej aplikacji. Najważniejszy nie
+czyta tekstu, tylko **mierzy geometrię**: czy zaznaczone pole leży nad przyciskiem
 i mieści się w oknie telefonu. To jest dokładnie ta połowa, która zawiodła —
-komunikat istniał, tylko był niewidoczny. Sprawdzone przez cofnięcie obu połówek
-osobno: bez `acceptErr` padają trzy testy, bez samego `data-zle` dwa.
+komunikat istniał, tylko był niewidoczny. Sprawdzone przez cofnięcie każdej
+zmiany osobno: bez `acceptErr` padają trzy testy, bez samego `data-zle` dwa,
+bez `touched` dwa.
+
+Uwaga do pisania tych testów: `fill()` w Playwrighcie **przenosi ognisko**, więc
+wypełnienie jednego pola opuszcza poprzednie i zapala je, jeśli jest puste. Test
+„poprawiane pole gaśnie" pytał najpierw o zero zaznaczonych pól i padał na polu
+telefonu — to było złe założenie testu, nie usterka. Pytać trzeba o konkretne pole.
 
 **Uwaga przy następnym eksporcie z Design:** `RfqScreen.jsx` jest po stronie
 Design (szablon ekranu), a siedzi w nim zaznaczanie pól, `data-zle`, `data-blad`,

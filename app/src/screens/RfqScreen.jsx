@@ -223,7 +223,7 @@ function Step2({ v }) {
     return (
       <label style={S('display:block')}>
         <span style={S(`display:block;font:500 12px Barlow,sans-serif;color:${err ? 'var(--color-warn)' : 'var(--color-neutral-700)'};margin-bottom:4px`)}>{label}</span>
-        <input value={value} onChange={onChange} placeholder={placeholder} {...(extra || {})}
+        <input value={value} onChange={onChange} onBlur={v.dotknij(key)} placeholder={placeholder} {...(extra || {})}
           {...(err ? { 'data-zle': key, 'aria-invalid': 'true' } : {})}
           style={S(`width:100%;min-height:48px;padding:10px 12px;background:${err ? 'var(--color-warn-bg)' : 'var(--color-bg)'};border:1px solid ${err ? 'var(--color-warn)' : 'var(--color-divider)'};color:var(--color-text);font:500 15px Barlow,sans-serif`)} />
         {err ? <span style={S('display:block;margin-top:4px;font:500 11.5px/1.4 Barlow,sans-serif;color:var(--color-warn)')}>{err}</span> : null}
@@ -250,13 +250,13 @@ function Step2({ v }) {
       <div style={S('padding:16px 20px 20px')}>
         <div style={S('margin-bottom:12px')}>
           <div style={S("font:600 21px/1.05 'Barlow Condensed',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--color-accent)")}>Dane do zamówienia</div>
-          <div style={S('margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>do faktury podaj oba pola — firmę i NIP</div>
+          <div style={S('margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>pola z gwiazdką są wymagane · do faktury podaj oba — firmę i NIP</div>
         </div>
         <div style={S(`display:grid;grid-template-columns:${v.formCols};gap:11px`)}>
-          {field('first', 'Imię', v.cFirst, v.setFirst, 'imię')}
-          {field('last', 'Nazwisko', v.cLast, v.setLast, 'nazwisko')}
-          {field('email', 'E-mail', v.cEmail, v.setEmail, 'adres@firma.pl', { inputMode: 'email' })}
-          {field('phone', 'Telefon', v.cPhone, v.setPhone, '+48', { inputMode: 'tel' })}
+          {field('first', 'Imię *', v.cFirst, v.setFirst, 'imię')}
+          {field('last', 'Nazwisko *', v.cLast, v.setLast, 'nazwisko')}
+          {field('email', 'E-mail *', v.cEmail, v.setEmail, 'adres@firma.pl', { inputMode: 'email' })}
+          {field('phone', 'Telefon *', v.cPhone, v.setPhone, '+48', { inputMode: 'tel' })}
           {field('firm', <>Firma <span style={S('color:var(--color-neutral-500)')}>· opcjonalnie</span></>, v.cFirm, v.setFirm, 'nazwa firmy')}
           {field('nip', <>NIP <span style={S('color:var(--color-neutral-500)')}>· do faktury</span></>, v.cNip, v.setNip, '10 cyfr', { inputMode: 'numeric' })}
         </div>

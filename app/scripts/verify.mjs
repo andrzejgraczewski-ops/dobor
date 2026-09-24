@@ -347,6 +347,56 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await ctx.close();
 }
 
+// 5c. Czerwień ma się zapalać OD RAZU, a nie dopiero po „Dalej”. Właściciel,
+//     24.09.2026: „niech podświetlają od razu, co jest źle na czerwono, to musi
+//     być jasne i czytelne". Pole ocenia się w chwili, gdy klient je opuszcza —
+//     puste pole, do którego jeszcze nie doszedł, nie jest jeszcze „źle”.
+{
+  const { ctx, page } = await open({ consent: 'no' });
+  await addToCart(page);
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+
+  // świeży formularz nie może świecić na czerwono, choć wszystkie pola są puste
+  const start = await page.evaluate(() => document.querySelectorAll('[data-zle]').length);
+  check('pusty formularz nie świeci na czerwono, zanim klient cokolwiek zrobi',
+    start === 0, start + ' zaznaczonych pól');
+
+  // zły e-mail + wyjście z pola = czerwone natychmiast, bez klikania „Dalej”
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy');
+  await page.locator('input[placeholder="+48"]').click();
+  await page.waitForTimeout(200);
+  const zaraz = await page.evaluate(() => ({
+    zle: [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')),
+    t: document.body.innerText.replace(/\s+/g, ' '),
+  }));
+  check('złe pole zapala się od razu po opuszczeniu, bez klikania „Dalej”',
+    zaraz.zle.join(',') === 'email' && /Adres wygląda na niepełny/.test(zaraz.t),
+    zaraz.zle.join(', ') || 'nic nie zaznaczone');
+
+  // poprawianie gasi czerwień w trakcie pisania, też bez „Dalej”.
+  // Uwaga: wejście w pole e-mail opuszcza pole telefonu, więc puste pole telefonu
+  // zapala się przy okazji — i tak ma być. Pytamy więc o pole e-mail, nie o zero.
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example.com');
+  await page.waitForTimeout(200);
+  const po = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')));
+  check('poprawiane pole gaśnie w trakcie pisania', po.indexOf('email') < 0,
+    po.join(', ') || 'nic nie zaznaczone');
+
+  // pole opuszczone pustym też się zapala — klient przeskakujący telefon to widzi
+  check('pole opuszczone pustym zapala się od razu', po.join(',') === 'phone',
+    po.join(', ') || 'nic nie zaznaczone');
+
+  // wymagane pola są oznaczone od początku — dotąd gwiazdkę miał tylko adres
+  const gwiazdki = await page.evaluate(() =>
+    [...document.querySelectorAll('label span')].map((e) => e.textContent.trim())
+      .filter((t) => /\*$/.test(t)));
+  check('wszystkie wymagane pola są oznaczone gwiazdką, nie tylko adres',
+    ['Imię *', 'Nazwisko *', 'E-mail *', 'Telefon *', 'Ulica i numer *', 'Kod *', 'Miejscowość *']
+      .every((x) => gwiazdki.indexOf(x) >= 0), gwiazdki.join(' · '));
+  await ctx.close();
+}
+
 // 6. Brak akceptacji regulaminu blokuje zamówienie — i klient MUSI to zobaczyć.
 //    Właściciel, 24.09.2026: „klient klika zamawiam i nic się nie dzieje, bo nie
 //    zaznaczył pola, ale on tego nie widzi. Kilku klientów twierdziło, że zamawiali,
