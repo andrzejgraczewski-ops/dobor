@@ -443,6 +443,53 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await ctx.close();
 }
 
+// 6b. Zatrzymane zamówienie zostawia ślad w GA4. Do 24.09.2026 nie zostawiało
+//     żadnego — o tym, że klienci odbijają się od formularza, firma dowiadywała
+//     się telefonem od klienta. `order_blocked` NIE jest konwersją: nie oznaczać
+//     w GA4 jako zdarzenie kluczowe i nie budować na tym tagu w Google Ads.
+{
+  const { ctx, page } = await open({ consent: 'yes' });
+  await addToCart(page);
+  await fillContact(page);
+  await page.locator('[data-order-btn]').click();
+  await page.waitForTimeout(400);
+  const bez = await page.evaluate(() => (window.dataLayer || [])
+    .filter((a) => a && a.event === 'dkm_order_blocked'));
+  check('zatrzymane zamówienie zostawia ślad w GA4 z powodem',
+    bez.length === 1 && bez[0].reason === 'akceptacja',
+    JSON.stringify(bez.map((x) => x.reason)));
+
+  // braki w danych niosą listę pól — inaczej widać tylko, ŻE się nie udało
+  await page.locator('[data-rfq-top] button').filter({ hasText: /Dane/ }).first().click();
+  await page.waitForTimeout(200);
+  await page.locator('input[placeholder="+48"]').fill('');
+  await page.locator('input[placeholder="imię"]').click();
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  await page.waitForTimeout(300);
+  const dane = await page.evaluate(() => (window.dataLayer || [])
+    .filter((a) => a && a.event === 'dkm_order_blocked' && a.reason === 'dane'));
+  check('zatrzymanie na danych podaje, których pól dotyczyło',
+    dane.length >= 1 && /phone/.test(dane[dane.length - 1].fields || ''),
+    JSON.stringify(dane.map((x) => x.fields)));
+  await ctx.close();
+}
+
+// 6c. Bez zgody na analitykę nie leci NIC — także to nowe zdarzenie. Aplikacja
+//     obiecuje to w „Informacjach prawnych”, więc wyjątku tu być nie może.
+{
+  const { ctx, page, google } = await open({ consent: 'no' });
+  await addToCart(page);
+  await fillContact(page);
+  await page.locator('[data-order-btn]').click();
+  await page.waitForTimeout(400);
+  const layer = await page.evaluate(() => (window.dataLayer || [])
+    .filter((a) => a && typeof a.event === 'string' && a.event.indexOf('dkm_') === 0));
+  check('bez zgody zatrzymane zamówienie nie wysyła nic do GA4',
+    layer.length === 0 && google.length === 0,
+    JSON.stringify(layer.map((x) => x.event)) + ' · ' + google.length + ' żądań do Google');
+  await ctx.close();
+}
+
 // 7. poprawne zamówienie — adres, metoda, nagłówki i treść
 {
   const { ctx, page, posts } = await open({ consent: 'yes' });

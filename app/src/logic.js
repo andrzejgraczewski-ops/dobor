@@ -1131,9 +1131,20 @@ export class DkmLogic extends React.Component {
       'Nadawca potwierdził zapoznanie się z Ważną informacją techniczną, Regulaminem aplikacji (wersja 1.0 z 20.08.2026) oraz Polityką prywatności.');
     return L.join('\n');
   }
+  // Zatrzymane zgłoszenie nie zostawiało w GA4 żadnego śladu — o tym, że klienci
+  // odbijają się od formularza, firma dowiadywała się telefonem od klienta. Zdarzenie
+  // idzie przez track(), czyli za tą samą bramką zgody co wszystkie pozostałe.
+  // `powod` mówi, co zatrzymało, `pola` — których pól dotyczyło (puste przy pozostałych
+  // powodach). To NIE jest konwersja: nie oznaczać w GA4 jako zdarzenie kluczowe
+  // i nie budować na tym tagu w Google Ads.
+  zablokowane(powod,pola){
+    this.track('order_blocked',{reason:powod,fields:pola||'',
+      step:this.rfqStep(),items:this.state.rfq.length});
+  }
   send=()=>{
     if(!this.state.rfq.length) return;
-    if(!this.state.accepted){ this.setState({acceptErr:true},()=>this.skrolDoBledu()); return; }
+    if(!this.state.accepted){ this.zablokowane('akceptacja');
+      this.setState({acceptErr:true},()=>this.skrolDoBledu()); return; }
     this.submitForm('rfq');
   };
   order=()=>{
@@ -1141,22 +1152,26 @@ export class DkmLogic extends React.Component {
     if(!S.rfq.length) return;
     // braki w danych klienta są na kroku 2, więc tam wracamy i tam je zaznaczamy —
     // wypisanie ich na kroku 3 mówiło klientowi o polach, których na ekranie nie widzi
-    if(Object.keys(this.braki()).length){
+    const b=Object.keys(this.braki());
+    if(b.length){ this.zablokowane('dane',b.join(','));
       this.setState({rfqStep:2,stepErr:2,orderErr:''},()=>this.skrolDoBledu()); return; }
     const miss=[];
     if(!S.del) miss.push('sposób dostawy');
     if(!S.pay) miss.push('forma płatności');
-    if(miss.length){ this.setState({orderErr:'Do złożenia zamówienia brakuje: '+miss.join(', ')+'.'},
+    if(miss.length){ this.zablokowane('dostawa_platnosc');
+      this.setState({orderErr:'Do złożenia zamówienia brakuje: '+miss.join(', ')+'.'},
       ()=>this.skrolDoBledu()); return; }
     // Niezaznaczona akceptacja zatrzymywała zamówienie komunikatem POD przyciskiem,
     // czyli pod zgięciem ekranu telefonu, i bez zaznaczenia samego pola. Klient klikał
     // „Zamawiam”, ekran wyglądał tak samo i odchodził w przekonaniu, że zamówił —
     // a do DKM nie docierało nic. Zgłoszone przez właściciela 24.09.2026 po tym,
     // jak kilku klientów twierdziło, że składali zamówienie.
-    if(!S.accepted){ this.setState({acceptErr:true,orderErr:''},()=>this.skrolDoBledu()); return; }
+    if(!S.accepted){ this.zablokowane('akceptacja');
+      this.setState({acceptErr:true,orderErr:''},()=>this.skrolDoBledu()); return; }
     // przekładnie z fs < 1,0 wymagają zapisanej świadomej zgody klienta
     const pend=S.rfq.filter(x=>x.noWty&&!x.consent);
-    if(pend.length){ this.setState({orderErr:'Aby kontynuować, potwierdź zapoznanie się z ograniczeniami technicznymi i warunkami zakupu dla: '
+    if(pend.length){ this.zablokowane('bez_gwarancji');
+      this.setState({orderErr:'Aby kontynuować, potwierdź zapoznanie się z ograniczeniami technicznymi i warunkami zakupu dla: '
       +pend.map(x=>x.box+' (fs = '+x.fs+')').join(', ')+'.'},()=>this.skrolDoBledu()); return; }
     this.setState({orderErr:'',acceptErr:false});
     this.submitForm('order');
@@ -1843,6 +1858,10 @@ export class DkmLogic extends React.Component {
   }
   goStep(n){
     if(n>this.rfqStep()){ for(let k=this.rfqStep();k<n;k++) if(!this.stepValid(k)){
+      // Najczęstsze miejsce, w którym klient się odbija, to „Dalej” na kroku 2 —
+      // nie przycisk zamówienia. Bez tego wpisu raport pokazywałby garstkę zdarzeń
+      // i sugerował, że problemu nie ma.
+      if(k===2) this.zablokowane('dane',Object.keys(this.braki()).join(','));
       this.setState({rfqStep:k,stepErr:k},()=>this.skrolDoBledu()); return; } }
     this.setState({rfqStep:n,stepErr:0});
     try{const sc=document.scrollingElement||document.documentElement; if(sc) sc.scrollTop=0;

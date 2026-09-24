@@ -1716,6 +1716,40 @@ wypełnienie jednego pola opuszcza poprzednie i zapala je, jeśli jest puste. Te
 „poprawiane pole gaśnie" pytał najpierw o zero zaznaczonych pól i padał na polu
 telefonu — to było złe założenie testu, nie usterka. Pytać trzeba o konkretne pole.
 
+### Zatrzymane zamówienie zostawia ślad w GA4 — `order_blocked`
+
+Dodane 24.09.2026 na prośbę właściciela. Do tego dnia zatrzymany formularz nie
+wysyłał **żadnego** zdarzenia, więc o tym, że klienci się o niego odbijają, firma
+mogła dowiedzieć się wyłącznie telefonem od klienta — i tak się to skończyło.
+
+```
+order_blocked   reason   akceptacja | dane | bez_gwarancji | dostawa_platnosc
+                fields   lista pól przy reason=dane, np. „phone,zip”
+                step     krok koszyka, na którym stanął
+                items    liczba pozycji w koszyku
+```
+
+Idzie przez `track()`, czyli **za tą samą bramką zgody** co wszystkie pozostałe
+zdarzenia, i dostaje zwykły odpowiednik `dkm_order_blocked` dla GTM.
+
+**To nie jest konwersja.** Nie oznaczać w GA4 jako zdarzenie kluczowe i nie budować
+na tym tagu w Google Ads — liczyłoby porażki jako sukcesy.
+
+Zdarzenie leci z **dwóch** miejsc i to jest istotne: z przycisku „Zamawiam"
+(`order()`) **oraz z „Dalej" na kroku 2** (`goStep()`). Pierwsza wersja miała tylko
+to pierwsze i test to wyłapał: klient odbija się głównie na „Dalej", a odkąd braki
+cofają na krok 2, dojście do kroku 3 ze złymi danymi jest prawie nieosiągalne.
+Raport pokazywałby garstkę zdarzeń i sugerował, że problemu nie ma.
+
+**Trzy testy**, w tym najważniejszy: **bez zgody na analitykę nie leci nic.**
+Sprawdzony przez dopisanie obok `track()` bezpośredniego wpisu do `dataLayer` —
+test pada i wypisuje, co wyciekło.
+
+Czego z tego **nie** wyczytasz: zablokowane zamówienia sprzed 24.09 nie zostawiły
+śladu i nie da się ich policzyć wstecz. Pośrednio widać je jako różnicę między
+`/dobor/zamowienie/krok-3` a liczbą `submit_order` — przy dzisiejszym ruchu
+(5 użytkowników na 28 dni) to za mało, żeby cokolwiek rozstrzygnąć.
+
 **Uwaga przy następnym eksporcie z Design:** `RfqScreen.jsx` jest po stronie
 Design (szablon ekranu), a siedzi w nim zaznaczanie pól, `data-zle`, `data-blad`,
 `data-fail-panel` i kolejność „komunikat nad przyciskiem". Wgrany hurtem eksport
