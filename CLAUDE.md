@@ -1628,6 +1628,86 @@ Znane, zgłoszone właścicielowi i wgrane na jego polecenie:
   42,5 kg) i tytuł łamany na dwie linie;
 - **DKM150** z podpisem „Gearbox weight" zamiast „Gearbox Mass" — tak ma być.
 
+## Formularz zamówienia mówi, czego brakuje — 24.09.2026, gałąź `test`
+
+Dwie prośby właściciela tego samego dnia, obie o to samo: **klient ma widzieć,
+co go zatrzymało.** Druga dotyczyła realnie utraconych zamówień.
+
+### Niezaznaczona akceptacja przepadała bez śladu
+
+Właściciel: „klient klika zamawiam i nic się nie dzieje, bo nie zaznaczył pola,
+ale on tego nie widzi. **Kilku klientów twierdziło, że zamawiali, ale nie
+dostali nic i do mnie też nic nie wpadło** — podejrzewam, że właśnie przez to".
+
+Komunikat **powstawał** (`orderErr`), tylko renderował się **pod przyciskiem**
+„Zamawiam", za akapitem o wysyłce — czyli na telefonie poza ekranem. Samo pole
+wyboru nie dostawało żadnego oznaczenia, bo `order()` ustawiało wyłącznie
+`orderErr`; `acceptErr`, który maluje pole na czerwono, ustawiał tylko `send()`
+(przycisk zapytania). Klient klikał, ekran wyglądał identycznie i odchodził
+przekonany, że zamówił.
+
+```
+[ ] Zapoznałem się z…          ← pole bez żadnego oznaczenia
+[ ZAMAWIAM ]                   ← klient klika
+  „Zgłoszenie wysyłamy prosto do DKM…”
+  ⚠ Do złożenia zamówienia brakuje: akceptacja regulaminu.   ← poza ekranem
+```
+
+Poprawione trzema rzeczami naraz: `order()` ustawia `acceptErr`, pole niesie
+`data-zle` i czerwone tło, komunikat przeniesiony **nad przycisk**, a
+`skrolDoBledu()` przewija do pola. Zdanie mówi, co zrobić („Zaznacz to pole,
+żeby złożyć zamówienie"), a nie tylko że czegoś brakuje.
+
+**Panel awarii wysyłki miał ten sam defekt.** Potwierdzenie (`data-sent-panel`)
+było przewijane na ekran od początku, panel „Wysyłka nie udała się" — **nie**.
+Więc nieudana wysyłka wyglądała dokładnie tak samo jak udana: przycisk kliknięty,
+ekran bez zmian. To druga droga do tego samego skutku, co zgłosił właściciel,
+i jest poprawiona tym samym `pokazPanel()`.
+
+### Komunikat wymienia to, czego brakuje, a pola są zaznaczone
+
+Właściciel: „jak coś nie pasuje, to wyskakuje komunikat wpisz imię nazwisko,
+a powinno od razu pokazywać, czego brakuje lub co jest źle, najlepiej zaznaczać
+pola".
+
+Do 24.09 `stepErrMsg` był **jednym stałym napisem** — „Uzupełnij imię, nazwisko,
+e-mail, telefon i adres dostawy." — niezależnie od tego, które pola są wypełnione.
+Braki liczyła osobno funkcja `order()` na kroku 3, ładniej (wymieniała tylko to,
+czego naprawdę brak), ale **ekran dalej niż pola, których dotyczyła**.
+
+Teraz jedna funkcja `braki()` obsługuje wszystkie trzy miejsca: „Dalej" na kroku 2,
+podświetlenie pól i przycisk zamówienia. Zwraca mapę `pole → zdanie`; `brakiTekst()`
+składa z niej komunikat, a `errs` w widoku maluje pola.
+
+- **zaznaczenie pojawia się dopiero po kliknięciu „Dalej"** — inaczej cały formularz
+  świeciłby na czerwono, zanim klient zdąży cokolwiek wpisać;
+- **gaśnie samo**, gdy pole stanie się poprawne — bez ponownego klikania;
+- **`skrolDoBledu()` przewija do pierwszego złego pola**, bo komunikat na górze jest
+  bez wartości, jeśli pole jest pod zgięciem ekranu;
+- **braki z kroku 2 cofają na krok 2** — `order()` nie wypisuje już o polach,
+  których na kroku 3 nie widać.
+
+**Reguł blokujących nie zaostrzałem** poza jedną rzeczą, którą trzeba znać:
+para firma + NIP blokowała dotąd dopiero na kroku 3, a teraz na kroku 2, przy
+samych polach. To nie jest nowy warunek, tylko ten sam wcześniej. E-mail musi
+mieć `@` i końcówkę (dotąd samo `@` na kroku 2), telefon co najmniej 9 cyfr —
+obie reguły obowiązywały już przy „Dalej", więc nikt nie mógł ich ominąć.
+Formatu kodu pocztowego **nie** sprawdzamy: odrzucony adres prawdziwego klienta
+kosztuje więcej niż przepuszczona literówka.
+
+**Dziewięć testów**, wszystkie na uruchomionej aplikacji. Najważniejszy nie czyta
+tekstu, tylko **mierzy geometrię**: czy zaznaczone pole leży nad przyciskiem
+i mieści się w oknie telefonu. To jest dokładnie ta połowa, która zawiodła —
+komunikat istniał, tylko był niewidoczny. Sprawdzone przez cofnięcie obu połówek
+osobno: bez `acceptErr` padają trzy testy, bez samego `data-zle` dwa.
+
+**Uwaga przy następnym eksporcie z Design:** `RfqScreen.jsx` jest po stronie
+Design (szablon ekranu), a siedzi w nim zaznaczanie pól, `data-zle`, `data-blad`,
+`data-fail-panel` i kolejność „komunikat nad przyciskiem". Wgrany hurtem eksport
+skasuje to wszystko i **aplikacja będzie działać dalej normalnie** — zamówienia
+znów zaczną cicho przepadać. Cała treść przychodzi z `logic.js`, więc
+przeniesienie to skopiowanie kilku atrybutów; pilnują tego testy.
+
 ## Rzeczy, które łatwo zepsuć
 
 - `app/public/CNAME` z treścią `dobor.dkmpower.pl` musi trafiać do publikacji

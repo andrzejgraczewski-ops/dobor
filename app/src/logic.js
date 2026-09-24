@@ -263,6 +263,7 @@ export class DkmLogic extends React.Component {
       this.setState({sending:false,mailText:body,
         sendErr:'WERSJA TESTOWA — zgłoszenie NIE zostało wysłane i nikt go nie zobaczy. '
           +'Poniżej treść, która poleciałaby na produkcji.'});
+      this.pokazPanel('[data-fail-panel]');
       return;
     }
     // Bez limitu czasu wolne albo niedostępne Formspree potrafi wisieć minutami,
@@ -283,11 +284,7 @@ export class DkmLogic extends React.Component {
           {...(order?{payment:this.payEff()}:{}),
            value:Math.round(this.cartNet()*100)/100,currency:'PLN',items:S.rfq.length});
         this.setState({sending:false,sentOk:true,sentRef:ref,ordered:order});
-        // potwierdzenie pojawia się pod przyciskiem — na telefonie bywa poza ekranem
-        setTimeout(()=>{ try{
-          const el=document.querySelector('[data-sent-panel]');
-          if(el&&el.scrollIntoView) el.scrollIntoView({block:'center',behavior:'smooth'});
-        }catch(e){} },60);
+        this.pokazPanel('[data-sent-panel]');
         clearTimeout(this._doneT);
         this._doneT=order
           ?setTimeout(()=>{
@@ -309,7 +306,18 @@ export class DkmLogic extends React.Component {
               +(this.props.rfqEmail||'sklep@d-k-m.eu')+'.'
             : 'Nie udało się wysłać formularza. Sprawdź połączenie z internetem i spróbuj ponownie. Jeżeli problem się powtarza, skopiuj treść i wyślij ją na '
               +(this.props.rfqEmail||'sklep@d-k-m.eu')+'.'});
+        this.pokazPanel('[data-fail-panel]');
       });
+  }
+  // Wynik kliknięcia musi być widoczny bez przewijania: panele stoją pod przyciskiem,
+  // a przycisk na telefonie wypada przy dolnej krawędzi ekranu. Potwierdzenie było
+  // przewijane od początku, panel awarii nie — więc nieudana wysyłka wyglądała
+  // dokładnie tak samo jak udana i klient odchodził przekonany, że zamówił.
+  pokazPanel(sel){
+    setTimeout(()=>{ try{
+      const el=document.querySelector(sel);
+      if(el&&el.scrollIntoView) el.scrollIntoView({block:'center',behavior:'smooth'});
+    }catch(e){} },60);
   }
 
   componentDidMount(){
@@ -1120,33 +1128,32 @@ export class DkmLogic extends React.Component {
   }
   send=()=>{
     if(!this.state.rfq.length) return;
-    if(!this.state.accepted){ this.setState({acceptErr:true}); return; }
+    if(!this.state.accepted){ this.setState({acceptErr:true},()=>this.skrolDoBledu()); return; }
     this.submitForm('rfq');
   };
   order=()=>{
-    const S=this.state,c=S.c;
+    const S=this.state;
     if(!S.rfq.length) return;
+    // braki w danych klienta są na kroku 2, więc tam wracamy i tam je zaznaczamy —
+    // wypisanie ich na kroku 3 mówiło klientowi o polach, których na ekranie nie widzi
+    if(Object.keys(this.braki()).length){
+      this.setState({rfqStep:2,stepErr:2,orderErr:''},()=>this.skrolDoBledu()); return; }
     const miss=[];
-    if(!c.first) miss.push('imię');
-    if(!c.last) miss.push('nazwisko');
-    if(c.firm&&!c.nip) miss.push('NIP (uzupełnij razem z nazwą firmy)');
-    if(c.nip&&!c.firm) miss.push('nazwa firmy (uzupełnij razem z NIP-em)');
-    if(!c.phone) miss.push('telefon');
-    if(!c.email) miss.push('e-mail');
-    if(S.del!=='odbior'){
-      if(!c.street) miss.push('ulica i numer');
-      if(!c.zip) miss.push('kod pocztowy');
-      if(!c.city) miss.push('miejscowość');
-    }
     if(!S.del) miss.push('sposób dostawy');
     if(!S.pay) miss.push('forma płatności');
-    if(!S.accepted) miss.push('akceptacja regulaminu');
-    if(miss.length){ this.setState({orderErr:'Do złożenia zamówienia brakuje: '+miss.join(', ')+'.'}); return; }
+    if(miss.length){ this.setState({orderErr:'Do złożenia zamówienia brakuje: '+miss.join(', ')+'.'},
+      ()=>this.skrolDoBledu()); return; }
+    // Niezaznaczona akceptacja zatrzymywała zamówienie komunikatem POD przyciskiem,
+    // czyli pod zgięciem ekranu telefonu, i bez zaznaczenia samego pola. Klient klikał
+    // „Zamawiam”, ekran wyglądał tak samo i odchodził w przekonaniu, że zamówił —
+    // a do DKM nie docierało nic. Zgłoszone przez właściciela 24.09.2026 po tym,
+    // jak kilku klientów twierdziło, że składali zamówienie.
+    if(!S.accepted){ this.setState({acceptErr:true,orderErr:''},()=>this.skrolDoBledu()); return; }
     // przekładnie z fs < 1,0 wymagają zapisanej świadomej zgody klienta
     const pend=S.rfq.filter(x=>x.noWty&&!x.consent);
     if(pend.length){ this.setState({orderErr:'Aby kontynuować, potwierdź zapoznanie się z ograniczeniami technicznymi i warunkami zakupu dla: '
-      +pend.map(x=>x.box+' (fs = '+x.fs+')').join(', ')+'.'}); return; }
-    this.setState({orderErr:''});
+      +pend.map(x=>x.box+' (fs = '+x.fs+')').join(', ')+'.'},()=>this.skrolDoBledu()); return; }
+    this.setState({orderErr:'',acceptErr:false});
     this.submitForm('order');
   };  dispatch=(to,subj,body)=>{
     // 1) natywne udostępnianie (działa też w przeglądarkach wbudowanych w WhatsApp/Messenger)
@@ -1778,21 +1785,60 @@ export class DkmLogic extends React.Component {
   }
 
   rfqStep(){ return this.state.rfqStep||1; }
-  stepValid(n){
-    const c=this.state.c||{};
-    if(n===1) return this.state.rfq.length>0;
-    if(n===2){
-      const base=!!(String(c.first||'').trim()&&String(c.last||'').trim()
-        &&/@/.test(String(c.email||''))&&String(c.phone||'').replace(/\D/g,'').length>=9);
-      // adres wymagany tylko przy wysyłce — przy odbiorze osobistym służy do faktury
-      if(this.state.del==='odbior') return base;
-      return base&&!!(String(c.street||'').trim()&&String(c.zip||'').trim()&&String(c.city||'').trim());
+
+  // Jedna lista braków dla całego zamówienia. Czyta z niej i „Dalej” na kroku 2,
+  // i podświetlenie pól, i przycisk zamówienia na kroku 3 — inaczej klient dostaje
+  // wyliczankę wszystkich pól („uzupełnij imię, nazwisko, e-mail, telefon i adres”),
+  // mając wypełnione wszystko poza telefonem, i nie wie, gdzie szukać.
+  // Klucz = nazwa pola w `c`, wartość = zdanie pokazywane pod tym polem.
+  POLA={first:'imię',last:'nazwisko',email:'e-mail',phone:'telefon',firm:'nazwa firmy',
+    nip:'NIP',street:'ulica i numer',zip:'kod pocztowy',city:'miejscowość'};
+  braki(){
+    const S=this.state, c=S.c||{}, t=k=>String(c[k]||'').trim(), e={};
+    if(!t('first')) e.first='Podaj imię';
+    if(!t('last')) e.last='Podaj nazwisko';
+    if(!t('email')) e.email='Podaj adres e-mail';
+    // wystarczy, że adres ma @ i końcówkę — ostrzej nie sprawdzamy, bo odrzucony
+    // adres prawdziwego klienta kosztuje więcej niż przepuszczona literówka
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t('email'))) e.email='Adres wygląda na niepełny — sprawdź @ i końcówkę';
+    if(!t('phone')) e.phone='Podaj numer telefonu';
+    else if(t('phone').replace(/\D/g,'').length<9) e.phone='Za mało cyfr — numer ma ich co najmniej 9';
+    // firma i NIP idą parą: fakturę wystawiamy w KSeF, sama nazwa bez NIP-u nie wystarczy.
+    // Ten warunek blokował dotąd dopiero na kroku 3, czyli ekran dalej niż pole, którego dotyczy
+    if(t('firm')&&!t('nip')) e.nip='Do faktury podaj NIP razem z nazwą firmy';
+    if(t('nip')&&!t('firm')) e.firm='Do faktury podaj nazwę firmy razem z NIP-em';
+    // adres wymagany tylko przy wysyłce — przy odbiorze osobistym nie jest do niczego potrzebny
+    if(S.del!=='odbior'){
+      if(!t('street')) e.street='Podaj ulicę i numer';
+      if(!t('zip')) e.zip='Podaj kod pocztowy';
+      if(!t('city')) e.city='Podaj miejscowość';
     }
+    return e;
+  }
+  brakiTekst(){
+    const k=Object.keys(this.braki()); if(!k.length) return '';
+    return k.length===1
+      ? 'Popraw jedno pole: '+this.POLA[k[0]]+'.'
+      : 'Popraw '+k.length+' '+plural(k.length,'pole','pola','pól')+': '+k.map(x=>this.POLA[x]).join(', ')+'.';
+  }
+  // przewinięcie do pierwszego zaznaczonego pola — komunikat na górze jest bez wartości,
+  // jeśli złe pole jest pod zgięciem ekranu telefonu
+  skrolDoBledu(){
+    try{ const zrob=()=>{ const el=document.querySelector('[data-zle],[data-blad]'); if(!el) return;
+      const sc=document.scrollingElement||document.documentElement;
+      const r=el.getBoundingClientRect(); if(sc) sc.scrollTop=sc.scrollTop+r.top-140;
+      try{ el.focus({preventScroll:true}); }catch(e){} };
+      if(typeof requestAnimationFrame==='function') requestAnimationFrame(zrob); else setTimeout(zrob,0);
+    }catch(e){}
+  }
+  stepValid(n){
+    if(n===1) return this.state.rfq.length>0;
+    if(n===2) return Object.keys(this.braki()).length===0;
     return true;
   }
   goStep(n){
     if(n>this.rfqStep()){ for(let k=this.rfqStep();k<n;k++) if(!this.stepValid(k)){
-      this.setState({rfqStep:k,stepErr:k}); return; } }
+      this.setState({rfqStep:k,stepErr:k},()=>this.skrolDoBledu()); return; } }
     this.setState({rfqStep:n,stepErr:0});
     try{const sc=document.scrollingElement||document.documentElement; if(sc) sc.scrollTop=0;
       const box=document.querySelector('[data-rfq-top]'); if(box&&box.parentElement) box.parentElement.scrollTop=0;}catch(e){}
@@ -2539,6 +2585,9 @@ export class DkmLogic extends React.Component {
       terms:TERMS.map(x=>({...x,b:x.b||[],p2:x.p2||[],head:x.n+'. '+x.t})),
       isTerms:S.screen==='terms',termsVer:'Wersja 1.0 · 20 sierpnia 2026 r.',
       accepted:S.accepted,acceptErr:S.acceptErr,
+      // zdanie mówi, co zrobić, a nie tylko że czegoś brakuje — stoi nad przyciskiem,
+      // przy samym polu wyboru, bo pod przyciskiem klient go na telefonie nie widzi
+      acceptErrMsg:'Zaznacz to pole, żeby złożyć zamówienie — bez akceptacji nie możemy go przyjąć.',
       toggleAccept:()=>this.setState(s=>({accepted:!s.accepted,acceptErr:false})),
       acceptBox:S.accepted?V('accent'):'transparent',
       acceptMark:S.accepted?'✓':'',
@@ -2850,10 +2899,13 @@ export class DkmLogic extends React.Component {
       nextLabel:step<3?'Dalej →':'↓ Potwierdź',
       nextHint:step===3?'do zapłaty':'razem brutto',
       nextBg:nLow?V('warn'):V('accent'),
-      stepErrMsg:S.stepErr===2?(S.del==='odbior'
-        ?'Uzupełnij imię, nazwisko, e-mail i telefon.'
-        :'Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy.'):'',
-      hasStepErr:!!S.stepErr,
+      // komunikat wymienia wyłącznie to, co naprawdę jest do poprawienia, i znika sam,
+      // gdy klient poprawi ostatnie pole — bez ponownego klikania „Dalej”
+      stepErrMsg:S.stepErr===2?this.brakiTekst():'',
+      hasStepErr:S.stepErr===2&&!!this.brakiTekst(),
+      // pola zaznaczamy dopiero po próbie przejścia dalej; inaczej cały formularz
+      // świeciłby na czerwono, zanim klient zdąży cokolwiek wpisać
+      errs:S.stepErr===2?this.braki():{},
       rfqLines:rfqRows.length+' '+plural(rfqRows.length,'pozycja','pozycje','pozycji')+' · '+S.rfq.reduce((a,x)=>a+x.qty,0)+' szt.',rfqCount:String(S.rfq.reduce((a,x)=>a+x.qty,0)),
       // wartość towaru netto w pasku koszyka — gdy choć jedna pozycja jest bez ceny,
       // pokazujemy „do wyceny” zamiast sumy zaniżonej o brakujące składniki

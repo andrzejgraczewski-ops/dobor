@@ -215,12 +215,21 @@ function Step1({ v }) {
 }
 
 function Step2({ v }) {
-  const field = (label, value, onChange, placeholder, extra) => (
-    <label style={S('display:block')}>
-      <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>{label}</span>
-      <input value={value} onChange={onChange} placeholder={placeholder} {...(extra || {})} style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-    </label>
-  );
+  // Pole samo mówi, co jest z nim nie tak: czerwona ramka, tło i zdanie pod spodem.
+  // `key` to nazwa pola w v.errs — pierwsze zaznaczone niesie data-zle, po którym
+  // logic.js przewija do niego ekran.
+  const field = (key, label, value, onChange, placeholder, extra) => {
+    const err = v.errs[key];
+    return (
+      <label style={S('display:block')}>
+        <span style={S(`display:block;font:500 12px Barlow,sans-serif;color:${err ? 'var(--color-warn)' : 'var(--color-neutral-700)'};margin-bottom:4px`)}>{label}</span>
+        <input value={value} onChange={onChange} placeholder={placeholder} {...(extra || {})}
+          {...(err ? { 'data-zle': key, 'aria-invalid': 'true' } : {})}
+          style={S(`width:100%;min-height:48px;padding:10px 12px;background:${err ? 'var(--color-warn-bg)' : 'var(--color-bg)'};border:1px solid ${err ? 'var(--color-warn)' : 'var(--color-divider)'};color:var(--color-text);font:500 15px Barlow,sans-serif`)} />
+        {err ? <span style={S('display:block;margin-top:4px;font:500 11.5px/1.4 Barlow,sans-serif;color:var(--color-warn)')}>{err}</span> : null}
+      </label>
+    );
+  };
   return (
     <>
       <div style={S('padding:16px 20px 20px')}>
@@ -244,36 +253,21 @@ function Step2({ v }) {
           <div style={S('margin-top:3px;font:400 12.5px Barlow,sans-serif;color:var(--color-neutral-700)')}>do faktury podaj oba pola — firmę i NIP</div>
         </div>
         <div style={S(`display:grid;grid-template-columns:${v.formCols};gap:11px`)}>
-          {field('Imię', v.cFirst, v.setFirst, 'imię')}
-          {field('Nazwisko', v.cLast, v.setLast, 'nazwisko')}
-          {field('E-mail', v.cEmail, v.setEmail, 'adres@firma.pl', { inputMode: 'email' })}
-          {field('Telefon', v.cPhone, v.setPhone, '+48', { inputMode: 'tel' })}
-          <label style={S('display:block')}>
-            <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Firma <span style={S('color:var(--color-neutral-500)')}>· opcjonalnie</span></span>
-            <input value={v.cFirm} onChange={v.setFirm} placeholder="nazwa firmy" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-          </label>
-          <label style={S('display:block')}>
-            <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>NIP <span style={S('color:var(--color-neutral-500)')}>· do faktury</span></span>
-            <input value={v.cNip} onChange={v.setNip} inputMode="numeric" placeholder="10 cyfr" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-          </label>
+          {field('first', 'Imię', v.cFirst, v.setFirst, 'imię')}
+          {field('last', 'Nazwisko', v.cLast, v.setLast, 'nazwisko')}
+          {field('email', 'E-mail', v.cEmail, v.setEmail, 'adres@firma.pl', { inputMode: 'email' })}
+          {field('phone', 'Telefon', v.cPhone, v.setPhone, '+48', { inputMode: 'tel' })}
+          {field('firm', <>Firma <span style={S('color:var(--color-neutral-500)')}>· opcjonalnie</span></>, v.cFirm, v.setFirm, 'nazwa firmy')}
+          {field('nip', <>NIP <span style={S('color:var(--color-neutral-500)')}>· do faktury</span></>, v.cNip, v.setNip, '10 cyfr', { inputMode: 'numeric' })}
         </div>
         {v.showAddr ? (
           <div style={S('margin-top:14px;padding-top:13px;border-top:1px solid var(--color-divider)')}>
             <div style={S("font:600 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:4px")}>Adres dostawy</div>
             <div style={S('margin-bottom:9px;font:400 12px/1.45 Barlow,sans-serif;color:var(--color-neutral-700)')}>Pod ten adres wyślemy przesyłkę. Fakturę wystawiamy elektronicznie w KSeF — wystarczy NIP.</div>
-            <label style={S('display:block')}>
-              <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Ulica i numer *</span>
-              <input value={v.cStreet} onChange={v.setStreet} placeholder="np. 3 Maja 20" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-            </label>
+            {field('street', 'Ulica i numer *', v.cStreet, v.setStreet, 'np. 3 Maja 20')}
             <div style={S('margin-top:9px;display:grid;grid-template-columns:120px minmax(0,1fr);gap:9px')}>
-              <label style={S('display:block')}>
-                <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Kod *</span>
-                <input value={v.cZip} onChange={v.setZip} inputMode="numeric" placeholder="87-640" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-              </label>
-              <label style={S('display:block')}>
-                <span style={S('display:block;font:500 12px Barlow,sans-serif;color:var(--color-neutral-700);margin-bottom:4px')}>Miejscowość *</span>
-                <input value={v.cCity} onChange={v.setCity} placeholder="np. Czernikowo" style={S('width:100%;min-height:48px;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-divider);color:var(--color-text);font:500 15px Barlow,sans-serif')} />
-              </label>
+              {field('zip', 'Kod *', v.cZip, v.setZip, '87-640', { inputMode: 'numeric' })}
+              {field('city', 'Miejscowość *', v.cCity, v.setCity, 'np. Czernikowo')}
             </div>
           </div>
         ) : null}
@@ -333,7 +327,7 @@ function Step3({ v }) {
             <p style={S('margin:0;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Powyższe postanowienia nie wyłączają ani nie ograniczają odpowiedzialności, której zgodnie z obowiązującymi przepisami prawa nie można wyłączyć ani ograniczyć, w szczególności odpowiedzialności za wady produktu, szkody wyrządzone przez produkt niebezpieczny oraz uprawnień przysługujących konsumentom.</p>
           </div>
         ) : null}
-        <button onClick={v.toggleAccept} className={hv('background:var(--color-accent-100)')} style={S(`width:100%;margin-top:12px;padding:13px 14px;background:transparent;border:1px solid ${v.acceptBorder};cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:12px`)}>
+        <button onClick={v.toggleAccept} {...(v.acceptErr ? { 'data-zle': 'accept' } : {})} className={hv('background:var(--color-accent-100)')} style={S(`width:100%;margin-top:12px;padding:13px 14px;background:${v.acceptErr ? 'var(--color-warn-bg)' : 'transparent'};border:1px solid ${v.acceptBorder};cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:12px`)}>
           <span style={S(`flex:none;width:26px;height:26px;border:2px solid ${v.acceptBorder};background:${v.acceptBox};color:#fff;font:600 16px/22px Barlow,sans-serif;text-align:center`)}>{v.acceptMark}</span>
           <span style={S('font:400 13.5px/1.55 Barlow,sans-serif;color:var(--color-neutral-900)')}>Zapoznałem się z <strong>Ważną informacją techniczną</strong>, <strong>Regulaminem</strong> i <strong>Polityką prywatności</strong> i akceptuję ich treść. Wynik doboru wymaga weryfikacji technicznej.</span>
         </button>
@@ -342,7 +336,7 @@ function Step3({ v }) {
           <button onClick={v.goLegal} style={S('padding:0;background:none;border:0;cursor:pointer;font:600 13px Barlow,sans-serif;color:var(--color-accent-700);text-decoration:underline')}>Polityka prywatności</button>
         </div>
         {v.acceptErr ? (
-          <div style={S('margin-top:12px;padding:11px 14px;background:var(--color-warn);color:#fff;font:600 13px/1.5 Barlow,sans-serif')}>Aby wysłać, potwierdź zapoznanie się z Regulaminem.</div>
+          <div style={S('margin-top:12px;padding:11px 14px;background:var(--color-warn);color:#fff;font:600 13px/1.5 Barlow,sans-serif')}>{v.acceptErrMsg}</div>
         ) : null}
         {v.needQuote ? (
           <div style={S('margin-top:12px;padding:12px 14px;background:var(--color-accent-100);border-left:4px solid var(--color-accent);font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>Część pozycji nie ma ceny — wyślij zapytanie, a wycenimy je i odeślemy proformę. Możesz też od razu zamówić: brakujące ceny doliczymy do proformy.</div>
@@ -356,6 +350,11 @@ function Step3({ v }) {
             <div style={S('padding:9px 12px;background:var(--color-warn-bg);font:400 11.5px/1.5 Barlow,sans-serif;color:var(--color-neutral-900)')}>Brak dobrowolnej gwarancji handlowej dotyczy wyłącznie wskazanych przekładni i tego zamówienia. Nie ogranicza uprawnień, których zgodnie z przepisami nie można wyłączyć.</div>
           </div>
         ) : null}
+        {/* komunikat stoi NAD przyciskiem — pod nim, za akapitem o wysyłce, na telefonie
+            wypadał poza ekran i klient nie widział, dlaczego kliknięcie nic nie dało */}
+        {v.hasOrderErr ? (
+          <div data-blad="1" style={S('margin-top:12px;padding:11px 14px;background:var(--color-warn);color:#fff;font:600 13px/1.5 Barlow,sans-serif')}>{v.orderErr}</div>
+        ) : null}
         <button data-order-btn="1" disabled={v.sending} onClick={v.orderRfq} className={hv('background:var(--color-accent-600);color:var(--color-bg);border-color:var(--color-accent-600)')} style={S(`margin-top:14px;width:100%;min-height:56px;padding:15px;background:${v.orderBg};color:${v.orderFg};border:1px solid ${v.orderBd};cursor:${v.sendCur};pointer-events:${v.sendPE};opacity:${v.sendOp};font:600 14.5px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase`)}>{v.orderLabel}</button>
         {v.sentOk ? (
           <div data-sent-panel="1" style={S('margin-top:12px;padding:14px 15px;border:1px solid var(--color-ok);background:var(--color-ok-bg)')}>
@@ -365,16 +364,13 @@ function Step3({ v }) {
           </div>
         ) : null}
         {v.hasSendErr ? (
-          <div style={S('margin-top:12px;padding:14px 15px;border:1px solid var(--color-warn);background:var(--color-warn-bg)')}>
+          <div data-fail-panel="1" style={S('margin-top:12px;padding:14px 15px;border:1px solid var(--color-warn);background:var(--color-warn-bg)')}>
             <div style={S("font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-warn)")}>Wysyłka nie udała się</div>
             <div style={S('margin-top:6px;font:400 13px/1.55 Barlow,sans-serif;color:var(--color-neutral-900);text-wrap:pretty')}>{v.sendErr}</div>
             <button onClick={v.copyRfq} className={hv('background:var(--color-accent-600)')} style={S("margin-top:11px;width:100%;min-height:48px;padding:13px;background:var(--color-accent);color:var(--color-bg);border:1px solid var(--color-accent);cursor:pointer;font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>{v.copyLabel}</button>
             <a href={v.rfqMailto} style={S("margin-top:8px;display:block;text-align:center;min-height:44px;padding:13px;border:1px solid var(--color-accent-300);font:600 13px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);text-decoration:none")}>Wyślij mailem na {v.rfqEmail}</a>
             <div style={S('margin-top:12px;max-height:170px;overflow:auto;padding:10px;border:1px solid var(--color-divider);background:var(--color-bg);font:400 12px/1.5 ui-monospace,monospace;color:var(--color-neutral-900);white-space:pre-wrap;-webkit-user-select:text;user-select:text')}>{v.mailText}</div>
           </div>
-        ) : null}
-        {v.hasOrderErr ? (
-          <div style={S('margin-top:10px;padding:11px 14px;background:var(--color-warn);color:#fff;font:600 13px/1.5 Barlow,sans-serif')}>{v.orderErr}</div>
         ) : null}
         {v.showQuote ? (
           <button disabled={v.sending} onClick={v.sendRfq} className={hv('border-color:var(--color-accent)')} style={S(`margin-top:10px;width:100%;min-height:52px;padding:14px;background:${v.sendBg};color:${v.sendFg};border:1px solid ${v.sendBd};cursor:${v.sendCur};pointer-events:${v.sendPE};opacity:${v.sendOp};font:600 14px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase`)}>{v.sendLabel}</button>

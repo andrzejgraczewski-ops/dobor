@@ -258,7 +258,8 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await addToCart(page);
   await page.getByRole('button', { name: /Dalej →/ }).click();
   await page.getByRole('button', { name: /Dalej →/ }).click();
-  const stuck = await page.locator('text=Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy').isVisible();
+  const PROSBA = 'text=/Popraw (jedno pole|\\d+ (pole|pola|pól)):/';
+  const stuck = await page.locator(PROSBA).isVisible();
   check('bez danych kontaktowych nie da się przejść do płatności', stuck);
   check('brak niepotrzebnej wysyłki', posts.length === 0, posts.length + ' żądań');
 
@@ -269,7 +270,7 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await page.locator('input[placeholder="+48"]').fill('500600700');
   await page.getByRole('button', { name: /Dalej →/ }).click();
   check('sam kontakt bez adresu nie wystarcza przy wysyłce kurierem',
-    await page.locator('text=Uzupełnij imię, nazwisko, e-mail, telefon i adres dostawy').isVisible());
+    await page.locator(PROSBA).isVisible());
 
   await page.locator('input[placeholder="np. 3 Maja 20"]').fill('3 Maja 20');
   await page.locator('input[placeholder="87-640"]').fill('87-640');
@@ -280,16 +281,115 @@ console.log('\n— Wysyłka zamówienia i zapytania (Formspree) —');
   await ctx.close();
 }
 
-// 6. brak akceptacji regulaminu blokuje zamówienie
+// 5b. Formularz ma powiedzieć, CZEGO brakuje i KTÓRE pole jest złe. Właściciel,
+//     24.09.2026: „jak coś nie pasuje, to wyskakuje komunikat wpisz imię nazwisko,
+//     a powinno od razu pokazywać, czego brakuje lub co jest źle, najlepiej
+//     zaznaczać pola". Do tego dnia komunikat był jednym stałym napisem,
+//     wymieniającym wszystkie pola niezależnie od tego, które są wypełnione.
+{
+  const { ctx, page } = await open({ consent: 'no' });
+  await addToCart(page);
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  // wszystko poza telefonem
+  await page.locator('input[placeholder="imię"]').fill('Jan');
+  await page.locator('input[placeholder="nazwisko"]').fill('Testowy');
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example.com');
+  await page.locator('input[placeholder="np. 3 Maja 20"]').fill('3 Maja 20');
+  await page.locator('input[placeholder="87-640"]').fill('87-640');
+  await page.locator('input[placeholder="np. Czernikowo"]').fill('Czernikowo');
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  await page.waitForTimeout(250);
+
+  const t1 = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+  check('komunikat wymienia tylko brakujące pole, a nie wszystkie',
+    /Popraw jedno pole: telefon\./.test(t1) && !/Popraw[^.]*nazwisko/.test(t1),
+    (t1.match(/Popraw[^.]*\./) || ['brak komunikatu'])[0]);
+
+  const zle1 = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')));
+  check('zaznaczone jest dokładnie to jedno pole, którego brakuje',
+    zle1.length === 1 && zle1[0] === 'phone', zle1.join(', ') || 'nic nie zaznaczone');
+  check('pod zaznaczonym polem stoi zdanie, co z nim zrobić',
+    /Podaj numer telefonu/.test(t1));
+
+  // poprawione pole gasi zaznaczenie samo — bez ponownego klikania „Dalej”
+  await page.locator('input[placeholder="+48"]').fill('500600700');
+  await page.waitForTimeout(250);
+  const po = await page.evaluate(() => ({
+    zle: document.querySelectorAll('[data-zle]').length,
+    t: document.body.innerText.replace(/\s+/g, ' '),
+  }));
+  check('poprawione pole gasi zaznaczenie i komunikat bez klikania „Dalej”',
+    po.zle === 0 && !/Popraw /.test(po.t), po.zle + ' zaznaczonych pól');
+
+  // „źle wpisane” to co innego niż „nie wpisane” i ma własne zdanie
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example');
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  await page.waitForTimeout(250);
+  const t2 = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+  const zle2 = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')));
+  check('niepełny adres e-mail jest wskazany jako zły, a nie jako brakujący',
+    /Adres wygląda na niepełny/.test(t2) && zle2.join(',') === 'email',
+    zle2.join(', ') + ' · ' + (t2.match(/Adres wygląda[^.]*/) || ['bez zdania'])[0]);
+
+  // firma bez NIP-u blokowała dopiero na kroku 3 — czyli ekran dalej niż pole
+  await page.locator('input[placeholder="adres@firma.pl"]').fill('jan.testowy@example.com');
+  await page.locator('input[placeholder="nazwa firmy"]').fill('DKM Test');
+  await page.getByRole('button', { name: /Dalej →/ }).click();
+  await page.waitForTimeout(250);
+  const zle3 = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')));
+  const t3 = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+  check('firma bez NIP-u zatrzymuje na kroku 2 i zaznacza pole NIP',
+    zle3.join(',') === 'nip' && /Do faktury podaj NIP/.test(t3),
+    zle3.join(', ') || 'nic nie zaznaczone');
+  await ctx.close();
+}
+
+// 6. Brak akceptacji regulaminu blokuje zamówienie — i klient MUSI to zobaczyć.
+//    Właściciel, 24.09.2026: „klient klika zamawiam i nic się nie dzieje, bo nie
+//    zaznaczył pola, ale on tego nie widzi. Kilku klientów twierdziło, że zamawiali,
+//    a nie dostali nic i do mnie też nic nie wpadło". Komunikat powstawał, tylko
+//    renderował się POD przyciskiem, za akapitem o wysyłce — czyli poza ekranem
+//    telefonu — a samo pole wyboru nie było niczym oznaczone.
 {
   const { ctx, page, posts } = await open({ consent: 'no' });
   await addToCart(page);
   await fillContact(page);
   await page.locator('[data-order-btn]').click();
   await page.waitForTimeout(400);
-  const err = await page.locator('text=/Do złożenia zamówienia brakuje/').isVisible();
-  check('bez akceptacji regulaminu zamówienie nie wychodzi', err && posts.length === 0,
+  check('bez akceptacji regulaminu zamówienie nie wychodzi', posts.length === 0,
     posts.length + ' żądań');
+
+  // 1) pole wyboru jest zaznaczone jako to, czego brakuje
+  const zle = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-zle]')].map((e) => e.getAttribute('data-zle')));
+  check('niezaznaczona akceptacja zaznacza samo pole wyboru',
+    zle.join(',') === 'accept', zle.join(', ') || 'nic nie zaznaczone');
+
+  // 2) komunikat mówi, co zrobić
+  const t = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+  check('komunikat mówi klientowi, co ma zrobić', /Zaznacz to pole, żeby złożyć zamówienie/.test(t),
+    (t.match(/Zaznacz to pole[^.]*\./) || ['brak komunikatu'])[0]);
+
+  // 3) najważniejsze: komunikat stoi NAD przyciskiem i mieści się na ekranie telefonu.
+  //    To jest ta połowa, której brakowało — reszta działała i tak.
+  const geo = await page.evaluate(() => {
+    const btn = document.querySelector('[data-order-btn]');
+    const pole = document.querySelector('[data-zle="accept"]');
+    if (!btn || !pole) return null;
+    const b = btn.getBoundingClientRect(), p = pole.getBoundingClientRect();
+    return { nadPrzyciskiem: p.bottom <= b.top + 1, naEkranie: p.top >= 0 && p.bottom <= window.innerHeight };
+  });
+  check('zaznaczone pole jest nad przyciskiem i widoczne bez przewijania',
+    !!geo && geo.nadPrzyciskiem && geo.naEkranie, JSON.stringify(geo));
+
+  // 4) zaznaczenie gasi ostrzeżenie i zamówienie idzie
+  await page.locator('[data-zle="accept"]').click();
+  await page.waitForTimeout(200);
+  const po = await page.evaluate(() => document.querySelectorAll('[data-zle]').length);
+  check('zaznaczenie pola gasi ostrzeżenie', po === 0, po + ' zaznaczonych');
   await ctx.close();
 }
 
