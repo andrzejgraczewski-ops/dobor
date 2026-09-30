@@ -1,12 +1,12 @@
 /* DKM — ceny netto i dostępność.
-   Wygenerowane automatycznie z raportu magazynowego: 29.09.2026
+   Wygenerowane automatycznie z raportu magazynowego: 30.09.2026
    NIE EDYTOWAĆ RĘCZNIE — plik jest nadpisywany codziennie.
 
    Stany podawane są jako 0/1 (nie ma / jest) — liczba sztuk
    celowo nie opuszcza magazynu.
 */
 window.DKM_PRICE = {
-  updated: 'stan na 29.09.2026',
+  updated: 'stan na 30.09.2026',
   var: {
   'DKM025|56B14|5|0.06|1400': [125,0,null,0,null,0,2,''],
   'DKM025|56B14|7.5|0.06|1400': [125,0,null,0,null,0,2,''],
@@ -974,7 +974,7 @@ window.DKM_PRICE = {
   'DKM050|80B5|40|0.75|2800': [260,0,null,0,null,0,2,''],
   'DKM050|80B14|40|0.75|2800': [260,1,350,1,610,1,0,'0,75 2 80B14 DKM'],
   'DKM050|80B5|50|0.75|2800': [null,0,null,0,null,0,2,''],
-  'DKM050|80B14|50|0.75|2800': [0,1,350,1,350,1,0,'0,75 2 80B14 DKM'],
+  'DKM050|80B14|50|0.75|2800': [260,1,350,1,610,1,0,'0,75 2 80B14 DKM'],
   'DKM063|80B5|15|0.75|2800': [340,1,null,0,null,0,2,''],
   'DKM063|80B14|15|0.75|2800': [340,1,350,1,690,1,0,'0,75 2 80B14 DKM'],
   'DKM063|80B5|20|0.75|2800': [340,1,null,0,null,0,2,''],
