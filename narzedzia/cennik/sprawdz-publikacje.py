@@ -13,9 +13,18 @@ Jedynym wiarygodnym dowodem jest więc to, co naprawdę leży pod adresem strony
 `postbuild.mjs` wpisuje do mapy strony datę raportu magazynowego, nie dzień
 budowania — czyli dokładnie tę liczbę, którą trzeba porównać.
 
-Zmienne środowiskowe (obie wyłącznie na potrzeby testów):
-  SPRAWDZ_ADRES  — adres mapy strony; domyślnie produkcyjny
+Wywołanie:
+  sprawdz-publikacje.py          sprawdza i kończy błędem, gdy się nie zgadza
+  sprawdz-publikacje.py --data   wypisuje samą oczekiwaną datę (RRRR-MM-DD)
+
+Zmienne środowiskowe:
+  SPRAWDZ_OCZEKIWANA — data do porównania (RRRR-MM-DD). Podaje ją zadanie
+      publikujące, bo ono NIE ma w swoim checkoucie commitu zrobionego przed
+      chwilą przez zadanie liczące cennik — odczytane z pliku byłoby wczorajsze.
+      Bez niej skrypt czyta datę z price-data.js, co wystarcza przy ręcznym użyciu.
+  SPRAWDZ_ADRES  — adres mapy strony; domyślnie produkcyjny (do testów)
   SPRAWDZ_PROBY  — ile razy pytać, domyślnie 6 (publikacja chwilę się rozchodzi)
+  SPRAWDZ_ODSTEP — odstęp między próbami w sekundach, domyślnie 10 (do testów)
 """
 import os
 import re
@@ -57,8 +66,22 @@ def data_ze_strony(adres):
     return m.group(1) if m else None
 
 
+def oczekiwana_data():
+    """Data przekazana przez zadanie publikujące, a w jej braku — z pliku cennika."""
+    z_srodowiska = (os.environ.get('SPRAWDZ_OCZEKIWANA') or '').strip()
+    if z_srodowiska:
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', z_srodowiska):
+            sys.exit('BŁĄD: SPRAWDZ_OCZEKIWANA ma być w postaci RRRR-MM-DD, a jest: '
+                     + z_srodowiska)
+        return z_srodowiska
+    return data_z_cennika(CENNIK)
+
+
 def main():
-    oczekiwana = data_z_cennika(CENNIK)
+    if '--data' in sys.argv:
+        print(oczekiwana_data())
+        return 0
+    oczekiwana = oczekiwana_data()
     ostatni_blad = None
     for proba in range(1, PROBY + 1):
         try:

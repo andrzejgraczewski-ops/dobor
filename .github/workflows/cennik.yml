@@ -38,11 +38,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Pobranie raportu, przeliczenie cennika, commit i zbudowanie paczki.
+  #
+  # To zadanie celowo NIE deklaruje `environment`. Do 24.11.2026 środowisko
+  # `github-pages` stało na całym zadaniu, więc blokada wdrożenia zatrzymywała
+  # je PRZED pierwszym krokiem: w październiku przez cztery dni nie pobierał się
+  # nawet raport z Optimy, choć z publikacją nie miało to nic wspólnego — cennik
+  # zamarł na starych danych, a przyczyna leżała w zupełnie innym miejscu.
+  # Teraz blokada wdrożenia może wstrzymać najwyżej samą publikację; cennik
+  # przeliczy się i trafi do repozytorium niezależnie od niej.
   cennik:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.publikacja.outputs.page_url }}
+    outputs:
+      # data w postaci RRRR-MM-DD dla zadania publikującego — ono nie ma w swoim
+      # checkoucie commitu zrobionego przed chwilą tutaj, więc z pliku odczytałoby
+      # datę wczorajszą i sprawdzałoby nie to, co trzeba
+      data: ${{ steps.zmiana.outputs.data }}
     steps:
       - uses: actions/checkout@v7
 
@@ -70,6 +81,7 @@ jobs:
       - id: zmiana
         run: |
           rm -f raport.xlsx
+          echo "data=$(python3 narzedzia/cennik/sprawdz-publikacje.py --data)" >> "$GITHUB_OUTPUT"
           if git diff --quiet -- app/src/data/price-data.js; then
             echo "jest=nie" >> "$GITHUB_OUTPUT"
             echo "Cennik bez zmian — nowego commitu nie będzie, ale publikuję stan repozytorium."
@@ -108,6 +120,19 @@ jobs:
         with:
           path: app/dist
 
+  # Publikacja — jedyne zadanie ze środowiskiem `github-pages`, czyli jedyne,
+  # które blokada wdrożenia potrafi zatrzymać. `deploy-pages` odnajduje paczkę
+  # wgraną przez zadanie wyżej w tym samym przebiegu; to jest zwykły układ,
+  # jaki GitHub zaleca dla Pages.
+  publikacja:
+    needs: cennik
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publikacja.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
       - id: publikacja
         uses: actions/deploy-pages@v5
 
@@ -115,5 +140,10 @@ jobs:
       # wpis wdrożenia w API tego nie dowodzą: wpis powstaje przy starcie zadania
       # i zamyka się razem z nim, także wtedy, gdy publikacja została pominięta.
       # Jedynym dowodem jest data, która naprawdę leży pod adresem strony.
+      #
+      # Data przychodzi z zadania liczącego cennik, a nie z checkoutu: tutejszy
+      # checkout nie zawiera commitu zrobionego przed chwilą w tamtym zadaniu.
       - name: Sprawdź, że strona naprawdę ma te dane
+        env:
+          SPRAWDZ_OCZEKIWANA: ${{ needs.cennik.outputs.data }}
         run: python3 narzedzia/cennik/sprawdz-publikacje.py

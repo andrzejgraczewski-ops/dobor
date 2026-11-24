@@ -130,11 +130,43 @@ odpowiada (pada, nie wiesza się), mapa strony bez `<lastmod>` (pada). Adres
 i liczbę prób da się podmienić zmiennymi `SPRAWDZ_ADRES`, `SPRAWDZ_PROBY`
 i `SPRAWDZ_ODSTEP` — wyłącznie do testów.
 
-**Czego to nie naprawia:** `environment: github-pages` nadal stoi na **całym
-zadaniu**, więc blokada wdrożenia zatrzymuje job przed pierwszym krokiem — tak
-jak w październiku, gdy przez cztery dni nie pobierał się nawet raport. Żeby
-cennik przeliczał się mimo zablokowanej publikacji, trzeba rozdzielić zadanie
-na dwa. To osobna, większa zmiana i nie jest zrobiona.
+### Dwa zadania: liczenie cennika osobno, publikacja osobno — 24.11.2026
+
+Do tego dnia `environment: github-pages` stało na **całym zadaniu**. Skutek
+zobaczyliśmy w październiku: zablokowane wdrożenie zatrzymało job **przed
+pierwszym krokiem**, więc przez cztery dni nie pobierał się nawet raport
+z Optimy — a z publikacją nie miało to nic wspólnego. Cennik zamarł na starych
+danych, a przyczyna leżała w zupełnie innym miejscu niż objaw.
+
+Teraz workflow ma dwa zadania:
+
+| | `cennik` | `publikacja` |
+|---|---|---|
+| `environment` | **brak** | `github-pages` |
+| co robi | poczta, przeliczenie, commit, budowa, wgranie paczki | `deploy-pages` i sprawdzenie strony |
+| co zatrzyma blokada wdrożenia | **nic** | tylko to zadanie |
+
+Blokada wdrożenia może więc dziś wstrzymać najwyżej samą publikację. Cennik
+i tak się przeliczy i trafi do repozytorium, a opublikuje się przy najbliższym
+przebiegu po ustąpieniu blokady — bo publikacja jest bezwarunkowa.
+
+`deploy-pages` odnajduje paczkę wgraną przez pierwsze zadanie w tym samym
+przebiegu; to zwykły układ, jaki GitHub zaleca dla Pages.
+
+**Pułapka, przez którą data idzie przez `outputs`, a nie z pliku.** Zadanie
+publikujące ma własny checkout, i to checkout **sprzed** commitu, który chwilę
+wcześniej zrobiło zadanie liczące cennik. Gdyby `sprawdz-publikacje.py` czytał
+tam datę z `price-data.js`, porównywałby **wczorajszą** datę z dzisiejszą stroną
+i orzekał porażkę przy każdej udanej publikacji. Dlatego pierwsze zadanie
+wypisuje datę przez `sprawdz-publikacje.py --data` do `outputs.data`, a drugie
+dostaje ją w `SPRAWDZ_OCZEKIWANA`. Bez tej zmiennej skrypt czyta plik — co
+wystarcza przy ręcznym uruchomieniu.
+
+Sprawdzone na lokalnym serwerze, sześć przypadków: data zgodna przechodzi; data
+starsza (awaria z 24.11) pada; strona nie odpowiada — pada, nie wiesza się; mapa
+strony bez `<lastmod>` pada; **data przekazana wygrywa z plikiem** i przechodzi,
+gdy zgadza się ze stroną; ta sama data przekazana pada, gdy strona ma inną.
+Zła postać `SPRAWDZ_OCZEKIWANA` jest odrzucana od razu, z komunikatem.
 
 ## Co skąd pochodzi
 
