@@ -65,12 +65,14 @@ jobs:
       - name: Przelicz cennik
         run: python3 narzedzia/cennik/generuj.py raport.xlsx
 
+      # Warunek pilnuje już TYLKO commitu — pustych commitów nie robimy.
+      # Publikacja niżej jest bezwarunkowa; dlaczego, mówi komentarz przy niej.
       - id: zmiana
         run: |
           rm -f raport.xlsx
           if git diff --quiet -- app/src/data/price-data.js; then
             echo "jest=nie" >> "$GITHUB_OUTPUT"
-            echo "Cennik bez zmian — nie publikuję."
+            echo "Cennik bez zmian — nowego commitu nie będzie, ale publikuję stan repozytorium."
           else
             echo "jest=tak" >> "$GITHUB_OUTPUT"
           fi
@@ -84,18 +86,34 @@ jobs:
           git commit -m "Cennik: $(sed -n "s/.*updated: 'stan na \(.*\)',/\1/p" app/src/data/price-data.js)"
           for p in 1 2 3 4; do git push && break || sleep $((2**p)); done
 
+      # Budowa i publikacja idą ZAWSZE, także gdy cennik się nie zmienił.
+      #
+      # 24 listopada 2026 `deploy-pages` padł na usterce GitHuba, a cennik był już
+      # zapisany w repozytorium. Oba ręczne ponowienia zastały identyczny plik,
+      # więc warunek „plik się zmienił" pomijał im publikację — i kończyły się
+      # na zielono, nie publikując nic. Ratunek, który zaleca sam GitHub
+      # („re-run the deployment at a later time"), był przez ten warunek
+      # niewykonalny, a dane z tamtego dnia nie dotarły do klientów wcale.
+      #
+      # Bezwarunkowa publikacja kosztuje `npm ci` i wgranie tej samej treści
+      # dwa razy dziennie, a daje to, że nieudana publikacja naprawia się sama
+      # przy najbliższym z pozostałych przebiegów tego samego dnia.
       - name: Zbuduj aplikację
-        if: steps.zmiana.outputs.jest == 'tak'
         working-directory: app
         run: |
           npm ci
           npm run build:dkm
 
       - uses: actions/upload-pages-artifact@v5
-        if: steps.zmiana.outputs.jest == 'tak'
         with:
           path: app/dist
 
       - id: publikacja
-        if: steps.zmiana.outputs.jest == 'tak'
         uses: actions/deploy-pages@v5
+
+      # Dopiero to orzeka, że przebieg się udał. Ani zielony krok publikacji, ani
+      # wpis wdrożenia w API tego nie dowodzą: wpis powstaje przy starcie zadania
+      # i zamyka się razem z nim, także wtedy, gdy publikacja została pominięta.
+      # Jedynym dowodem jest data, która naprawdę leży pod adresem strony.
+      - name: Sprawdź, że strona naprawdę ma te dane
+        run: python3 narzedzia/cennik/sprawdz-publikacje.py

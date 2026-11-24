@@ -82,6 +82,60 @@ Token wygasa po roku od 8 września 2026. **Po wygaśnięciu automat zamilknie
 tak samo cicho jak harmonogram GitHuba** — warto o tym przypomnieć
 właścicielowi latem 2027.
 
+### Publikacja jest bezwarunkowa i sprawdzana — 24.11.2026
+
+Do 24 listopada warunek `steps.zmiana.outputs.jest == 'tak'` pilnował **czterech**
+kroków naraz: zapisu, budowy, wgrania paczki i publikacji. Tego dnia wyszło, co
+to znaczy.
+
+Przebieg o 3:37 pobrał raport, przeliczył cennik i **zapisał go w repozytorium**,
+po czym `deploy-pages` padł na usterce GitHuba:
+
+```
+##[error] Fetching artifact metadata failed. … Please re-run the deployment
+         at a later time.
+##[error] Error: No artifacts named "github-pages" were found for this
+         workflow run.
+```
+
+Właściciel ponowił przebieg dwa razy. **Oba ponowienia zastały identyczny plik**
+— cennik był już zapisany — więc warunek pominął im zapis, budowę, wgranie
+i publikację. Zakończyły się **na zielono, nie publikując nic.** Ratunek, który
+zaleca sam GitHub, był przez ten warunek niewykonalny, a dane z 24.11 nie
+dotarły do klientów wcale: strona została na 23.11 do następnego dnia.
+
+Poprawione dwiema rzeczami:
+
+- **warunek pilnuje już tylko commitu** (pustych commitów nie robimy), a budowa,
+  wgranie i publikacja idą **zawsze**. Kosztuje to `npm ci` i wgranie tej samej
+  treści dwa razy dziennie, a daje to, że nieudana publikacja **naprawia się sama**
+  przy najbliższym z pozostałych przebiegów tego samego dnia — tamtego ranka
+  wystarczyłby przebieg o 9:xx;
+- **`narzedzia/cennik/sprawdz-publikacje.py`** pobiera `sitemap.xml` z żywej
+  strony i porównuje `<lastmod>` z datą w `price-data.js`. Gdy się nie zgadza —
+  kończy przebieg błędem, więc GitHub wysyła maila o nieudanym przebiegu.
+
+**Zielony krok publikacji ani wpis wdrożenia w API NIE dowodzą, że coś
+opublikowano.** Zadanie deklaruje `environment: github-pages`, więc GitHub
+zakłada wpis wdrożenia przy starcie zadania i zamyka go jako `success` razem
+z zadaniem — także wtedy, gdy krok publikacji został pominięty. 24 listopada oba
+puste ponowienia mają w API `success`. Przez kilka tygodni meldowałem udaną
+publikację właśnie na podstawie tego wpisu; **wnioski bywały trafne, ale dowód
+był bezwartościowy.** Prawdziwy sygnał to wynik kroku `deploy-pages`, a od teraz
+— wynik `sprawdz-publikacje.py`, bo tylko on patrzy na to, co widzi klient.
+
+Skrypt sprawdzony na lokalnym serwerze w czterech przypadkach: data zgodna
+(przechodzi), data starsza — czyli dokładnie awaria z 24.11 (pada), strona nie
+odpowiada (pada, nie wiesza się), mapa strony bez `<lastmod>` (pada). Adres
+i liczbę prób da się podmienić zmiennymi `SPRAWDZ_ADRES`, `SPRAWDZ_PROBY`
+i `SPRAWDZ_ODSTEP` — wyłącznie do testów.
+
+**Czego to nie naprawia:** `environment: github-pages` nadal stoi na **całym
+zadaniu**, więc blokada wdrożenia zatrzymuje job przed pierwszym krokiem — tak
+jak w październiku, gdy przez cztery dni nie pobierał się nawet raport. Żeby
+cennik przeliczał się mimo zablokowanej publikacji, trzeba rozdzielić zadanie
+na dwa. To osobna, większa zmiana i nie jest zrobiona.
+
 ## Co skąd pochodzi
 
 Raport magazynowy daje **ceny netto i ilości**. Nie wie natomiast, który silnik
